@@ -16,9 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.DopamiNah.R
 import co.edu.unicauca.DopamiNah.ui.theme.*
 
 @Composable
@@ -65,14 +67,22 @@ fun HeaderSection() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
+                    Row {
+                        Text(
+                            text = stringResource(R.string.app_halfname1),
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = stringResource(R.string.app_halfname2),
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = DopaminahOrange
+                        )
+                    }
                     Text(
-                        text = "DopamiNah",
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Tu asistente de bienestar digital",
+                        text = stringResource(R.string.app_description),
                         fontSize = 14.sp,
                         color = Color.White.copy(alpha = 0.8f)
                     )
@@ -86,7 +96,7 @@ fun HeaderSection() {
                         .background(Color.White),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🧠", fontSize = 24.sp)
+                    Text("🧠", fontSize = 24.sp) //TODO: Add the REAL LOGO
                 }
             }
 
@@ -110,20 +120,20 @@ fun HeaderSection() {
                             Text("🔥", fontSize = 40.sp, modifier = Modifier.padding(end = 12.dp))
                             Column {
                                 Text(
-                                    "RACHA ACTUAL",
+                                    stringResource(R.string.dashboard_streak),
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        "7",
+                                        "7", // TODO: Replace with streak value
                                         color = Color.White,
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.ExtraBold
                                     )
                                     Text(
-                                        " días consecutivos",
+                                        stringResource(R.string.dashboard_streaks_days),
                                         color = Color.White,
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
@@ -141,13 +151,14 @@ fun HeaderSection() {
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Nivel", color = Color.White, fontSize = 12.sp)
-                                Text("5", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.dashboard_level), color = Color.White, fontSize = 12.sp)
+                                Text("5", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold) //TODO: Replace with level value
+
                             }
                         }
                     }
                     
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(vertical = 12.dp))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -162,7 +173,7 @@ fun HeaderSection() {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "¡Increíble! Mantén el impulso",
+                            stringResource(R.string.motivational_message),
                             color = Color.White,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
@@ -190,7 +201,7 @@ fun DailyUnlocksCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Desbloqueos de Hoy",
+                    stringResource(R.string.dashboard_unlocks),
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -206,14 +217,14 @@ fun DailyUnlocksCard() {
             
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "70",
+                    "70", //TODO: Replace with unlocks value
                     color = DopaminahRedText,
                     fontSize = 64.sp,
                     fontWeight = FontWeight.ExtraBold,
                     lineHeight = 64.sp
                 )
                 Text(
-                    " veces",
+                    stringResource(R.string.dashboard_unlocks_times),
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -230,7 +241,7 @@ fun DailyUnlocksCard() {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "↗ +24 vs ayer",
+                    "↗ +24 vs ayer", //TODO: Replace with current difference
                     color = DopaminahRedText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
@@ -268,7 +279,7 @@ fun MostUsedAppsSection() {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Apps Más Usadas",
+                    text = stringResource(R.string.dashboard_most_used_apps),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = TextPrimary
@@ -281,7 +292,7 @@ fun MostUsedAppsSection() {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar app...", color = TextSecondary) },
+                placeholder = { Text(stringResource(R.string.search_app), color = TextSecondary) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = DopaminahPurple)
                 },
@@ -307,7 +318,7 @@ fun MostUsedAppsSection() {
                     colors = ButtonDefaults.buttonColors(containerColor = DopaminahPurple),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("↓ Más usado", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.search_filter_most_used), fontWeight = FontWeight.Bold)
                 }
                 
                 Button(
@@ -320,13 +331,13 @@ fun MostUsedAppsSection() {
                     shape = RoundedCornerShape(12.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
-                    Text("↑ Menos usado", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.search_filter_least_used), fontWeight = FontWeight.Bold)
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Mock List Items
+            // TODO: Replace with a real list of apps
             AppUsageItemMock("Twitter", "1h 31m", Color(0xFF1DA1F2))
             AppUsageItemMock("WhatsApp", "1h 17m", Color(0xFF25D366))
             AppUsageItemMock("YouTube", "1h 5m", Color(0xFFFF0000))

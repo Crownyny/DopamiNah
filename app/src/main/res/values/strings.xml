@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">DopamiNah</string>
+    <string name="app_description">Tu asistente de bienestar digital</string>
+    <string name="app_halfname2">Nah</string>
+    <string name="app_halfname1">Dopami</string>
+    <string name="dashboard_streak">RACHA ACTUAL</string>
+    <string name="dashboard_streaks_days">" días consecutivos"</string>
+    <string name="dashboard_level">Nivel</string>
+    <string name="motivational_message">¡Increíble! Mantén el impulso</string>
+    <string name="dashboard_unlocks">Desbloqueos de Hoy</string>
+    <string name="dashboard_unlocks_times">" veces"</string>
+    <string name="dashboard_most_used_apps">Apps Más Usadas</string>
+    <string name="search_app">Buscar app...</string>
+    <string name="search_filter_most_used">↓ Más usado</string>
+    <string name="search_filter_least_used">↑ Menos usado</string>
 </resources>
