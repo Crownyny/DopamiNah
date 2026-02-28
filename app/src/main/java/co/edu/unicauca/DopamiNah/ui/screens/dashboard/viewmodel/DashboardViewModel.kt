@@ -22,7 +22,7 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadGamificationStats()
-        incrementStreak()
+        checkAndIncrementStreak()
     }
 
     private fun loadGamificationStats() {
@@ -37,7 +37,7 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    private fun incrementStreak() {
+    fun checkAndIncrementStreak() {
         viewModelScope.launch {
             gamificationRepository.incrementStreakAndPoints()
         }
