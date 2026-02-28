@@ -45,6 +45,10 @@ import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
+import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.OnboardingActionButton
+import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.OnboardingHeader
+import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.PermissionPageContent
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingPermissionScreen(
@@ -97,34 +101,11 @@ fun OnboardingPermissionScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header with Stepper
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Configuración",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DopaminahPurpleDark
-                )
-                
-                // Indicators
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    repeat(3) { index ->
-                        Box(
-                            modifier = Modifier
-                                .width(if (pagerState.currentPage == index) 24.dp else 24.dp)
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(if (pagerState.currentPage == index) DopaminahPurple else Color.LightGray.copy(alpha=0.5f))
-                        )
-                    }
-                }
-            }
+            // Modularized Header with Stepper
+            OnboardingHeader(
+                currentPage = pagerState.currentPage,
+                totalPages = 3
+            )
 
             HorizontalPager(
                 state = pagerState,
@@ -137,7 +118,7 @@ fun OnboardingPermissionScreen(
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
 
-                    // Content based on page
+                    // Content based on page using Modular Component
                     when(page) {
                         0 -> {
                             // Step 1: Apps Usage
@@ -172,8 +153,9 @@ fun OnboardingPermissionScreen(
                 }
             }
             
-            // Action Button
-            Button(
+            // Modularized Action Button
+            OnboardingActionButton(
+                text = if (pagerState.currentPage == 2) stringResource(R.string.onboarding_permission_button) else stringResource(R.string.onboarding_next_button),
                 onClick = {
                     when (pagerState.currentPage) {
                         0 -> {
@@ -195,108 +177,10 @@ fun OnboardingPermissionScreen(
                             context.startActivity(intent)
                         }
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DopaminahPurple)
-            ) {
-                Text(
-                    text = if (pagerState.currentPage == 2) stringResource(R.string.onboarding_permission_button) else stringResource(R.string.onboarding_next_button),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
+                }
+            )
             
             Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-fun PermissionPageContent(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconTint: Color,
-    title: String,
-    description: String
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Main Icon
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(DopaminahPurple.copy(alpha = 0.2f)), // Adjusted matching the unified purple background circle
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(48.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Title
-        Text(
-            text = title,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = DopaminahPurpleDark,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Description
-        Text(
-            text = description,
-            fontSize = 16.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Security Badge
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(DopaminahPurple.copy(alpha = 0.05f))
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Left Border Accent
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(48.dp)
-                    .background(DopaminahPurple)
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Icon(
-                imageVector = Icons.Outlined.Shield,
-                contentDescription = "Shield",
-                tint = DopaminahPurple,
-                modifier = Modifier.size(24.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Text(
-                text = stringResource(R.string.onboarding_permission_badge),
-                fontSize = 12.sp,
-                color = DopaminahPurpleDark,
-                lineHeight = 16.sp
-            )
         }
     }
 }
