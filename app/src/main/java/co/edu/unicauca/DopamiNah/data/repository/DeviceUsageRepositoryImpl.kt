@@ -47,6 +47,64 @@ class DeviceUsageRepositoryImpl(
             }.sortedByDescending { it.totalTimeForegroundMillis }
     }
 
+    override suspend fun getDailyDeviceUnlocks(): Int = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission()) return@withContext 0
+        
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        countDeviceUnlocks(startTime, endTime)
+    }
+
+    override suspend fun getYesterdayDeviceUnlocks(): Int = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission()) return@withContext 0
+
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val endTime = calendar.timeInMillis
+        
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val startTime = calendar.timeInMillis
+
+        countDeviceUnlocks(startTime, endTime)
+    }
+
+    private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {
+        var count = 0
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = android.app.usage.UsageEvents.Event()
+        var lastEventTime = 0L
+        
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            // EventType 15 is SCREEN_INTERACTIVE (Device wake up / unlock)
+            // EventType 18 is KEYGUARD_HIDDEN (Unlock)
+            // EventType 1 is ACTIVITY_RESUMED
+            
+            // If the device doesn't reliably send 15 or 18, we can infer a "session start"
+            // if an activity is resumed and it has been at least 1 minute since the last resumed activity.
+            if (event.eventType == 15 || event.eventType == 18) {
+                 if (event.eventType == 15) count++
+            } else if (event.eventType == 1) { // ACTIVITY_RESUMED
+                // Backup metric: if no screen interactive events were counted, 
+                // we treat resumed activities with a gap > 5 mins as a new 'unlock/session'
+                if (event.timeStamp - lastEventTime > 5 * 60 * 1000) {
+                    count++
+                }
+                lastEventTime = event.timeStamp
+            }
+        }
+        return count
+    }
+
     override fun hasUsageStatsPermission(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

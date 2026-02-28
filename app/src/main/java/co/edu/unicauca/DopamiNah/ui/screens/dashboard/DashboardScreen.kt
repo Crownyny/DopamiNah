@@ -24,12 +24,15 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val gamificationStats by viewModel.gamificationState.collectAsState()
+    val dailyUnlocks by viewModel.dailyUnlocks.collectAsState()
+    val yesterdayUnlocks by viewModel.yesterdayUnlocks.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.checkAndIncrementStreak()
+                viewModel.refreshStats()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -45,9 +48,9 @@ fun DashboardScreen(
     ) {
         // App Bar / Header region passing the dynamic stats
         HeaderSection(gamificationStats = gamificationStats)
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Main content area
         LazyColumn(
             modifier = Modifier
@@ -56,7 +59,13 @@ fun DashboardScreen(
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {
-                DailyUnlocksCard()
+                val hasPermission by viewModel.hasUsagePermission.collectAsState()
+                val context = androidx.compose.ui.platform.LocalContext.current
+
+                DailyUnlocksCard(
+                    dailyUnlocks = dailyUnlocks,
+                    yesterdayUnlocks = yesterdayUnlocks
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 MostUsedAppsSection()
             }

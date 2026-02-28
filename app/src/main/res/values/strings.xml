@@ -13,4 +13,21 @@
     <string name="search_app">Buscar app...</string>
     <string name="search_filter_most_used">↓ Más usado</string>
     <string name="search_filter_least_used">↑ Menos usado</string>
+    <string name="streak_lvl_0">¿Listo para empezar el reto? 💪</string>
+    <string name="streak_lvl_1">¡Excelente inicio! Sigue así 🌱</string>
+    <string name="streak_lvl_2">¡Sigue esforzándote! 🚀</string> <!-- Your R.string.motivational_message -->
+    <string name="streak_lvl_3">¡Imparable! Tienes un autocontrol de hierro 🔥</string>
+    <string name="streak_lvl_4">¡Maestro Zen! Eres una inspiración 🧘</string>
+    <string name="onboarding_permission_title">Accesibilidad</string>
+    <string name="onboarding_permission_desc">Detectaremos cuando desbloqueas tu teléfono para llevar un conteo preciso.</string>
+    <string name="onboarding_permission_badge">Tus datos se almacenan de forma segura en tu dispositivo. No compartimos información con terceros.</string>
+    <string name="onboarding_permission_button">Comenzar</string>
+
+    <string name="onboarding_apps_title">Uso de Aplicaciones</string>
+    <string name="onboarding_apps_desc">Necesitamos monitorear el tiempo que usas tus aplicaciones para darte estadísticas precisas.</string>
+
+    <string name="onboarding_notif_title">Notificaciones</string>
+    <string name="onboarding_notif_desc">Te enviaremos recordatorios motivacionales cuando estés cerca de superar tus metas.</string>
+    
+    <string name="onboarding_next_button">Continuar</string>
 </resources>

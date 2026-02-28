@@ -9,28 +9,57 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import co.edu.unicauca.DopamiNah.ui.screens.dashboard.DashboardScreen
+import co.edu.unicauca.DopamiNah.ui.screens.onboarding.OnboardingPermissionScreen
 import co.edu.unicauca.DopamiNah.ui.theme.DopaminahPurple
+import co.edu.unicauca.DopamiNah.data.repository.DeviceUsageRepositoryImpl
 
 @Composable
 fun DopamiNahApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    
+    // Quick check to determine the initial route
+    val hasPermission = remember { 
+        DeviceUsageRepositoryImpl(context).hasUsageStatsPermission() 
+    }
+
+    val startRoute = if (hasPermission) Screen.Dashboard.route else Screen.OnboardingPermission.route
 
     Scaffold(
-        bottomBar = { DopamiNahBottomBar(navController = navController) }
+        bottomBar = { 
+            // Only show bottom bar if we are not in onboarding
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+            if (currentRoute != Screen.OnboardingPermission.route) {
+                DopamiNahBottomBar(navController = navController) 
+            }
+        }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Dashboard.route,
+            startDestination = startRoute,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Screen.OnboardingPermission.route) {
+                OnboardingPermissionScreen(
+                    onPermissionGranted = {
+                        navController.navigate(Screen.Dashboard.route) {
+                            popUpTo(Screen.OnboardingPermission.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable(Screen.Dashboard.route) {
                 DashboardScreen()
             }

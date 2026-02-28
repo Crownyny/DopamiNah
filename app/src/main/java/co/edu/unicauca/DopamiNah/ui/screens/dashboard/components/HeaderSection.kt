@@ -127,13 +127,13 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                     }
                     
                     HorizontalDivider(color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(vertical = 12.dp))
-                    
-                    val streakMessage = when(gamificationStats.currentPoints) {
-                        0, 1 -> "¿Listo para empezar el reto? 💪"
-                        in 2..4 -> "¡Excelente inicio! Sigue así 🌱"
-                        in 5..10 -> stringResource(R.string.motivational_message)
-                        in 11..30 -> "¡Imparable! Tienes un autocontrol de hierro 🔥"
-                        else -> "¡Maestro Zen! Eres una inspiración 🧘"
+
+                    val streakMessage = when {
+                        gamificationStats.currentPoints <= 1 -> stringResource(R.string.streak_lvl_0)
+                        gamificationStats.currentPoints <= 4 -> stringResource(R.string.streak_lvl_1)
+                        gamificationStats.currentPoints <= 10 -> stringResource(R.string.streak_lvl_2)
+                        gamificationStats.currentPoints <= 30 -> stringResource(R.string.streak_lvl_3)
+                        else -> stringResource(R.string.streak_lvl_4)
                     }
 
                     Row(

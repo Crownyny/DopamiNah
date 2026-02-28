@@ -19,7 +19,7 @@ import co.edu.unicauca.DopamiNah.R
 import co.edu.unicauca.DopamiNah.ui.theme.*
 
 @Composable
-fun DailyUnlocksCard() {
+fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DopaminahRedDark),
@@ -50,7 +50,7 @@ fun DailyUnlocksCard() {
             
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "70", //TODO: Replace with unlocks value
+                    "$dailyUnlocks",
                     color = DopaminahRedText,
                     fontSize = 64.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -67,6 +67,15 @@ fun DailyUnlocksCard() {
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            val diff = dailyUnlocks - yesterdayUnlocks
+            val diffText = when {
+                diff > 0 -> "↗ +$diff vs ayer"
+                diff < 0 -> "↘ $diff vs ayer"
+                else -> "= Igual que ayer"
+            }
+            
+            val diffColor = if (diff <= 0) SuccessGreen else DopaminahRedText
+
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -74,8 +83,8 @@ fun DailyUnlocksCard() {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "↗ +24 vs ayer", //TODO: Replace with current difference
-                    color = DopaminahRedText,
+                    diffText,
+                    color = diffColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
