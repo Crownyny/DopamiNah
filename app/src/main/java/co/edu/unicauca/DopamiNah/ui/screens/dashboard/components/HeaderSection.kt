@@ -16,10 +16,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.DopamiNah.R
+import co.edu.unicauca.DopamiNah.domain.model.UserGamificationStats
 import co.edu.unicauca.DopamiNah.ui.theme.*
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(gamificationStats: UserGamificationStats) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -42,7 +43,7 @@ fun HeaderSection() {
                             color = Color.White
                         )
                         Text(
-                            text = stringResource(R.string.app_halfname1),
+                            text = stringResource(R.string.app_halfname2),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = DopaminahOrange
@@ -84,7 +85,8 @@ fun HeaderSection() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🔥", fontSize = 40.sp, modifier = Modifier.padding(end = 12.dp))
+                            val streakIcon = if (gamificationStats.currentPoints >= 5) "🔥" else "🌱" 
+                            Text(streakIcon, fontSize = 40.sp, modifier = Modifier.padding(end = 12.dp))
                             Column {
                                 Text(
                                     stringResource(R.string.dashboard_streak),
@@ -94,7 +96,7 @@ fun HeaderSection() {
                                 )
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        "7", // TODO: Replace with streak value
+                                        gamificationStats.currentPoints.toString(),
                                         color = Color.White,
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.ExtraBold
@@ -119,13 +121,21 @@ fun HeaderSection() {
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(stringResource(R.string.dashboard_level), color = Color.White, fontSize = 12.sp)
-                                Text("5", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold) //TODO: Replace with level value
+                                Text("${gamificationStats.level}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                     
                     HorizontalDivider(color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(vertical = 12.dp))
                     
+                    val streakMessage = when(gamificationStats.currentPoints) {
+                        0, 1 -> "¿Listo para empezar el reto? 💪"
+                        in 2..4 -> "¡Excelente inicio! Sigue así 🌱"
+                        in 5..10 -> stringResource(R.string.motivational_message)
+                        in 11..30 -> "¡Imparable! Tienes un autocontrol de hierro 🔥"
+                        else -> "¡Maestro Zen! Eres una inspiración 🧘"
+                    }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -139,7 +149,7 @@ fun HeaderSection() {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.motivational_message),
+                            streakMessage,
                             color = Color.White,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
