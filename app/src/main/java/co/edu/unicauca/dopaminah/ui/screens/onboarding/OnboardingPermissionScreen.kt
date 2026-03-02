@@ -22,6 +22,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
+import co.edu.unicauca.dopaminah.R
 
 import android.Manifest
 import android.os.Build
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import android.app.Activity
 
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingPermissionScreen(
@@ -58,7 +60,6 @@ fun OnboardingPermissionScreen(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }

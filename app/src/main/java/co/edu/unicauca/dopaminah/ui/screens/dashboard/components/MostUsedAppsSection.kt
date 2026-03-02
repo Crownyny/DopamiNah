@@ -1,14 +1,37 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,15 +40,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.unicauca.dopaminah.ui.theme.*
+import co.edu.unicauca.dopaminah.R
 
 @Composable
 fun MostUsedAppsSection() {
     var searchQuery by remember { mutableStateOf("") }
-    
+    val colorScheme = MaterialTheme.colorScheme
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -35,13 +59,13 @@ fun MostUsedAppsSection() {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(DopaminahPurpleLight),
+                        .background(colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star, // Target icon abstraction
+                        imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = DopaminahPurple,
+                        tint = colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -50,32 +74,32 @@ fun MostUsedAppsSection() {
                     text = stringResource(R.string.dashboard_most_used_apps),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary
+                    color = colorScheme.onSurface
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.search_app), color = TextSecondary) },
+                placeholder = { Text(stringResource(R.string.search_app), color = colorScheme.onSurfaceVariant) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = DopaminahPurple)
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = colorScheme.primary)
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = DopaminahPurpleLight,
-                    focusedBorderColor = DopaminahPurple,
+                    unfocusedBorderColor = colorScheme.primaryContainer,
+                    focusedBorderColor = colorScheme.primary,
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent
                 ),
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -83,18 +107,18 @@ fun MostUsedAppsSection() {
                 Button(
                     onClick = { /*TODO*/ },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = DopaminahPurple),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(stringResource(R.string.search_filter_most_used), fontWeight = FontWeight.Bold)
                 }
-                
+
                 Button(
                     onClick = { /*TODO*/ },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BackgroundLight,
-                        contentColor = TextSecondary
+                        containerColor = colorScheme.surfaceVariant,
+                        contentColor = colorScheme.onSurfaceVariant
                     ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
@@ -102,9 +126,9 @@ fun MostUsedAppsSection() {
                     Text(stringResource(R.string.search_filter_least_used), fontWeight = FontWeight.Bold)
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // TODO: Replace with a real list of apps
             AppUsageItemMock("Twitter", "1h 31m", Color(0xFF1DA1F2))
             AppUsageItemMock("WhatsApp", "1h 17m", Color(0xFF25D366))

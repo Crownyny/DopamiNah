@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
+import co.edu.unicauca.dopaminah.R
 
 @Composable
 fun PermissionPageContent(

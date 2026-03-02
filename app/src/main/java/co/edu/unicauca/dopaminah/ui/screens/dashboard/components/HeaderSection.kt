@@ -1,11 +1,27 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,16 +31,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.ui.theme.*
 
 @Composable
 fun HeaderSection(gamificationStats: UserGamificationStats) {
+    val colorScheme = MaterialTheme.colorScheme
+    val extended = MaterialTheme.extendedColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-            .background(DopaminahPurpleDark)
+            .background(colorScheme.primaryContainer)
             .padding(bottom = 24.dp, start = 20.dp, end = 20.dp)
     ) {
         Column(modifier = Modifier.statusBarsPadding()) {
@@ -40,28 +60,28 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                             text = stringResource(R.string.app_halfname1),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
+                            color = colorScheme.onPrimaryContainer
                         )
                         Text(
                             text = stringResource(R.string.app_halfname2),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = DopaminahOrange
+                            color = extended.brandOrange
                         )
                     }
                     Text(
                         text = stringResource(R.string.app_description),
                         fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                 }
-                
+
                 // Brain icon placeholder
                 Box(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White),
+                        .background(colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("🧠", fontSize = 24.sp) //TODO: Add the REAL LOGO
@@ -73,7 +93,7 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
             // Streak Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = DopaminahOrange),
+                colors = CardDefaults.cardColors(containerColor = extended.brandOrange),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
@@ -85,7 +105,7 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val streakIcon = if (gamificationStats.currentPoints >= 5) "🔥" else "🌱" 
+                            val streakIcon = if (gamificationStats.currentPoints >= 5) "🔥" else "🌱"
                             Text(streakIcon, fontSize = 40.sp, modifier = Modifier.padding(end = 12.dp))
                             Column {
                                 Text(
@@ -110,12 +130,12 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                                 }
                             }
                         }
-                        
+
                         // Level Badge
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(DopaminahOrangeLight)
+                                .background(Color.White.copy(alpha = 0.2f))
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -125,7 +145,7 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                             }
                         }
                     }
-                    
+
                     HorizontalDivider(color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(vertical = 12.dp))
 
                     val streakMessage = when {
@@ -144,7 +164,7 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            tint = WarningYellow,
+                            tint = extended.warningYellow,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))

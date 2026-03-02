@@ -11,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "co.edu.unicauca.DopamiNah"
+        applicationId = "co.edu.unicauca.dopaminah"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -57,6 +57,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.material3)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 

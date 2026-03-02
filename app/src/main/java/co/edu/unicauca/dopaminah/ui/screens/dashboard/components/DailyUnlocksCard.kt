@@ -1,11 +1,24 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,10 +28,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.ui.theme.*
 
 @Composable
 fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
+    val extended = MaterialTheme.extendedColors
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DopaminahRedDark),
@@ -41,16 +57,16 @@ fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = null,
-                    tint = DopaminahRedText
+                    tint = extended.dangerRed
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     "$dailyUnlocks",
-                    color = DopaminahRedText,
+                    color = extended.dangerRed,
                     fontSize = 64.sp,
                     fontWeight = FontWeight.ExtraBold,
                     lineHeight = 64.sp
@@ -63,17 +79,17 @@ fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
                     modifier = Modifier.padding(bottom = 12.dp, start = 8.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             val diff = dailyUnlocks - yesterdayUnlocks
             val diffText = when {
                 diff > 0 -> "↗ +$diff vs ayer"
                 diff < 0 -> "↘ $diff vs ayer"
                 else -> "= Igual que ayer"
             }
-            
-            val diffColor = if (diff <= 0) SuccessGreen else DopaminahRedText
+
+            val diffColor = if (diff <= 0) extended.successGreen else extended.dangerRed
 
             Box(
                 modifier = Modifier
