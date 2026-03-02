@@ -26,9 +26,10 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
             .background(DopaminahPurpleDark)
-            .padding(top = 48.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
+            .padding(bottom = 24.dp, start = 20.dp, end = 20.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.statusBarsPadding()) {
+            Spacer(Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

@@ -49,6 +49,11 @@ import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.OnboardingActi
 import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.OnboardingHeader
 import co.edu.unicauca.DopamiNah.ui.screens.onboarding.components.PermissionPageContent
 
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import android.app.Activity
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingPermissionScreen(
@@ -58,6 +63,15 @@ fun OnboardingPermissionScreen(
     val context = LocalContext.current
     val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
     
     // We have 3 steps now
     val pagerState = rememberPagerState(pageCount = { 3 })

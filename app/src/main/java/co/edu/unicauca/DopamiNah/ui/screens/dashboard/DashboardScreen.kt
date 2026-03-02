@@ -1,5 +1,7 @@
 package co.edu.unicauca.DopamiNah.ui.screens.dashboard
 
+import android.app.Activity
+import androidx.activity.SystemBarStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,15 +15,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import co.edu.unicauca.DopamiNah.ui.screens.dashboard.components.DailyUnlocksCard
 import co.edu.unicauca.DopamiNah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.DopamiNah.ui.screens.dashboard.components.MostUsedAppsSection
 import co.edu.unicauca.DopamiNah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.DopamiNah.ui.theme.DopaminahPurpleDark
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val gamificationStats by viewModel.gamificationState.collectAsState()
     val dailyUnlocks by viewModel.dailyUnlocks.collectAsState()
@@ -41,26 +50,33 @@ fun DashboardScreen(
         }
     }
 
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        }
+    }
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         // App Bar / Header region passing the dynamic stats
         HeaderSection(gamificationStats = gamificationStats)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Main content area
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = 24.dp, top = 16.dp)
         ) {
             item {
                 val hasPermission by viewModel.hasUsagePermission.collectAsState()
-                val context = androidx.compose.ui.platform.LocalContext.current
+                val context = LocalContext.current
 
                 DailyUnlocksCard(
                     dailyUnlocks = dailyUnlocks,
