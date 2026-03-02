@@ -28,6 +28,9 @@ class DashboardViewModel @Inject constructor(
     private val _yesterdayUnlocks = MutableStateFlow(0)
     val yesterdayUnlocks: StateFlow<Int> = _yesterdayUnlocks.asStateFlow()
 
+    private val _totalDailyUsageMs = MutableStateFlow(0L)
+    val totalDailyUsageMs: StateFlow<Long> = _totalDailyUsageMs.asStateFlow()
+
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
@@ -57,11 +60,15 @@ class DashboardViewModel @Inject constructor(
             if (hasPerm) {
                 val today = deviceUsageRepository.getDailyDeviceUnlocks()
                 val yesterday = deviceUsageRepository.getYesterdayDeviceUnlocks()
+                val usageStats = deviceUsageRepository.getDailyUsageStats()
+                
                 _dailyUnlocks.value = today
                 _yesterdayUnlocks.value = yesterday
+                _totalDailyUsageMs.value = usageStats.sumOf { it.totalTimeForegroundMillis }
             } else {
                 _dailyUnlocks.value = 0
                 _yesterdayUnlocks.value = 0
+                _totalDailyUsageMs.value = 0L
             }
         }
     }
