@@ -28,19 +28,30 @@ class DeviceUsageRepositoryImpl(
         calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
 
-        val stats: List<UsageStats> = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            startTime,
-            endTime
-        )
+        // queryAndAggregateUsageStats is the most reliable API:
+        // it aggregates ALL events in the given time range, not just pre-computed daily/weekly buckets.
+        // INTERVAL_DAILY and INTERVAL_BEST can be stale or empty for the current day.
+        val aggregatedStats: Map<String, UsageStats> = usageStatsManager
+            .queryAndAggregateUsageStats(startTime, endTime)
 
-        stats.filter { it.totalTimeInForeground > 0 }
+        // Build unlock counts from a single events query (efficient: one query for all apps)
+        val unlockCounts = mutableMapOf<String, Int>()
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = android.app.usage.UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
+                unlockCounts[event.packageName] = (unlockCounts[event.packageName] ?: 0) + 1
+            }
+        }
+
+        aggregatedStats.values
+            .filter { it.totalTimeInForeground > 0 }
             .map { usageStat ->
-                val unlockCount = getUnlockCount(usageStat.packageName, startTime, endTime)
                 AppUsageSummary(
                     packageName = usageStat.packageName,
                     totalTimeForegroundMillis = usageStat.totalTimeInForeground,
-                    unlockCount = unlockCount,
+                    unlockCount = unlockCounts[usageStat.packageName] ?: 0,
                     lastTimeUsed = usageStat.lastTimeUsed
                 )
             }.sortedByDescending { it.totalTimeForegroundMillis }
@@ -122,18 +133,4 @@ class DeviceUsageRepositoryImpl(
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    private fun getUnlockCount(packageName: String, startTime: Long, endTime: Long): Int {
-        // En una implementación real más compleja se usa queryEvents.
-        // Por simplicidad, aquí retornamos 0, pero la lógica de contar "ACTIVITY_RESUMED" iría aquí.
-        var count = 0
-        val events = usageStatsManager.queryEvents(startTime, endTime)
-        val event = android.app.usage.UsageEvents.Event()
-        while (events.hasNextEvent()) {
-            events.getNextEvent(event)
-            if (event.packageName == packageName && event.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
-                count++
-            }
-        }
-        return count
-    }
 }

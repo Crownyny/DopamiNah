@@ -1,11 +1,15 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel
 
+import android.content.Context
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val gamificationRepository: GamificationRepository,
-    private val deviceUsageRepository: DeviceUsageRepository
+    private val deviceUsageRepository: DeviceUsageRepository,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _gamificationState = MutableStateFlow(UserGamificationStats())
@@ -31,6 +36,9 @@ class DashboardViewModel @Inject constructor(
     private val _totalDailyUsageMs = MutableStateFlow(0L)
     val totalDailyUsageMs: StateFlow<Long> = _totalDailyUsageMs.asStateFlow()
 
+    private val _dailyUsageStats = MutableStateFlow<List<AppUsageSummary>>(emptyList())
+    val dailyUsageStats: StateFlow<List<AppUsageSummary>> = _dailyUsageStats.asStateFlow()
+
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
@@ -43,8 +51,7 @@ class DashboardViewModel @Inject constructor(
     private fun loadGamificationStats() {
         viewModelScope.launch {
             gamificationRepository.getGamificationStats()
-                .catch { e ->
-                    // Handle error if needed
+                .catch {
                 }
                 .collect { stats ->
                     _gamificationState.value = stats
@@ -56,30 +63,42 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             val hasPerm = deviceUsageRepository.hasUsageStatsPermission()
             _hasUsagePermission.value = hasPerm
-            
+
             if (hasPerm) {
                 val today = deviceUsageRepository.getDailyDeviceUnlocks()
                 val yesterday = deviceUsageRepository.getYesterdayDeviceUnlocks()
                 val usageStats = deviceUsageRepository.getDailyUsageStats()
-                
+
                 _dailyUnlocks.value = today
                 _yesterdayUnlocks.value = yesterday
+
+                // Only exclude our own app — show everything else so the list is complete
+                val ownPackage = appContext.packageName
+                val allApps = usageStats.filter { summary ->
+                    summary.packageName != ownPackage
+                }
+
+                _dailyUsageStats.value = allApps
                 _totalDailyUsageMs.value = usageStats.sumOf { it.totalTimeForegroundMillis }
             } else {
                 _dailyUnlocks.value = 0
                 _yesterdayUnlocks.value = 0
+                _dailyUsageStats.value = emptyList()
                 _totalDailyUsageMs.value = 0L
             }
         }
     }
+
+
 
     fun checkAndIncrementStreak() {
         viewModelScope.launch {
             gamificationRepository.incrementStreakAndPoints()
         }
     }
-    
+
     fun refreshStats() {
         loadUnlockStats()
     }
 }
+

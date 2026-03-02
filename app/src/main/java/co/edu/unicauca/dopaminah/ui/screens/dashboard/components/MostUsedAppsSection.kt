@@ -40,10 +40,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.R
 
 @Composable
-fun MostUsedAppsSection() {
+fun MostUsedAppsSection(
+    dailyUsageStats: List<AppUsageSummary>,
+    hasPermission: Boolean
+) {
     var searchQuery by remember { mutableStateOf("") }
     val colorScheme = MaterialTheme.colorScheme
 
@@ -129,10 +133,29 @@ fun MostUsedAppsSection() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // TODO: Replace with a real list of apps
-            AppUsageItemMock("Twitter", "1h 31m", Color(0xFF1DA1F2))
-            AppUsageItemMock("WhatsApp", "1h 17m", Color(0xFF25D366))
-            AppUsageItemMock("YouTube", "1h 5m", Color(0xFFFF0000))
+            if (!hasPermission) {
+                Text(
+                    text = "Acepta los permisos de uso para ver estadísticas de apps",
+                    color = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else if (dailyUsageStats.isEmpty()) {
+                 Text(
+                    text = "No hay datos suficientes",
+                    color = colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                 val topApps = dailyUsageStats.filter { 
+                     // Ignore system apps with no names or just pure names filter in the future
+                     // In the future: appName.contains(searchQuery, ignoreCase = true)
+                     it.packageName.contains(searchQuery, ignoreCase = true)
+                 }.take(10) // Show top 10
+                 
+                 topApps.forEach { usageSummary ->
+                     AppUsageItem(usageSummary = usageSummary)
+                 }
+            }
         }
     }
 }

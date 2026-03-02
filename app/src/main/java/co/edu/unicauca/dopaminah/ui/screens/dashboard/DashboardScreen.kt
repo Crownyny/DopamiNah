@@ -15,7 +15,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -74,6 +73,7 @@ fun DashboardScreen(
         ) {
             item {
                 val hasPermission by viewModel.hasUsagePermission.collectAsState()
+                val dailyUsageStats by viewModel.dailyUsageStats.collectAsState()
 
                 UsageSummaryCarousel(
                     dailyUnlocks = dailyUnlocks,
@@ -81,7 +81,10 @@ fun DashboardScreen(
                     totalDailyUsageMs = totalDailyUsageMs
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                MostUsedAppsSection()
+                MostUsedAppsSection(
+                    dailyUsageStats = dailyUsageStats,
+                    hasPermission = hasPermission
+                )
             }
         }
     }
