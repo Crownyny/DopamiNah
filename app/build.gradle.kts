@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "co.edu.unicauca.DopamiNah"
+    namespace = "co.edu.unicauca.dopaminah"
     compileSdk = 35
 
     defaultConfig {
