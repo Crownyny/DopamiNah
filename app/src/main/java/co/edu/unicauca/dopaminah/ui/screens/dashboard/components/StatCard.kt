@@ -1,40 +1,33 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.unicauca.dopaminah.R
-import co.edu.unicauca.dopaminah.ui.theme.*
+import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedDark
+import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedText
 
 @Composable
-fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
-    val extended = MaterialTheme.extendedColors
-
+fun StatCard(
+    title: String,
+    icon: ImageVector,
+    mainValue: String,
+    subtext: String,
+    diffText: String,
+    diffColor: Color
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DopaminahRedDark),
@@ -49,48 +42,39 @@ fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    stringResource(R.string.dashboard_unlocks),
+                    text = title,
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Icon(
-                    imageVector = Icons.Default.Lock,
+                    imageVector = icon,
                     contentDescription = null,
-                    tint = extended.dangerRed
+                    tint = DopaminahRedText
                 )
             }
-
+            
             Spacer(modifier = Modifier.height(16.dp))
-
+            
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "$dailyUnlocks",
-                    color = extended.dangerRed,
-                    fontSize = 64.sp,
+                    text = mainValue,
+                    color = DopaminahRedText,
+                    fontSize = 48.sp, // Reduced slightly to fit complex time strings
                     fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 64.sp
+                    lineHeight = 48.sp
                 )
                 Text(
-                    stringResource(R.string.dashboard_unlocks_times),
+                    text = subtext,
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp, start = 8.dp)
+                    modifier = Modifier.padding(bottom = 6.dp, start = 8.dp)
                 )
             }
-
+            
             Spacer(modifier = Modifier.height(16.dp))
-
-            val diff = dailyUnlocks - yesterdayUnlocks
-            val diffText = when {
-                diff > 0 -> "↗ +$diff vs ayer"
-                diff < 0 -> "↘ $diff vs ayer"
-                else -> "= Igual que ayer"
-            }
-
-            val diffColor = if (diff <= 0) extended.successGreen else extended.dangerRed
-
+            
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -98,7 +82,7 @@ fun DailyUnlocksCard(dailyUnlocks: Int, yesterdayUnlocks: Int) {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    diffText,
+                    text = diffText,
                     color = diffColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium

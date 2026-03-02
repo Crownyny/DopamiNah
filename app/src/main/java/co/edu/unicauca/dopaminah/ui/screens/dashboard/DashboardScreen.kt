@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.DailyUnlocksCard
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.UsageSummaryCarousel
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.MostUsedAppsSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
@@ -32,6 +32,7 @@ fun DashboardScreen(
     val gamificationStats by viewModel.gamificationState.collectAsState()
     val dailyUnlocks by viewModel.dailyUnlocks.collectAsState()
     val yesterdayUnlocks by viewModel.yesterdayUnlocks.collectAsState()
+    val totalDailyUsageMs by viewModel.totalDailyUsageMs.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -73,11 +74,11 @@ fun DashboardScreen(
         ) {
             item {
                 val hasPermission by viewModel.hasUsagePermission.collectAsState()
-                val context = LocalContext.current
 
-                DailyUnlocksCard(
+                UsageSummaryCarousel(
                     dailyUnlocks = dailyUnlocks,
-                    yesterdayUnlocks = yesterdayUnlocks
+                    yesterdayUnlocks = yesterdayUnlocks,
+                    totalDailyUsageMs = totalDailyUsageMs
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 MostUsedAppsSection()
