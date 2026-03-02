@@ -65,7 +65,7 @@ fun MostUsedAppsSection() {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = colorScheme.primary,
+                        tint = colorScheme.onPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
