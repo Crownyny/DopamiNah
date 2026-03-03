@@ -45,13 +45,25 @@ class DeviceUsageRepositoryImpl(
             }
         }
 
+        // Resolve app names only once per list to keep it efficient
+        val packageManager = context.packageManager
+
         aggregatedStats.values
             .filter { it.totalTimeInForeground > 0 }
             .map { usageStat ->
+                val packageName = usageStat.packageName
+                val appName = try {
+                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                    packageManager.getApplicationLabel(appInfo).toString()
+                } catch (e: Exception) {
+                    packageName
+                }
+
                 AppUsageSummary(
-                    packageName = usageStat.packageName,
+                    packageName = packageName,
+                    appName = appName,
                     totalTimeForegroundMillis = usageStat.totalTimeInForeground,
-                    unlockCount = unlockCounts[usageStat.packageName] ?: 0,
+                    unlockCount = unlockCounts[packageName] ?: 0,
                     lastTimeUsed = usageStat.lastTimeUsed
                 )
             }.sortedByDescending { it.totalTimeForegroundMillis }

@@ -164,7 +164,7 @@ fun MostUsedAppsSection(
                 }
 
                 val visibleApps = sorted
-                    .filter { it.packageName.contains(searchQuery, ignoreCase = true) }
+                    .filter { it.appName.contains(searchQuery, ignoreCase = true) }
                     .take(10)
 
                 visibleApps.forEach { usageSummary ->

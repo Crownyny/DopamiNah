@@ -28,13 +28,12 @@ fun AppUsageItem(
     val context = LocalContext.current
     val packageManager = context.packageManager
     
+    val appName = usageSummary.appName
     val appInfo = try {
         packageManager.getApplicationInfo(usageSummary.packageName, 0)
     } catch (e: PackageManager.NameNotFoundException) {
         null
     }
-    
-    val appName = appInfo?.loadLabel(packageManager)?.toString() ?: usageSummary.packageName
     val appIcon = appInfo?.loadIcon(packageManager)
     
     val colorScheme = MaterialTheme.colorScheme
