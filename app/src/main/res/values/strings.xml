@@ -9,7 +9,7 @@
     <string name="motivational_message">¡Increíble! Mantén el impulso</string>
     <string name="dashboard_unlocks">Desbloqueos de Hoy</string>
     <string name="dashboard_unlocks_times">" veces"</string>
-    <string name="dashboard_most_used_apps">Apps Más Usadas</string>
+    <string name="dashboard_most_used_apps">Apps Más Usadas Hoy</string>
     <string name="search_app">Buscar app...</string>
     <string name="search_filter_most_used">↓ Más usado</string>
     <string name="search_filter_least_used">↑ Menos usado</string>

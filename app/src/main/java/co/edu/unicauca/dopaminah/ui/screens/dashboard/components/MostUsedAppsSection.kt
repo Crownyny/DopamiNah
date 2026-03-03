@@ -43,12 +43,15 @@ import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.R
 
+private enum class SortOrder { MOST_USED, LEAST_USED }
+
 @Composable
 fun MostUsedAppsSection(
     dailyUsageStats: List<AppUsageSummary>,
     hasPermission: Boolean
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var sortOrder by remember { mutableStateOf(SortOrder.MOST_USED) }
     val colorScheme = MaterialTheme.colorScheme
 
     Card(
@@ -108,21 +111,30 @@ fun MostUsedAppsSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // "Más usadas" button — active when sortOrder == MOST_USED
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { sortOrder = SortOrder.MOST_USED },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (sortOrder == SortOrder.MOST_USED)
+                            colorScheme.primary else colorScheme.surfaceVariant,
+                        contentColor = if (sortOrder == SortOrder.MOST_USED)
+                            colorScheme.onPrimary else colorScheme.onSurfaceVariant
+                    ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(stringResource(R.string.search_filter_most_used), fontWeight = FontWeight.Bold)
                 }
 
+                // "Menos usadas" button — active when sortOrder == LEAST_USED
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = { sortOrder = SortOrder.LEAST_USED },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.surfaceVariant,
-                        contentColor = colorScheme.onSurfaceVariant
+                        containerColor = if (sortOrder == SortOrder.LEAST_USED)
+                            colorScheme.primary else colorScheme.surfaceVariant,
+                        contentColor = if (sortOrder == SortOrder.LEAST_USED)
+                            colorScheme.onPrimary else colorScheme.onSurfaceVariant
                     ),
                     shape = RoundedCornerShape(12.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
@@ -140,21 +152,24 @@ fun MostUsedAppsSection(
                     modifier = Modifier.padding(16.dp)
                 )
             } else if (dailyUsageStats.isEmpty()) {
-                 Text(
+                Text(
                     text = "No hay datos suficientes",
                     color = colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                 val topApps = dailyUsageStats.filter { 
-                     // Ignore system apps with no names or just pure names filter in the future
-                     // In the future: appName.contains(searchQuery, ignoreCase = true)
-                     it.packageName.contains(searchQuery, ignoreCase = true)
-                 }.take(10) // Show top 10
-                 
-                 topApps.forEach { usageSummary ->
-                     AppUsageItem(usageSummary = usageSummary)
-                 }
+                val sorted = when (sortOrder) {
+                    SortOrder.MOST_USED  -> dailyUsageStats.sortedByDescending { it.totalTimeForegroundMillis }
+                    SortOrder.LEAST_USED -> dailyUsageStats.sortedBy { it.totalTimeForegroundMillis }
+                }
+
+                val visibleApps = sorted
+                    .filter { it.packageName.contains(searchQuery, ignoreCase = true) }
+                    .take(10)
+
+                visibleApps.forEach { usageSummary ->
+                    AppUsageItem(usageSummary = usageSummary)
+                }
             }
         }
     }
