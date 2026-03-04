@@ -83,12 +83,14 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(start = 24.dp, end = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             // Premium Card
+
             item {
+                Spacer(Modifier.height(24.dp))
                 if (!isPremium) {
                     PremiumCard(onClick = { isPremium = true })
                 } else {
@@ -171,6 +173,7 @@ fun SettingsScreen(
             // About
             item {
                 AboutSection()
+                Spacer(Modifier.height(24.dp))
             }
         }
     }

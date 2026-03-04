@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
-    
+
     // Accompanist
     implementation(libs.accompanist.drawablepainter)
     
@@ -71,6 +71,9 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+
+    // Splash screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
