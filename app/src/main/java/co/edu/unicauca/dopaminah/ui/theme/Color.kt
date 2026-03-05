@@ -9,9 +9,9 @@ val DopaminahPurple = Color(0xFF8B5CF6)
 val DopaminahPurpleDark = Color(0xFF6D28D9)
 val DopaminahPurpleLight = Color(0xFFDDD6FE)
 
-val DopaminahOrange = Color(0xFFF97316)
-val DopaminahOrangeLight = Color(0xFFFB923C)
-val DopaminahOrangeDark = Color(0xFFC2410C)
+val DopaminahOrange = Color(0xFFFA832B)
+val DopaminahOrangeLight = Color(0xFFFA832B)
+val DopaminahOrangeDark = Color(0xFFFA832B)
 
 val DopaminahRedDark = Color(0xFF451A1A)
 val DopaminahRedText = Color(0xFFEF4444)

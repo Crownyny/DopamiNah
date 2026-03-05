@@ -7,6 +7,7 @@ import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
+import co.edu.unicauca.dopaminah.ui.theme.ThemeController
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -42,5 +43,13 @@ object ApplicationModule {
         @ApplicationContext context: Context
     ): DeviceUsageRepository {
         return DeviceUsageRepositoryImpl(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideThemeController(
+        @ApplicationContext context: Context
+    ): ThemeController {
+        return ThemeController(context)
     }
 }

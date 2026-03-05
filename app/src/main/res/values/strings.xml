@@ -30,4 +30,24 @@
     <string name="onboarding_notif_desc">Te enviaremos recordatorios motivacionales cuando estés cerca de superar tus metas.</string>
     
     <string name="onboarding_next_button">Continuar</string>
+
+    <!-- Settings Screen Strings -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_subtitle">Personaliza tu experiencia</string>
+
+    <string name="settings_section_appearance">Apariencia y Notificaciones</string>
+    <string name="settings_dark_mode">Modo Oscuro</string>
+    <string name="settings_dark_mode_desc">Reduce la fatiga visual</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_notifications_desc">Recibe recordatorios y alertas</string>
+    <string name="settings_pajaro_verde">Modo Pájaro Verde 🦜</string>
+    <string name="settings_pajaro_verde_desc">Presión activa y mensajes insistentes</string>
+
+    <string name="settings_section_privacy">Privacidad y Seguridad</string>
+    <string name="settings_privacy_policy">Política de Privacidad</string>
+    <string name="settings_app_permissions">Permisos de la App</string>
+
+    <string name="settings_section_support">Soporte</string>
+    <string name="settings_help_center">Centro de Ayuda</string>
+    <string name="settings_contact_support">Contactar Soporte</string>
 </resources>
