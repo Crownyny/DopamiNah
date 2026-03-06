@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,10 +31,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.R
+import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
+import co.edu.unicauca.dopaminah.ui.components.AppIcon
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.DashboardContent
 import co.edu.unicauca.dopaminah.ui.theme.*
 
 @Composable
@@ -48,13 +54,15 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
             .padding(bottom = 24.dp, start = 20.dp, end = 20.dp)
     ) {
         Column(modifier = Modifier.statusBarsPadding()) {
-            Spacer(Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Column {
+                    Spacer(Modifier.height(16.dp))
                     Row {
                         Text(
                             text = stringResource(R.string.app_halfname1),
@@ -74,21 +82,18 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                         fontSize = 14.sp,
                         color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                // Brain icon placeholder
+                // App icon
                 Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(colorScheme.surface),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🧠", fontSize = 24.sp) //TODO: Add the REAL LOGO
-                }
+                    Modifier.padding(start = 16.dp, end = 16.dp)
+                ) { AppIcon(size = 84)}
+
+
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+
 
             // Streak Card
             Card(
@@ -178,5 +183,19 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                 }
             }
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    DopamiNahTheme {
+        HeaderSection(
+            gamificationStats = UserGamificationStats(
+                currentPoints = 15,
+                level = 2,
+            )
+        )
     }
 }

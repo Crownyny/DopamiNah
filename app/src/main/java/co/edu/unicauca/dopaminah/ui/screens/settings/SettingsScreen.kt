@@ -14,10 +14,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import co.edu.unicauca.dopaminah.R
+import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
+import co.edu.unicauca.dopaminah.ui.components.AppIcon
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.AboutSection
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.PremiumActiveCard
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.PremiumCard
@@ -46,42 +50,7 @@ fun SettingsScreen(
             .background(colorScheme.background)
     ) {
         // Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                .background(DopaminahPurpleDark)
-                .padding(top = 48.dp, bottom = 24.dp, start = 24.dp, end = 24.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_subtitle),
-                        fontSize = 16.sp,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🧠", fontSize = 24.sp)
-                }
-            }
-        }
+        HeaderSection()
 
         LazyColumn(
             modifier = Modifier
@@ -178,5 +147,54 @@ fun SettingsScreen(
                 Spacer(Modifier.height(24.dp))
             }
         }
+    }
+}
+
+
+@Composable
+fun HeaderSection() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+            .background(DopaminahPurpleDark)
+            .padding(top = 48.dp, bottom = 16.dp, start = 24.dp, end = 24.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = stringResource(R.string.settings_title),
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = stringResource(R.string.settings_subtitle),
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
+            Box(
+                Modifier.padding(start = 16.dp, end = 16.dp)
+            ) {
+                AppIcon(size = 84)
+            }
+        }
+    }
+}
+
+
+
+
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    DopamiNahTheme {
+        HeaderSection()
     }
 }

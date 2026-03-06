@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.ui.components.AppIcon
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
 
@@ -48,7 +49,7 @@ fun AboutSection() {
                     .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🧠", fontSize = 32.sp)
+                AppIcon(size = 48)
             }
             Spacer(Modifier.height(12.dp))
             Text("DopamiNah", fontWeight = FontWeight.Bold, color = colorScheme.onSurface)

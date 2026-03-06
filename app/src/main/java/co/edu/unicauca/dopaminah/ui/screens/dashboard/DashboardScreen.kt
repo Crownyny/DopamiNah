@@ -17,11 +17,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
+import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.UsageSummaryCarousel
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.MostUsedAppsSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.dopaminah.ui.theme.DopamiNahTheme
 
 @Composable
 fun DashboardScreen(
@@ -32,6 +36,8 @@ fun DashboardScreen(
     val dailyUnlocks by viewModel.dailyUnlocks.collectAsState()
     val yesterdayUnlocks by viewModel.yesterdayUnlocks.collectAsState()
     val totalDailyUsageMs by viewModel.totalDailyUsageMs.collectAsState()
+    val hasPermission by viewModel.hasUsagePermission.collectAsState()
+    val dailyUsageStats by viewModel.dailyUsageStats.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -56,6 +62,27 @@ fun DashboardScreen(
         }
     }
 
+    DashboardContent(
+        gamificationStats = gamificationStats,
+        dailyUnlocks = dailyUnlocks,
+        yesterdayUnlocks = yesterdayUnlocks,
+        totalDailyUsageMs = totalDailyUsageMs,
+        hasPermission = hasPermission,
+        dailyUsageStats = dailyUsageStats,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DashboardContent(
+    gamificationStats: UserGamificationStats,
+    dailyUnlocks: Int,
+    yesterdayUnlocks: Int,
+    totalDailyUsageMs: Long,
+    hasPermission: Boolean,
+    dailyUsageStats: List<AppUsageSummary>,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -72,9 +99,6 @@ fun DashboardScreen(
             contentPadding = PaddingValues(bottom = 24.dp, top = 16.dp)
         ) {
             item {
-                val hasPermission by viewModel.hasUsagePermission.collectAsState()
-                val dailyUsageStats by viewModel.dailyUsageStats.collectAsState()
-
                 UsageSummaryCarousel(
                     dailyUnlocks = dailyUnlocks,
                     yesterdayUnlocks = yesterdayUnlocks,
@@ -89,3 +113,29 @@ fun DashboardScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    DopamiNahTheme {
+        DashboardContent(
+            gamificationStats = UserGamificationStats(
+                level = 3,
+                currentPoints = 150,
+                pointsToNextLevel = 300,
+                activeBadges = listOf("Focus Master", "Early Bird")
+            ),
+            dailyUnlocks = 12,
+            yesterdayUnlocks = 15,
+            totalDailyUsageMs = 7200000L,
+            hasPermission = true,
+            dailyUsageStats = listOf(
+                AppUsageSummary("com.instagram.android", "Instagram", 3600000L, 10, 0L),
+                AppUsageSummary("com.whatsapp", "WhatsApp", 1800000L, 25, 0L),
+                AppUsageSummary("com.youtube", "YouTube", 1200000L, 5, 0L)
+            )
+        )
+    }
+}
+
+
