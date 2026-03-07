@@ -50,4 +50,15 @@
     <string name="settings_section_support">Soporte</string>
     <string name="settings_help_center">Centro de Ayuda</string>
     <string name="settings_contact_support">Contactar Soporte</string>
+
+    <!-- Stats Screen Strings -->
+    <string name="stats_title">Estadísticas</string>
+    <string name="stats_subtitle">Análisis detallado de tu uso</string>
+    <string name="stats_tab_weekly">Semanal</string>
+    <string name="stats_tab_monthly">Mensual</string>
+    <string name="stats_daily_average">Promedio Diario</string>
+    <string name="stats_unlocks">Desbloqueos</string>
+    <string name="stats_app_usage">Uso por Aplicación</string>
+    <string name="stats_day_details">Detalles del Día</string>
+    <string name="stats_total_time">Tiempo Total</string>
 </resources>

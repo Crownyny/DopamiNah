@@ -300,9 +300,181 @@ val LucideSettings: ImageVector by lazy {
         ) {
             moveTo(12f, 15f)
             arcToRelative(3f, 3f, 0f, true, false, 0f, -6f)
-            arcToRelative(3f, 3f, 0f, false, false, 0f, 6f)
             close()
         }
     }.build()
 }
 
+// Lucide "sunrise" icon
+val LucideSunrise: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Sunrise",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(12f, 2f)
+            verticalLineTo(6f)
+            moveTo(4.93f, 10.93f)
+            lineTo(7.76f, 13.76f)
+            moveTo(2f, 18f)
+            horizontalLineTo(22f)
+            moveTo(19.07f, 10.93f)
+            lineTo(16.24f, 13.76f)
+            moveTo(22f, 22f)
+            horizontalLineTo(2f)
+            moveTo(8f, 6f)
+            lineTo(12f, 2f)
+            lineTo(16f, 6f)
+            moveTo(16f, 18f)
+            arcToRelative(4f, 4f, 0f, false, false, -8f, 0f)
+        }
+    }.build()
+}
+
+// Lucide "timer" icon
+val LucideTimer: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Timer",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(10f, 2f)
+            horizontalLineTo(14f)
+            moveTo(12f, 14f)
+            lineTo(15f, 11f)
+        }
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(12f, 22f)
+            arcToRelative(8f, 8f, 0f, true, false, 0f, -16f)
+            arcToRelative(8f, 8f, 0f, false, false, 0f, 16f)
+            close()
+        }
+    }.build()
+}
+
+// Lucide "smartphone" icon
+val LucideSmartphone: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Smartphone",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(5f, 2f)
+            lineTo(19f, 2f)
+            arcToRelative(2f, 2f, 0f, false, true, 2f, 2f)
+            lineTo(21f, 20f)
+            arcToRelative(2f, 2f, 0f, false, true, -2f, 2f)
+            lineTo(5f, 22f)
+            arcToRelative(2f, 2f, 0f, false, true, -2f, -2f)
+            lineTo(3f, 4f)
+            arcToRelative(2f, 2f, 0f, false, true, 2f, -2f)
+            close()
+        }
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(12f, 18f)
+            horizontalLineToRelative(0.01f)
+        }
+    }.build()
+}
+
+// Lucide "chevron-left" icon
+val LucideChevronLeft: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "ChevronLeft",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(15f, 18f)
+            lineTo(9f, 12f)
+            lineTo(15f, 6f)
+        }
+    }.build()
+}
+
+// Lucide "chevron-right" icon
+val LucideChevronRight: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "ChevronRight",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(9f, 18f)
+            lineTo(15f, 12f)
+            lineTo(9f, 6f)
+        }
+    }.build()
+}
+
+// Lucide "calendar" icon
+val LucideCalendar: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Calendar",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(8f, 2f)
+            verticalLineToRelative(4f)
+            moveTo(16f, 2f)
+            verticalLineToRelative(4f)
+            moveTo(3f, 10f)
+            horizontalLineToRelative(18f)
+        }
+        path(
+            fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f,
+            strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        ) {
+            moveTo(19f, 4f)
+            lineTo(5f, 4f)
+            arcToRelative(2f, 2f, 0f, false, false, -2f, 2f)
+            lineTo(3f, 20f)
+            arcToRelative(2f, 2f, 0f, false, false, 2f, 2f)
+            lineTo(19f, 22f)
+            arcToRelative(2f, 2f, 0f, false, false, 2f, -2f)
+            lineTo(21f, 6f)
+            arcToRelative(2f, 2f, 0f, false, false, -2f, -2f)
+            close()
+        }
+    }.build()
+}

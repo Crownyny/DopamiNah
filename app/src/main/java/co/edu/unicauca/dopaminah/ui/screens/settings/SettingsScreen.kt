@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.ui.screens.settings
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,16 +13,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import co.edu.unicauca.dopaminah.R
-import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.ui.components.AppIcon
-import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.AboutSection
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.PremiumActiveCard
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.PremiumCard
@@ -43,6 +44,15 @@ fun SettingsScreen(
 
     val colorScheme = MaterialTheme.colorScheme
     val extended = MaterialTheme.extendedColors
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        }
+    }
 
     Column(
         modifier = modifier
@@ -158,10 +168,13 @@ fun HeaderSection() {
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
             .background(DopaminahPurpleDark)
-            .padding(top = 48.dp, bottom = 16.dp, start = 24.dp, end = 24.dp)
+            .padding(bottom = 16.dp, start = 24.dp, end = 24.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

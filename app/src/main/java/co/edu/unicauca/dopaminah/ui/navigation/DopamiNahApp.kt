@@ -64,8 +64,7 @@ fun DopamiNahApp() {
                 DashboardScreen()
             }
             composable(Screen.Stats.route) {
-                // To be implemented
-                Text("Stats Screen")
+                co.edu.unicauca.dopaminah.ui.screens.stats.StatsScreen()
             }
             composable(Screen.Goals.route) {
                 // To be implemented
