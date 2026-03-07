@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.ui.screens.stats.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,10 +39,26 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
 import co.edu.unicauca.dopaminah.ui.icons.LucideSunrise
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
 
+import co.edu.unicauca.dopaminah.domain.repository.DailyDetailStats
+
 @Composable
 fun DailyDetailsCard(
+    details: DailyDetailStats?,
+    selectedDayOffset: Int,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+    onSelectDay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Format total time
+    val totalMillis = details?.totalTimeMillis ?: 0L
+    val totalH = (totalMillis / 3_600_000).toInt()
+    val totalM = ((totalMillis % 3_600_000) / 60_000).toInt()
+    val totalTimeStr = if (totalH > 0) "${totalH}h ${totalM}m" else "${totalM}m"
+
+    // Format avg session
+    val avgMins = details?.avgSessionMinutes ?: 0
+    val avgSessionStr = if (avgMins >= 60) "${avgMins / 60}h ${avgMins % 60}m" else "${avgMins}m"
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -76,7 +93,8 @@ fun DailyDetailsCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.2f)),
+                            .background(Color.White.copy(alpha = 0.2f))
+                            .clickable { onPreviousDay() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -87,7 +105,13 @@ fun DailyDetailsCard(
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onSelectDay() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = LucideCalendar,
@@ -105,15 +129,9 @@ fun DailyDetailsCard(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "viernes, 6 de marzo",
+                            text = details?.dateLabel ?: "--",
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.9f)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "👆 Toca para cambiar",
-                            fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
 
@@ -121,13 +139,14 @@ fun DailyDetailsCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.2f)),
+                            .background(Color.White.copy(alpha = if (selectedDayOffset > 0) 0.2f else 0.08f))
+                            .clickable(enabled = selectedDayOffset > 0) { onNextDay() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = LucideChevronRight,
                             contentDescription = "Next Day",
-                            tint = Color.White.copy(alpha = 0.3f), // Assuming next day is disabled
+                            tint = Color.White.copy(alpha = if (selectedDayOffset > 0) 1f else 0.3f),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -144,17 +163,17 @@ fun DailyDetailsCard(
                     GridItem(
                         icon = LucideSunrise,
                         title = "Primera vez",
-                        mainValue = "7:45 AM",
+                        mainValue = details?.firstUseTime ?: "--",
                         subValue = null,
-                        backgroundColor = Color(0xFFF97316), // Orange
+                        backgroundColor = Color(0xFFF97316),
                         modifier = Modifier.weight(1f)
                     )
                     GridItem(
                         icon = LucideTimer,
-                        title = "Por sesión",
-                        mainValue = "0:03",
+                        title = "Promedio por sesión",
+                        mainValue = avgSessionStr,
                         subValue = null,
-                        backgroundColor = Color(0xFF6366F1), // Indigo
+                        backgroundColor = Color(0xFF6366F1),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -169,17 +188,17 @@ fun DailyDetailsCard(
                     GridItem(
                         icon = LucideAward,
                         title = "App más usada",
-                        mainValue = "YouTube",
-                        subValue = "1h 32m",
-                        backgroundColor = Color(0xFFD946EF), // Fuchsia
+                        mainValue = details?.mostUsedAppName ?: "--",
+                        subValue = details?.mostUsedAppTime,
+                        backgroundColor = Color(0xFFD946EF),
                         modifier = Modifier.weight(1f)
                     )
                     GridItem(
                         icon = LucideSmartphone,
                         title = "Desbloqueos",
-                        mainValue = "83",
+                        mainValue = "${details?.unlocks ?: "--"}",
                         subValue = "veces",
-                        backgroundColor = Color(0xFF14B8A6), // Teal
+                        backgroundColor = Color(0xFF14B8A6),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -223,10 +242,10 @@ fun DailyDetailsCard(
                         )
                         
                         Text(
-                            text = "4h 39m",
+                            text = totalTimeStr,
                             fontSize = 44.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF0F172A) // Slate 900
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

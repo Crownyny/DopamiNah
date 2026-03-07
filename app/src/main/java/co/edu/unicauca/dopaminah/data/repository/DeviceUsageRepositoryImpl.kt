@@ -6,6 +6,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.os.Process
 import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
+import co.edu.unicauca.dopaminah.domain.repository.DailyDetailStats
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -177,6 +178,109 @@ class DeviceUsageRepositoryImpl(
             }
             .sortedByDescending { it.second }
             .take(limit)
+    }
+
+    override suspend fun getDailyDetails(dayOffset: Int): DailyDetailStats = withContext(Dispatchers.IO) {
+        val cal = Calendar.getInstance()
+        // Move to the target day's midnight
+        cal.add(Calendar.DAY_OF_YEAR, -dayOffset)
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        val endTime = cal.timeInMillis
+
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val startTime = cal.timeInMillis
+
+        // Format date label (e.g. "viernes, 7 de marzo")
+        val dateFormat = java.text.SimpleDateFormat("EEEE, d 'de' MMMM", java.util.Locale("es"))
+        val dateLabel = dateFormat.format(cal.time)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+
+        val pm = context.packageManager
+
+        if (!hasUsageStatsPermission()) {
+            return@withContext DailyDetailStats(
+                dateLabel = dateLabel,
+                firstUseTime = "--",
+                avgSessionMinutes = 0,
+                mostUsedAppName = "--",
+                mostUsedAppTime = "--",
+                unlocks = 0,
+                totalTimeMillis = 0L
+            )
+        }
+
+        // Aggregate usage stats for the day
+        val aggregated = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+        val totalTime = aggregated.values.sumOf { it.totalTimeInForeground }
+
+        // Most used app
+        val topApp = aggregated.values.maxByOrNull { it.totalTimeInForeground }
+        val mostUsedName = topApp?.let {
+            try {
+                val info = pm.getApplicationInfo(it.packageName, 0)
+                pm.getApplicationLabel(info).toString()
+            } catch (_: Exception) { it.packageName }
+        } ?: "--"
+
+        val mostUsedMillis = topApp?.totalTimeInForeground ?: 0L
+        val mostUsedH = (mostUsedMillis / 3_600_000).toInt()
+        val mostUsedM = ((mostUsedMillis % 3_600_000) / 60_000).toInt()
+        val mostUsedTimeStr = if (mostUsedH > 0) "${mostUsedH}h ${mostUsedM}m" else "${mostUsedM}m"
+
+        // First use time and session counting via usage events
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = android.app.usage.UsageEvents.Event()
+
+        var firstEventTime = Long.MAX_VALUE
+        var sessionCount = 0
+        var lastActivityResumedTime = 0L
+        var lastScreenInteractiveTime = 0L
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            when (event.eventType) {
+                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    val t = event.timeStamp
+                    if (t < firstEventTime) firstEventTime = t
+                    // Count as new session if gap > 5 min from last activity
+                    if (t - lastActivityResumedTime > 5 * 60_000) sessionCount++
+                    lastActivityResumedTime = t
+                }
+                15 -> { // SCREEN_INTERACTIVE
+                    lastScreenInteractiveTime = event.timeStamp
+                }
+            }
+        }
+
+        val firstUseStr = if (firstEventTime == Long.MAX_VALUE) {
+            "--"
+        } else {
+            java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+                .format(java.util.Date(firstEventTime))
+        }
+
+        val avgSessionMins = if (sessionCount > 0 && totalTime > 0) {
+            ((totalTime / sessionCount) / 60_000).toInt()
+        } else 0
+
+        // Unlock count
+        val unlocks = countDeviceUnlocks(startTime, endTime)
+
+        DailyDetailStats(
+            dateLabel = dateLabel,
+            firstUseTime = firstUseStr,
+            avgSessionMinutes = avgSessionMins,
+            mostUsedAppName = mostUsedName,
+            mostUsedAppTime = mostUsedTimeStr,
+            unlocks = unlocks,
+            totalTimeMillis = totalTime
+        )
     }
 
     private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {

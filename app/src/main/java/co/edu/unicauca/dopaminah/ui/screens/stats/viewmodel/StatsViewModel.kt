@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.unicauca.dopaminah.domain.repository.DailyDetailStats
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +24,10 @@ data class StatsState(
     val selectedTab: StatsTab = StatsTab.WEEKLY,
     val dailyAverageText: String = "-",
     val unlockAverageText: String = "-",
-    val lastWeekUsage: List<Float> = emptyList(), // Daily usage in hours for the chart
-    val appUsageData: List<AppUsageEntry> = emptyList(), // Per-app average daily usage
+    val lastWeekUsage: List<Float> = emptyList(),
+    val appUsageData: List<AppUsageEntry> = emptyList(),
+    val selectedDayOffset: Int = 0,       // 0 = today, 1 = yesterday...
+    val dailyDetails: DailyDetailStats? = null,
     val isLoading: Boolean = false
 )
 
@@ -47,11 +50,9 @@ class StatsViewModel @Inject constructor(
             val avgUsage = repository.getAverageUsageMillis(days)
             val avgUnlocks = repository.getAverageUnlocks(days)
             
-            // Always fetch 7 days for the line chart
             val historyMillis = repository.getDailyUsageForLastDays(7)
             val historyHours = historyMillis.map { it.toFloat() / (1000f * 60f * 60f) }
 
-            // App usage data for the bar chart (avg per day for the selected period)
             val rawAppData = repository.getAverageUsagePerApp(days)
             val appEntries = rawAppData.map { (name, millis) ->
                 AppUsageEntry(
@@ -59,12 +60,15 @@ class StatsViewModel @Inject constructor(
                     averageHours = millis.toFloat() / (1000f * 60f * 60f)
                 )
             }
+
+            val details = repository.getDailyDetails(_uiState.value.selectedDayOffset)
             
             _uiState.value = _uiState.value.copy(
                 dailyAverageText = formatTime(avgUsage),
                 unlockAverageText = "$avgUnlocks/día",
                 lastWeekUsage = historyHours,
                 appUsageData = appEntries,
+                dailyDetails = details,
                 isLoading = false
             )
         }
@@ -77,6 +81,38 @@ class StatsViewModel @Inject constructor(
         }
     }
 
+    fun goToPreviousDay() {
+        // max 30 days back
+        val current = _uiState.value.selectedDayOffset
+        if (current < 30) {
+            _uiState.value = _uiState.value.copy(selectedDayOffset = current + 1)
+            reloadDailyDetails()
+        }
+    }
+
+    fun goToNextDay() {
+        val current = _uiState.value.selectedDayOffset
+        if (current > 0) {
+            _uiState.value = _uiState.value.copy(selectedDayOffset = current - 1)
+            reloadDailyDetails()
+        }
+    }
+
+    fun selectDay(dayOffset: Int) {
+        val clamped = dayOffset.coerceIn(0, 30)
+        if (_uiState.value.selectedDayOffset != clamped) {
+            _uiState.value = _uiState.value.copy(selectedDayOffset = clamped)
+            reloadDailyDetails()
+        }
+    }
+
+    private fun reloadDailyDetails() {
+        viewModelScope.launch {
+            val details = repository.getDailyDetails(_uiState.value.selectedDayOffset)
+            _uiState.value = _uiState.value.copy(dailyDetails = details)
+        }
+    }
+
     private fun formatTime(millis: Long): String {
         val totalMinutes = millis / 1000 / 60
         val hours = totalMinutes / 60
@@ -84,5 +120,3 @@ class StatsViewModel @Inject constructor(
         return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 }
-
-

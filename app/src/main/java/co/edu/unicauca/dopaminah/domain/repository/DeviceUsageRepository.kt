@@ -2,6 +2,16 @@ package co.edu.unicauca.dopaminah.domain.repository
 
 import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 
+data class DailyDetailStats(
+    val dateLabel: String,         // Formatted date string, e.g. "viernes, 7 de marzo"
+    val firstUseTime: String,      // e.g. "7:45 AM"
+    val avgSessionMinutes: Int,    // average session duration in minutes
+    val mostUsedAppName: String,
+    val mostUsedAppTime: String,   // e.g. "1h 32m"
+    val unlocks: Int,
+    val totalTimeMillis: Long
+)
+
 interface DeviceUsageRepository {
     /**
      * Obtains the usage stats for the current day.
@@ -44,4 +54,10 @@ interface DeviceUsageRepository {
      * Returns a list of pairs (appName, avgMillisPerDay) sorted descending, capped at [limit].
      */
     suspend fun getAverageUsagePerApp(days: Int, limit: Int = 8): List<Pair<String, Long>>
+
+    /**
+     * Gets detailed stats for a given day.
+     * [dayOffset] = 0 for today, 1 for yesterday, etc.
+     */
+    suspend fun getDailyDetails(dayOffset: Int): DailyDetailStats
 }

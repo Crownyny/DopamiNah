@@ -15,11 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import co.edu.unicauca.dopaminah.ui.screens.stats.components.DailyDetailsCard
+import co.edu.unicauca.dopaminah.ui.screens.stats.components.DatePickerSheet
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsCarousel
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsHeader
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsSummaryCards
@@ -30,6 +35,7 @@ fun StatsScreen(
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showDatePicker by remember { mutableStateOf(false) }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -38,6 +44,17 @@ fun StatsScreen(
             window.statusBarColor = android.graphics.Color.TRANSPARENT
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
+    }
+
+    if (showDatePicker) {
+        DatePickerSheet(
+            selectedDayOffset = uiState.selectedDayOffset,
+            onSelectDay = { offset ->
+                viewModel.selectDay(offset)
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false }
+        )
     }
 
     Scaffold(
@@ -68,7 +85,13 @@ fun StatsScreen(
             Spacer(modifier = Modifier.height(24.dp))
             
             // Placed outside the carousel, effectively below it
-            co.edu.unicauca.dopaminah.ui.screens.stats.components.DailyDetailsCard()
+            DailyDetailsCard(
+                details = uiState.dailyDetails,
+                selectedDayOffset = uiState.selectedDayOffset,
+                onPreviousDay = { viewModel.goToPreviousDay() },
+                onNextDay = { viewModel.goToNextDay() },
+                onSelectDay = { showDatePicker = true }
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
         }
