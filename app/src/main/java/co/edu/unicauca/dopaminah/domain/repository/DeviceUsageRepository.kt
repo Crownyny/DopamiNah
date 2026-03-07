@@ -60,4 +60,10 @@ interface DeviceUsageRepository {
      * [dayOffset] = 0 for today, 1 for yesterday, etc.
      */
     suspend fun getDailyDetails(dayOffset: Int): DailyDetailStats
+
+    /**
+     * Gets total usage time per hour of the day (0-23) averaged over [days].
+     * Returns a list of 24 floats representing usage in minutes for each hour.
+     */
+    suspend fun getHourlyUsage(days: Int): List<Float>
 }

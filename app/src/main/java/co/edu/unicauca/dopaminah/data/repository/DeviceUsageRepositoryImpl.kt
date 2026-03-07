@@ -311,6 +311,80 @@ class DeviceUsageRepositoryImpl(
         return count
     }
 
+    override suspend fun getHourlyUsage(days: Int): List<Float> = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission() || days <= 0) return@withContext List(24) { 0f }
+
+        val hourlyMillis = LongArray(24) { 0L }
+        val cal = Calendar.getInstance()
+        val endTime = cal.timeInMillis
+        cal.add(Calendar.DAY_OF_YEAR, -days)
+        val startTime = cal.timeInMillis
+
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = android.app.usage.UsageEvents.Event()
+        
+        var currentResumedTime = -1L
+        
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            
+            when (event.eventType) {
+                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    currentResumedTime = event.timeStamp
+                }
+                android.app.usage.UsageEvents.Event.ACTIVITY_PAUSED,
+                android.app.usage.UsageEvents.Event.ACTIVITY_STOPPED -> {
+                    if (currentResumedTime != -1L) {
+                        val pauseTime = event.timeStamp
+                        val duration = pauseTime - currentResumedTime
+                        
+                        if (duration > 0) {
+                            distributeDurationToHours(currentResumedTime, pauseTime, hourlyMillis)
+                        }
+                        currentResumedTime = -1L
+                    }
+                }
+            }
+        }
+        
+        // Final distribution for any pending resumed activity (capped at endTime)
+        if (currentResumedTime != -1L && currentResumedTime < endTime) {
+            distributeDurationToHours(currentResumedTime, endTime, hourlyMillis)
+        }
+
+        // Convert to minutes and average by days
+        hourlyMillis.map { (it / (60_000f * days)) }
+    }
+
+    /**
+     * Helper to distribute a time range across hour-of-day buckets.
+     */
+    private fun distributeDurationToHours(startMillis: Long, endMillis: Long, hourlyBuckets: LongArray) {
+        val startCal = Calendar.getInstance().apply { timeInMillis = startMillis }
+        val endCal = Calendar.getInstance().apply { timeInMillis = endMillis }
+        
+        var current = startMillis
+        val tempCal = Calendar.getInstance()
+        
+        while (current < endMillis) {
+            tempCal.timeInMillis = current
+            val hour = tempCal.get(Calendar.HOUR_OF_DAY)
+            
+            // Calculate next hour boundary
+            tempCal.set(Calendar.MINUTE, 0)
+            tempCal.set(Calendar.SECOND, 0)
+            tempCal.set(Calendar.MILLISECOND, 0)
+            tempCal.add(Calendar.HOUR_OF_DAY, 1)
+            val nextHourBoundary = tempCal.timeInMillis
+            
+            val chunkEnd = minOf(nextHourBoundary, endMillis)
+            val durationInThisHour = chunkEnd - current
+            
+            hourlyBuckets[hour] += durationInThisHour
+            current = chunkEnd
+        }
+    }
+
     override fun hasUsageStatsPermission(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

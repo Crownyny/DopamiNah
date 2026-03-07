@@ -26,6 +26,7 @@ data class StatsState(
     val unlockAverageText: String = "-",
     val lastWeekUsage: List<Float> = emptyList(),
     val appUsageData: List<AppUsageEntry> = emptyList(),
+    val hourlyUsage: List<Float> = emptyList(), // Average usage in minutes per hour (0-23)
     val selectedDayOffset: Int = 0,       // 0 = today, 1 = yesterday...
     val dailyDetails: DailyDetailStats? = null,
     val isLoading: Boolean = false
@@ -53,6 +54,8 @@ class StatsViewModel @Inject constructor(
             val historyMillis = repository.getDailyUsageForLastDays(7)
             val historyHours = historyMillis.map { it.toFloat() / (1000f * 60f * 60f) }
 
+            val hourlyUsage = repository.getHourlyUsage(days)
+
             val rawAppData = repository.getAverageUsagePerApp(days)
             val appEntries = rawAppData.map { (name, millis) ->
                 AppUsageEntry(
@@ -68,6 +71,7 @@ class StatsViewModel @Inject constructor(
                 unlockAverageText = "$avgUnlocks/día",
                 lastWeekUsage = historyHours,
                 appUsageData = appEntries,
+                hourlyUsage = hourlyUsage,
                 dailyDetails = details,
                 isLoading = false
             )

@@ -30,8 +30,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.R
-import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsState
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.DailyUsageChartCard
+import co.edu.unicauca.dopaminah.ui.screens.stats.components.AppUsageChartCard
+import co.edu.unicauca.dopaminah.ui.screens.stats.components.PeakUsageChartCard
+import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsState
 
 @Composable
 fun StatsCarousel(
@@ -40,7 +42,7 @@ fun StatsCarousel(
 ) {
     val pagerState = rememberPagerState(
         initialPage = 0,
-        pageCount = { 2 }
+        pageCount = { 3 }
     )
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalPager(
@@ -55,6 +57,10 @@ fun StatsCarousel(
                     appUsageData = state.appUsageData,
                     selectedTab = state.selectedTab
                 )
+                2 -> PeakUsageChartCard(
+                    hourlyUsage = state.hourlyUsage,
+                    selectedTab = state.selectedTab
+                )
             }
         }
 
@@ -62,13 +68,12 @@ fun StatsCarousel(
 
         // Pager Indicators
         Row(
-            Modifier
-                .height(24.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.Center
         ) {
-            repeat(2) { iteration ->
+            repeat(3) { iteration ->
                 val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                 val width = if (pagerState.currentPage == iteration) 24.dp else 8.dp
                 Box(
