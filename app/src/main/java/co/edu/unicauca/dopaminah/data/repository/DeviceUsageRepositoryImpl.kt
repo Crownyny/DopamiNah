@@ -126,6 +126,59 @@ class DeviceUsageRepositoryImpl(
         totalUnlocks / days
     }
 
+    override suspend fun getDailyUsageForLastDays(days: Int): List<Long> = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission() || days <= 0) return@withContext emptyList()
+        
+        val usagePerDay = mutableListOf<Long>()
+        
+        for (i in (days - 1) downTo 0) {
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_YEAR, -i)
+            
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            val startTime = calendar.timeInMillis
+            
+            val endCalendar = calendar.clone() as Calendar
+            endCalendar.add(Calendar.DAY_OF_YEAR, 1)
+            val endTime = endCalendar.timeInMillis
+            
+            val aggregatedStats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+            val totalTime = aggregatedStats.values.sumOf { it.totalTimeInForeground }
+            usagePerDay.add(totalTime)
+        }
+        
+        usagePerDay
+    }
+
+    override suspend fun getAverageUsagePerApp(days: Int, limit: Int): List<Pair<String, Long>> = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission() || days <= 0) return@withContext emptyList()
+
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_YEAR, -days)
+        val startTime = calendar.timeInMillis
+
+        val aggregatedStats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+        val packageManager = context.packageManager
+
+        aggregatedStats.values
+            .filter { it.totalTimeInForeground > 0 }
+            .map { stat ->
+                val appName = try {
+                    val appInfo = packageManager.getApplicationInfo(stat.packageName, 0)
+                    packageManager.getApplicationLabel(appInfo).toString()
+                } catch (e: Exception) {
+                    stat.packageName
+                }
+                appName to (stat.totalTimeInForeground / days)
+            }
+            .sortedByDescending { it.second }
+            .take(limit)
+    }
+
     private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {
         var count = 0
         val events = usageStatsManager.queryEvents(startTime, endTime)

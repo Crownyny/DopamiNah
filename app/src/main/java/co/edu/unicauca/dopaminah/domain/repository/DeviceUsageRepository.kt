@@ -32,4 +32,16 @@ interface DeviceUsageRepository {
      * Gets the average daily unlocks over the last [days] days.
      */
     suspend fun getAverageUnlocks(days: Int): Int
+
+    /**
+     * Gets total usage time in milliseconds per day for the last [days] days.
+     * Returns a list of durations ordered from oldest to newest (today).
+     */
+    suspend fun getDailyUsageForLastDays(days: Int): List<Long>
+
+    /**
+     * Gets average daily usage in milliseconds for the top apps over the last [days] days.
+     * Returns a list of pairs (appName, avgMillisPerDay) sorted descending, capped at [limit].
+     */
+    suspend fun getAverageUsagePerApp(days: Int, limit: Int = 8): List<Pair<String, Long>>
 }
