@@ -22,4 +22,14 @@ interface DeviceUsageRepository {
      * Checks if the user has granted the PACKAGE_USAGE_STATS permission.
      */
     fun hasUsageStatsPermission(): Boolean
+
+    /**
+     * Gets the average daily usage time in milliseconds over the last [days] days.
+     */
+    suspend fun getAverageUsageMillis(days: Int): Long
+
+    /**
+     * Gets the average daily unlocks over the last [days] days.
+     */
+    suspend fun getAverageUnlocks(days: Int): Int
 }

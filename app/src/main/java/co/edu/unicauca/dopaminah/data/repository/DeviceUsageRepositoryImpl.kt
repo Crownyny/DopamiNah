@@ -99,6 +99,33 @@ class DeviceUsageRepositoryImpl(
         countDeviceUnlocks(startTime, endTime)
     }
 
+    override suspend fun getAverageUsageMillis(days: Int): Long = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission() || days <= 0) return@withContext 0L
+
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_YEAR, -days)
+        val startTime = calendar.timeInMillis
+
+        val aggregatedStats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+        val totalTime = aggregatedStats.values.sumOf { it.totalTimeInForeground }
+        
+        totalTime / days
+    }
+
+    override suspend fun getAverageUnlocks(days: Int): Int = withContext(Dispatchers.IO) {
+        if (!hasUsageStatsPermission() || days <= 0) return@withContext 0
+        
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_YEAR, -days)
+        val startTime = calendar.timeInMillis
+
+        val totalUnlocks = countDeviceUnlocks(startTime, endTime)
+        
+        totalUnlocks / days
+    }
+
     private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {
         var count = 0
         val events = usageStatsManager.queryEvents(startTime, endTime)

@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsCarousel
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsHeader
 import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsSummaryCards
@@ -27,7 +27,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
 @Composable
 fun StatsScreen(
-    viewModel: StatsViewModel = viewModel()
+    viewModel: StatsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
