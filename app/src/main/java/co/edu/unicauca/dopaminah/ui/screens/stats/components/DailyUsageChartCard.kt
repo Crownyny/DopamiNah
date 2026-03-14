@@ -130,6 +130,7 @@ fun DailyUsageChartCard(
                     .height(180.dp)) {
 
                     var coordinatesCache by remember { mutableStateOf<List<Offset>>(emptyList()) }
+                    val lineColor = MaterialTheme.colorScheme.primary
 
                     // Chart Canvas
                     Canvas(
@@ -203,7 +204,6 @@ fun DailyUsageChartCard(
                         }
 
                         // Stroke Path
-                        val lineColor = Color(0xFF8B5CF6) // Purple
                         drawPath(
                             path = path,
                             color = lineColor,
@@ -289,7 +289,7 @@ fun DailyUsageChartCard(
                                         start = (offset.x.dp - 32.dp).coerceAtLeast(0.dp), 
                                         top = (offset.y.dp - 48.dp).coerceAtLeast(0.dp)
                                     )
-                                    .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

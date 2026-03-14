@@ -66,3 +66,15 @@ val DarkExtendedColors = ExtendedColors(
 )
 
 val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
+
+// ── App Usage Chart Gradients ───────────────────────────────────────
+val AppChartColorsList = listOf(
+    listOf(Color(0xFF8B5CF6), Color(0xFFA78BFA)), // Purple
+    listOf(Color(0xFFF43F5E), Color(0xFFFB7185)), // Rose
+    listOf(Color(0xFF3B82F6), Color(0xFF60A5FA)), // Blue
+    listOf(Color(0xFF10B981), Color(0xFF6EE7B7)), // Emerald
+    listOf(Color(0xFFF59E0B), Color(0xFFFCD34D)), // Amber
+    listOf(Color(0xFF6366F1), Color(0xFFA5B4FC)), // Indigo
+    listOf(Color(0xFFEC4899), Color(0xFFF9A8D4)), // Pink
+    listOf(Color(0xFF14B8A6), Color(0xFF5EEAD4))  // Teal
+)

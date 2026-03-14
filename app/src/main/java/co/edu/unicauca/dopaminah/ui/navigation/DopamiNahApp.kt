@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.DashboardScreen
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.OnboardingPermissionScreen
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
+import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
 
 @Composable
@@ -67,8 +68,7 @@ fun DopamiNahApp() {
                 co.edu.unicauca.dopaminah.ui.screens.stats.StatsScreen()
             }
             composable(Screen.Goals.route) {
-                // To be implemented
-                Text("Goals Screen")
+                GoalsScreen()
             }
             composable(Screen.Achievements.route) {
                 // To be implemented

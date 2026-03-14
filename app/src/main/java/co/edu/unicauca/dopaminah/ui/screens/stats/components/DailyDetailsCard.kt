@@ -35,11 +35,12 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideAward
 import co.edu.unicauca.dopaminah.ui.icons.LucideCalendar
 import co.edu.unicauca.dopaminah.ui.icons.LucideChevronLeft
 import co.edu.unicauca.dopaminah.ui.icons.LucideChevronRight
-import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
+import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 import co.edu.unicauca.dopaminah.ui.icons.LucideSunrise
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
 
 import co.edu.unicauca.dopaminah.domain.repository.DailyDetailStats
+import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
 
 @Composable
 fun DailyDetailsCard(
@@ -77,8 +78,8 @@ fun DailyDetailsCard(
                     .background(
                         brush = Brush.horizontalGradient(
                             colors = listOf(
-                                Color(0xFF8B5CF6), // Purple
-                                Color(0xFFF43F5E)  // Pink
+                                MaterialTheme.colorScheme.primary, // Purple
+                                MaterialTheme.extendedColors.dangerRed  // Pink/Red
                             )
                         )
                     )
@@ -165,7 +166,7 @@ fun DailyDetailsCard(
                         title = "Primera vez",
                         mainValue = details?.firstUseTime ?: "--",
                         subValue = null,
-                        backgroundColor = Color(0xFFF97316),
+                        backgroundColor = MaterialTheme.extendedColors.brandOrange,
                         modifier = Modifier.weight(1f)
                     )
                     GridItem(
@@ -173,7 +174,7 @@ fun DailyDetailsCard(
                         title = "Promedio por sesión",
                         mainValue = avgSessionStr,
                         subValue = null,
-                        backgroundColor = Color(0xFF6366F1),
+                        backgroundColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -190,7 +191,7 @@ fun DailyDetailsCard(
                         title = "App más usada",
                         mainValue = details?.mostUsedAppName ?: "--",
                         subValue = details?.mostUsedAppTime,
-                        backgroundColor = Color(0xFFD946EF),
+                        backgroundColor = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f)
                     )
                     GridItem(
@@ -198,7 +199,7 @@ fun DailyDetailsCard(
                         title = "Desbloqueos",
                         mainValue = "${details?.unlocks ?: "--"}",
                         subValue = "veces",
-                        backgroundColor = Color(0xFF14B8A6),
+                        backgroundColor = MaterialTheme.extendedColors.successGreen,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -222,13 +223,13 @@ fun DailyDetailsCard(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF8B5CF6).copy(alpha = 0.1f)), // Purple thin background
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)), // Purple thin background
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = LucideTimer,
                                 contentDescription = null,
-                                tint = Color(0xFF8B5CF6),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }

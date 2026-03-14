@@ -151,8 +151,8 @@ private fun PeakBar(
     // Let's go with a purple gradient for all, but maybe darker for peaks.
     val barColor = Brush.verticalGradient(
         listOf(
-            Color(0xFF8B5CF6), // Purple 500
-            Color(0xFFC084FC)  // Purple 400
+            MaterialTheme.colorScheme.primary, // Purple 500 equivalent
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)  // Purple 400 equivalent
         )
     )
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.R
+import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
 @Composable
 fun StatsSummaryCards(
@@ -57,7 +58,7 @@ fun StatsSummaryCards(
             title = stringResource(R.string.stats_unlocks),
             value = unlockAverageText,
             icon = getTrendingUpIcon(),
-            backgroundColor = Color(0xFFF43F5E), // Pinkish red
+            backgroundColor = MaterialTheme.extendedColors.dangerRed, // Pinkish red
             modifier = Modifier.weight(1f)
         )
     }

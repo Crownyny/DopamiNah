@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.AppUsageEntry
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsTab
+import co.edu.unicauca.dopaminah.ui.theme.AppChartColorsList
 
 @Composable
 fun AppUsageChartCard(
@@ -52,16 +53,7 @@ fun AppUsageChartCard(
     // X-axis tick values (0, max/2, max)
     val xTicks = listOf(0f, maxHours / 2f, maxHours)
 
-    val barColors = listOf(
-        Brush.horizontalGradient(listOf(Color(0xFF8B5CF6), Color(0xFFA78BFA))),
-        Brush.horizontalGradient(listOf(Color(0xFFF43F5E), Color(0xFFFB7185))),
-        Brush.horizontalGradient(listOf(Color(0xFF3B82F6), Color(0xFF60A5FA))),
-        Brush.horizontalGradient(listOf(Color(0xFF10B981), Color(0xFF6EE7B7))),
-        Brush.horizontalGradient(listOf(Color(0xFFF59E0B), Color(0xFFFCD34D))),
-        Brush.horizontalGradient(listOf(Color(0xFF6366F1), Color(0xFFA5B4FC))),
-        Brush.horizontalGradient(listOf(Color(0xFFEC4899), Color(0xFFF9A8D4))),
-        Brush.horizontalGradient(listOf(Color(0xFF14B8A6), Color(0xFF5EEAD4))),
-    )
+    val barColors = AppChartColorsList.map { Brush.horizontalGradient(it) }
 
     Card(
         modifier = modifier

@@ -40,7 +40,7 @@ fun DatePickerSheet(
     onSelectDay: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val purple = Color(0xFF8B5CF6)
+    val purple = MaterialTheme.colorScheme.primary
 
     // Build last 7 days info
     val weekDays = remember {
