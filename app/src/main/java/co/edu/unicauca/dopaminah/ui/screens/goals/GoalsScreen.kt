@@ -118,7 +118,11 @@ fun GoalsScreen(
                             progressPercent = goal.progressPercent,
                             progressFraction = goal.progressFraction,
                             isExceeded = goal.isExceeded,
-                            onDelete = { viewModel.deleteGoal(goal.id) }
+                            appPackageName = goal.appPackageName,
+                            goalType = goal.goalType,
+                            currentLimitMinutes = goal.currentLimitMinutes,
+                            onDelete = { viewModel.deleteGoal(goal.id) },
+                            onEdit = { newLimit -> viewModel.editGoal(goal.id, newLimit) }
                         )
                     }
                 }

@@ -618,3 +618,71 @@ val LucideLightbulb: ImageVector by lazy {
         }
     }.build()
 }
+
+val LucidePencil: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Pencil",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(17f, 3f)
+            arcToRelative(2.85f, 2.83f, 0f, true, true, 4f, 4f)
+            lineTo(7.5f, 20.5f)
+            lineTo(2f, 22f)
+            lineToRelative(1.5f, -5.5f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(15f, 5f)
+            lineToRelative(4f, 4f)
+        }
+    }.build()
+}
+
+val LucideCalendarClock: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "CalendarClock",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(21f, 7.5f)
+            verticalLineTo(6f)
+            arcToRelative(2f, 2f, 0f, false, false, -2f, -2f)
+            horizontalLineTo(5f)
+            arcToRelative(2f, 2f, 0f, false, false, -2f, 2f)
+            verticalLineToRelative(14f)
+            arcToRelative(2f, 2f, 0f, false, false, 2f, 2f)
+            horizontalLineToRelative(3.5f)
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(16f, 2f)
+            verticalLineToRelative(4f)
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(8f, 2f)
+            verticalLineToRelative(4f)
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(3f, 10f)
+            horizontalLineToRelative(5f)
+        }
+        // Clock circle
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(17f, 13f)
+            arcToRelative(4f, 4f, 0f, true, true, 0f, 8f)
+            arcToRelative(4f, 4f, 0f, false, true, 0f, -8f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(17f, 15f)
+            verticalLineToRelative(2f)
+            lineToRelative(1f, 1f)
+        }
+    }.build()
+}

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,12 +33,14 @@ object GoalType {
 data class GoalDisplayModel(
     val id: Int,
     val goalType: String,
+    val appPackageName: String? = null,
     val title: String,
     val subtitle: String,
     val progressLabel: String,
     val progressPercent: String,
-    val progressFraction: Float,    // 0.0 – 1.0 (capped at 1.0 for bar render, may show >100% in text)
-    val isExceeded: Boolean
+    val progressFraction: Float,
+    val isExceeded: Boolean,
+    val currentLimitMinutes: Int = 0   // Pre-filled value for the edit dialog
 )
 
 data class GoalsState(
@@ -107,7 +110,8 @@ class GoalsViewModel @Inject constructor(
                         progressLabel = "Progreso Hoy",
                         progressPercent = "$percent%",
                         progressFraction = fraction,
-                        isExceeded = totalScreenMillis > limitMillis
+                        isExceeded = totalScreenMillis > limitMillis,
+                        currentLimitMinutes = (limitMillis / 60_000).toInt()
                     )
                 }
                 GoalType.APP_LIMIT -> {
@@ -120,12 +124,14 @@ class GoalsViewModel @Inject constructor(
                     GoalDisplayModel(
                         id = goal.id,
                         goalType = goal.goalType,
+                        appPackageName = goal.packageName.ifBlank { null },
                         title = "Límite de Aplicación",
                         subtitle = "$displayName — máx ${formatMillis(limitMillis)}",
                         progressLabel = "Uso hoy",
                         progressPercent = "$percent%",
                         progressFraction = fraction,
-                        isExceeded = usedMillis > limitMillis
+                        isExceeded = usedMillis > limitMillis,
+                        currentLimitMinutes = (limitMillis / 60_000).toInt()
                     )
                 }
                 GoalType.UNLOCK_LIMIT -> {
@@ -140,7 +146,8 @@ class GoalsViewModel @Inject constructor(
                         progressLabel = "Desbloqueos hoy",
                         progressPercent = "$percent%",
                         progressFraction = fraction,
-                        isExceeded = deviceUnlocks > limitUnlocks
+                        isExceeded = deviceUnlocks > limitUnlocks,
+                        currentLimitMinutes = limitUnlocks
                     )
                 }
                 else -> GoalDisplayModel(
@@ -205,6 +212,22 @@ class GoalsViewModel @Inject constructor(
     fun deleteGoal(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             goalsRepository.deleteGoal(id)
+        }
+    }
+
+    /**
+     * Updates the time/unlock limit of an existing goal.
+     * The new value is stored immediately but the UI makes clear it takes effect "next day".
+     */
+    fun editGoal(id: Int, newLimitMinutes: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = goalsRepository.getAllGoals().first()
+                .firstOrNull { it.id == id } ?: return@launch
+            val updated = when (current.goalType) {
+                GoalType.UNLOCK_LIMIT -> current.copy(maxUnlocks = newLimitMinutes)
+                else -> current.copy(maxTimeMillis = newLimitMinutes * 60_000L)
+            }
+            goalsRepository.saveGoal(updated)
         }
     }
 
