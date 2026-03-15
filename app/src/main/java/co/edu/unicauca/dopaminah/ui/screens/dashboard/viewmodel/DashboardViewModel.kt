@@ -14,13 +14,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
+
+data class AppLimitCarouselInfo(
+    val packageName: String,
+    val appName: String,
+    val timeUsedMs: Long,
+    val timeLimitMs: Long
+)
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val gamificationRepository: GamificationRepository,
     private val deviceUsageRepository: DeviceUsageRepository,
+    private val goalsRepository: GoalsRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -42,10 +52,33 @@ class DashboardViewModel @Inject constructor(
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
+    private val _appLimitCards = MutableStateFlow<List<AppLimitCarouselInfo>>(emptyList())
+    val appLimitCards: StateFlow<List<AppLimitCarouselInfo>> = _appLimitCards.asStateFlow()
+
     init {
         loadGamificationStats()
         checkAndIncrementStreak()
         loadUnlockStats()
+        observeAppLimits()
+    }
+
+    private fun observeAppLimits() {
+        viewModelScope.launch {
+            combine(goalsRepository.getAllGoals(), _dailyUsageStats) { goals, stats ->
+                val appLimits = goals.filter { it.goalType == "APP_LIMIT" }
+                appLimits.map { goal ->
+                    val usedMs = stats.find { it.packageName == goal.packageName }?.totalTimeForegroundMillis ?: 0L
+                    AppLimitCarouselInfo(
+                        packageName = goal.packageName,
+                        appName = goal.appDisplayName.ifEmpty { goal.packageName },
+                        timeUsedMs = usedMs,
+                        timeLimitMs = goal.maxTimeMillis
+                    )
+                }
+            }.collect { cards ->
+                _appLimitCards.value = cards
+            }
+        }
     }
 
     private fun loadGamificationStats() {

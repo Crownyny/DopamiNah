@@ -24,6 +24,7 @@ import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.UsageSummaryCarousel
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.MostUsedAppsSection
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.AppLimitCarouselInfo
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopamiNahTheme
 
@@ -38,6 +39,7 @@ fun DashboardScreen(
     val totalDailyUsageMs by viewModel.totalDailyUsageMs.collectAsState()
     val hasPermission by viewModel.hasUsagePermission.collectAsState()
     val dailyUsageStats by viewModel.dailyUsageStats.collectAsState()
+    val appLimitCards by viewModel.appLimitCards.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -69,6 +71,7 @@ fun DashboardScreen(
         totalDailyUsageMs = totalDailyUsageMs,
         hasPermission = hasPermission,
         dailyUsageStats = dailyUsageStats,
+        appLimitCards = appLimitCards,
         modifier = modifier
     )
 }
@@ -81,6 +84,7 @@ fun DashboardContent(
     totalDailyUsageMs: Long,
     hasPermission: Boolean,
     dailyUsageStats: List<AppUsageSummary>,
+    appLimitCards: List<AppLimitCarouselInfo>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -102,7 +106,8 @@ fun DashboardContent(
                 UsageSummaryCarousel(
                     dailyUnlocks = dailyUnlocks,
                     yesterdayUnlocks = yesterdayUnlocks,
-                    totalDailyUsageMs = totalDailyUsageMs
+                    totalDailyUsageMs = totalDailyUsageMs,
+                    appLimitCards = appLimitCards
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 MostUsedAppsSection(
@@ -129,6 +134,14 @@ fun DashboardScreenPreview() {
             yesterdayUnlocks = 15,
             totalDailyUsageMs = 7200000L,
             hasPermission = true,
+            appLimitCards = listOf(
+                AppLimitCarouselInfo(
+                    packageName = "com.instagram.android",
+                    appName = "Instagram",
+                    timeUsedMs = 1800000L,
+                    timeLimitMs = 3600000L
+                )
+            ),
             dailyUsageStats = listOf(
                 AppUsageSummary("com.instagram.android", "Instagram", 3600000L, 10, 0L),
                 AppUsageSummary("com.whatsapp", "WhatsApp", 1800000L, 25, 0L),

@@ -26,11 +26,14 @@ fun StatCard(
     mainValue: String,
     subtext: String,
     diffText: String,
-    diffColor: Color
+    diffColor: Color,
+    containerColor: Color = DopaminahRedDark,
+    contentColor: Color = Color.White,
+    accentColor: Color = DopaminahRedText
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = DopaminahRedDark),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
@@ -43,14 +46,14 @@ fun StatCard(
             ) {
                 Text(
                     text = title,
-                    color = Color.White,
+                    color = contentColor,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = DopaminahRedText
+                    tint = accentColor
                 )
             }
             
@@ -59,14 +62,14 @@ fun StatCard(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = mainValue,
-                    color = DopaminahRedText,
+                    color = accentColor,
                     fontSize = 48.sp, // Reduced slightly to fit complex time strings
                     fontWeight = FontWeight.ExtraBold,
                     lineHeight = 48.sp
                 )
                 Text(
                     text = subtext,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = contentColor.copy(alpha = 0.8f),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 6.dp, start = 8.dp)

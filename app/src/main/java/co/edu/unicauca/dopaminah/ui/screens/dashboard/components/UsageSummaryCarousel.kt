@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,7 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import co.edu.unicauca.dopaminah.R
-import co.edu.unicauca.dopaminah.ui.theme.*
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.AppLimitCarouselInfo
+import co.edu.unicauca.dopaminah.ui.theme.DangerRed
+import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedText
+import co.edu.unicauca.dopaminah.ui.theme.SuccessGreen
+import co.edu.unicauca.dopaminah.ui.theme.WarningYellow
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateDiffText
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateTimeDiff
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.formatUsageTime
@@ -34,9 +39,11 @@ fun UsageSummaryCarousel(
     dailyUnlocks: Int,
     yesterdayUnlocks: Int,
     totalDailyUsageMs: Long,
+    appLimitCards: List<AppLimitCarouselInfo> = emptyList(),
     yesterdayUsageMs: Long? = null // Optional, if we want to add comparison later
 ) {
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val totalPages = 2 + appLimitCards.size
+    val pagerState = rememberPagerState(pageCount = { totalPages })
     val coroutineScope = rememberCoroutineScope()
 
     // Auto-scroll effect: pause when user is interacting
@@ -82,6 +89,29 @@ fun UsageSummaryCarousel(
                         diffColor = Color.White // Neutral color or success if improved
                     )
                 }
+                else -> {
+                    // Dynamic App Limit Cards
+                    val cardInfo = appLimitCards[page - 2]
+                    val ratio = if (cardInfo.timeLimitMs > 0) cardInfo.timeUsedMs.toFloat() / cardInfo.timeLimitMs else 1f
+                    
+                    val (containerCol, contentCol, accentCol) = when {
+                        ratio >= 1.0f -> Triple(DangerRed, Color.White, Color.White)
+                        ratio >= 0.7f -> Triple(WarningYellow, Color(0xFF2E2E2E), Color(0xFF1E1E1E))
+                        else -> Triple(SuccessGreen, Color.White, Color.White)
+                    }
+
+                    StatCard(
+                        title = cardInfo.appName,
+                        icon = Icons.Default.Smartphone,
+                        mainValue = formatUsageTime(cardInfo.timeUsedMs),
+                        subtext = "hoy",
+                        diffText = "Límite: ${formatUsageTime(cardInfo.timeLimitMs)}",
+                        diffColor = contentCol,
+                        containerColor = containerCol,
+                        contentColor = contentCol,
+                        accentColor = accentCol
+                    )
+                }
             }
         }
 
@@ -92,7 +122,7 @@ fun UsageSummaryCarousel(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(2) { iteration ->
+            repeat(totalPages) { iteration ->
                 val color = if (pagerState.currentPage == iteration) DopaminahRedText else Color.LightGray.copy(alpha = 0.5f)
                 Box(
                     modifier = Modifier
