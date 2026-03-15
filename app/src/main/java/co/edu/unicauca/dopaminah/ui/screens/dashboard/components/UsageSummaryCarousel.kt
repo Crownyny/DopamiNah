@@ -23,10 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.AppLimitCarouselInfo
-import co.edu.unicauca.dopaminah.ui.theme.DangerRed
-import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedText
-import co.edu.unicauca.dopaminah.ui.theme.SuccessGreen
-import co.edu.unicauca.dopaminah.ui.theme.WarningYellow
+import co.edu.unicauca.dopaminah.ui.theme.*
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateDiffText
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateTimeDiff
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.formatUsageTime
@@ -69,24 +66,33 @@ fun UsageSummaryCarousel(
             when (page) {
                 0 -> {
                     // First Card: Unlocks
+                    val isImproved = dailyUnlocks - yesterdayUnlocks <= 0
                     StatCard(
                         title = stringResource(R.string.dashboard_unlocks),
                         icon = Icons.Default.Lock,
                         mainValue = "$dailyUnlocks",
                         subtext = stringResource(R.string.dashboard_unlocks_times),
                         diffText = calculateDiffText(dailyUnlocks, yesterdayUnlocks),
-                        diffColor = if (dailyUnlocks - yesterdayUnlocks <= 0) SuccessGreen else DopaminahRedText
+                        diffColor = if (isImproved) SuccessGreenLight else DangerRed,
+                        diffBgColor = if (isImproved) SuccessGreenDark else DangerRed.copy(alpha = 0.2f),
+                        containerColor = StatCardDark,
+                        contentColor = TextPrimaryDark,
+                        accentColor = StatCardPink
                     )
                 }
                 1 -> {
                     // Second Card: Screen Time
                     StatCard(
-                        title = "Uso de Pantalla", // Consider moving to strings.xml later if preferred
+                        title = "Uso de Pantalla",
                         icon = Icons.Default.Schedule,
                         mainValue = formatUsageTime(totalDailyUsageMs),
                         subtext = "hoy",
                         diffText = if (yesterdayUsageMs != null) calculateTimeDiff(totalDailyUsageMs, yesterdayUsageMs) else "Datos calculándose...",
-                        diffColor = Color.White // Neutral color or success if improved
+                        diffColor = TextSecondaryDark,
+                        diffBgColor = Color.White.copy(alpha = 0.05f),
+                        containerColor = StatCardDark,
+                        contentColor = TextPrimaryDark,
+                        accentColor = StatCardPink
                     )
                 }
                 else -> {
@@ -96,7 +102,7 @@ fun UsageSummaryCarousel(
                     
                     val (containerCol, contentCol, accentCol) = when {
                         ratio >= 1.0f -> Triple(DangerRed, Color.White, Color.White)
-                        ratio >= 0.7f -> Triple(WarningYellow, Color(0xFF2E2E2E), Color(0xFF1E1E1E))
+                        ratio >= 0.7f -> Triple(WarningYellow, WarningYellowDark, WarningYellowAccent)
                         else -> Triple(SuccessGreen, Color.White, Color.White)
                     }
 

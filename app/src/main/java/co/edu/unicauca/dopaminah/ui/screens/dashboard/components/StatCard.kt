@@ -27,6 +27,7 @@ fun StatCard(
     subtext: String,
     diffText: String,
     diffColor: Color,
+    diffBgColor: Color = Color.White.copy(alpha = 0.1f),
     containerColor: Color = DopaminahRedDark,
     contentColor: Color = Color.White,
     accentColor: Color = DopaminahRedText
@@ -81,7 +82,7 @@ fun StatCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White.copy(alpha = 0.1f))
+                    .background(diffBgColor)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(

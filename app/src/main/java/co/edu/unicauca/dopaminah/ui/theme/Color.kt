@@ -18,7 +18,11 @@ val DopaminahRedText = Color(0xFFEF4444)
 
 // ── Semantic status colors ──────────────────────────────────────────
 val SuccessGreen = Color(0xFF22C55E)
+val SuccessGreenLight = Color(0xFF4ADE80)
+val SuccessGreenDark = Color(0xFF2D4739)
 val WarningYellow = Color(0xFFEAB308)
+val WarningYellowDark = Color(0xFF2E2E2E)
+val WarningYellowAccent = Color(0xFF1E1E1E)
 val DangerRed = Color(0xFFEF4444)
 
 // ── Light scheme raw tokens ─────────────────────────────────────────
@@ -32,6 +36,10 @@ val BackgroundDark = Color(0xFF1C1B1F)
 val SurfaceDark = Color(0xFF2B2930)
 val TextPrimaryDark = Color(0xFFE6E1E5)
 val TextSecondaryDark = Color(0xFFCAC4D0)
+
+// ── Stat Card specific colors ───────────────────────────────────────
+val StatCardDark = Color(0xFF28252C)
+val StatCardPink = Color(0xFFE91E63)
 
 // ── Extended colors (theme-aware, non-Material3 slots) ──────────────
 @Immutable
