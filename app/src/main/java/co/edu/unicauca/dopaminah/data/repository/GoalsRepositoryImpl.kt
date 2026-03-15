@@ -14,15 +14,12 @@ class GoalsRepositoryImpl @Inject constructor(
         return goalsDao.getAllGoals()
     }
 
-    override fun getGoalForApp(packageName: String): Flow<AppLimitGoal?> {
-        return goalsDao.getGoalForApp(packageName)
-    }
-
     override suspend fun saveGoal(goal: AppLimitGoal) {
         goalsDao.insertGoal(goal)
     }
 
-    override suspend fun deleteGoal(packageName: String) {
-        goalsDao.deleteGoal(packageName)
+    override suspend fun deleteGoal(id: Int) {
+        goalsDao.deleteGoal(id)
     }
 }
+

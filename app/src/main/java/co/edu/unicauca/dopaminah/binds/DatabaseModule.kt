@@ -21,7 +21,9 @@ object DatabaseModule {
             context,
             DopaminahDatabase::class.java,
             DopaminahDatabase.DATABASE_NAME
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

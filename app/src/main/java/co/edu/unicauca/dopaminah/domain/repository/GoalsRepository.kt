@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface GoalsRepository {
     fun getAllGoals(): Flow<List<AppLimitGoal>>
-    fun getGoalForApp(packageName: String): Flow<AppLimitGoal?>
     suspend fun saveGoal(goal: AppLimitGoal)
-    suspend fun deleteGoal(packageName: String)
+    suspend fun deleteGoal(id: Int)
 }

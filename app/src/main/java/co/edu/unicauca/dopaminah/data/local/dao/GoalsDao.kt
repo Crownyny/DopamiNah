@@ -12,12 +12,9 @@ interface GoalsDao {
     @Query("SELECT * FROM app_limit_goals")
     fun getAllGoals(): Flow<List<AppLimitGoal>>
 
-    @Query("SELECT * FROM app_limit_goals WHERE packageName = :packageName LIMIT 1")
-    fun getGoalForApp(packageName: String): Flow<AppLimitGoal?>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGoal(goal: AppLimitGoal)
 
-    @Query("DELETE FROM app_limit_goals WHERE packageName = :packageName")
-    suspend fun deleteGoal(packageName: String)
+    @Query("DELETE FROM app_limit_goals WHERE id = :id")
+    suspend fun deleteGoal(id: Int)
 }

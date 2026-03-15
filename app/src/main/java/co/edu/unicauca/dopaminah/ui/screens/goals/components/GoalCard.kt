@@ -42,7 +42,8 @@ fun GoalCard(
     progressLabel: String,
     progressPercent: String,
     progressFraction: Float,
-    isExceeded: Boolean
+    isExceeded: Boolean,
+    onDelete: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -93,7 +94,7 @@ fun GoalCard(
                     tint = MaterialTheme.colorScheme.outline, 
                     modifier = Modifier
                         .size(20.dp)
-                        .clickable { /* TODO: Delete action */ }
+                        .clickable { onDelete() }
                 )
             }
 

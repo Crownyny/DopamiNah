@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import co.edu.unicauca.dopaminah.data.local.dao.GoalsDao
 import co.edu.unicauca.dopaminah.domain.model.AppLimitGoal
 
-@Database(entities = [AppLimitGoal::class], version = 1, exportSchema = false)
+@Database(entities = [AppLimitGoal::class], version = 2, exportSchema = false)
 abstract class DopaminahDatabase : RoomDatabase() {
     abstract val goalsDao: GoalsDao
     

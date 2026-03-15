@@ -2,21 +2,28 @@ package co.edu.unicauca.dopaminah.ui.screens.goals
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import co.edu.unicauca.dopaminah.ui.icons.LucideLock
 import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
@@ -25,6 +32,7 @@ import co.edu.unicauca.dopaminah.ui.screens.goals.components.CreateGoalDialog
 import co.edu.unicauca.dopaminah.ui.screens.goals.components.GoalCard
 import co.edu.unicauca.dopaminah.ui.screens.goals.components.GoalsHeader
 import co.edu.unicauca.dopaminah.ui.screens.goals.components.GoalsTipCard
+import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalType
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
@@ -40,7 +48,6 @@ fun GoalsScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        // Header
         GoalsHeader()
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -51,67 +58,77 @@ fun GoalsScreen(
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Render list of goals from ViewModel state
-            if (state.goals.isEmpty()) {
-                // Temporary Hardcoded mockup while waiting for Room DB connection
-                GoalCard(
-                    title = "Tiempo Total Diario",
-                    subtitle = "Máximo: 2h 0m",
-                    icon = LucideTimer,
-                    iconBgColor = MaterialTheme.extendedColors.dangerRed.copy(alpha = 0.1f),
-                    iconTintColor = MaterialTheme.extendedColors.dangerRed, 
-                    progressLabel = "Progreso Hoy",
-                    progressPercent = "292%",
-                    progressFraction = 1f,
-                    isExceeded = true
-                )
+            when {
+                state.isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
 
-                GoalCard(
-                    title = "Límite Instagram",
-                    subtitle = "Máximo: 20m",
-                    icon = LucideSmartphone,
-                    iconBgColor = MaterialTheme.extendedColors.dangerRed.copy(alpha = 0.1f), 
-                    iconTintColor = MaterialTheme.extendedColors.dangerRed, 
-                    progressLabel = "Progreso Hoy",
-                    progressPercent = "280%",
-                    progressFraction = 1f, 
-                    isExceeded = true
-                )
+                state.goals.isEmpty() -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tienes metas definidas aún.\nToca \"Agregar Meta\" para comenzar.",
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-                GoalCard(
-                    title = "Límite de Desbloqueos",
-                    subtitle = "Máximo: 50 desbloqueos",
-                    icon = LucideLock,
-                    iconBgColor = MaterialTheme.extendedColors.dangerRed.copy(alpha = 0.1f),
-                    iconTintColor = MaterialTheme.extendedColors.dangerRed,
-                    progressLabel = "Progreso Hoy",
-                    progressPercent = "178%",
-                    progressFraction = 1f, 
-                    isExceeded = true
-                )
-            } else {
-                state.goals.forEach { goal ->
-                    GoalCard(
-                        title = goal.title,
-                        subtitle = goal.subtitle,
-                        icon = goal.icon,
-                        iconBgColor = goal.iconBgColor,
-                        iconTintColor = goal.iconTintColor,
-                        progressLabel = goal.progressLabel,
-                        progressPercent = goal.progressPercent,
-                        progressFraction = goal.progressFraction,
-                        isExceeded = goal.isExceeded
-                    )
+                else -> {
+                    state.goals.forEach { goal ->
+                        // Map goalType to an appropriate icon and colors
+                        val icon = when (goal.goalType) {
+                            GoalType.TOTAL_DAILY -> LucideTimer
+                            GoalType.APP_LIMIT -> LucideSmartphone
+                            GoalType.UNLOCK_LIMIT -> LucideLock
+                            else -> LucideTimer
+                        }
+                        val iconBgColor = if (goal.isExceeded)
+                            MaterialTheme.extendedColors.dangerRed.copy(alpha = 0.1f)
+                        else
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+
+                        val iconTintColor = if (goal.isExceeded)
+                            MaterialTheme.extendedColors.dangerRed
+                        else
+                            MaterialTheme.colorScheme.primary
+
+                        GoalCard(
+                            title = goal.title,
+                            subtitle = goal.subtitle,
+                            icon = icon,
+                            iconBgColor = iconBgColor,
+                            iconTintColor = iconTintColor,
+                            progressLabel = goal.progressLabel,
+                            progressPercent = goal.progressPercent,
+                            progressFraction = goal.progressFraction,
+                            isExceeded = goal.isExceeded,
+                            onDelete = { viewModel.deleteGoal(goal.id) }
+                        )
+                    }
                 }
             }
 
-            // Add Goal Button
             AddGoalButton(onClick = { viewModel.showCreateGoalDialog() })
 
-            // Tip Card
             GoalsTipCard()
 
-            Spacer(modifier = Modifier.height(32.dp)) 
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
