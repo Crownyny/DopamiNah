@@ -61,4 +61,45 @@
     <string name="stats_app_usage">Uso por Aplicación</string>
     <string name="stats_day_details">Detalles del Día</string>
     <string name="stats_total_time">Tiempo Total</string>
+
+    <!-- Achievements Screen Strings -->
+    <string name="achievements_title">Logros &amp; Rachas</string>
+    <string name="achievements_subtitle">Tus conquistas y progreso</string>
+
+    <string name="achievements_streak_label">RACHA ACTUAL</string>
+    <string name="achievements_streak_days">días consecutivos</string>
+    <string name="achievements_streak_legendary_title">⭐ ¡RACHA LEGENDARIA! ⭐</string>
+    <string name="achievements_streak_legendary_subtitle">Estás en modo campeón, ¡sigue así!</string>
+
+    <string name="achievements_level_subtitle">Tu Nivel de Autocontrol</string>
+    <string name="achievements_level_prefix">Nivel</string>
+    <string name="achievements_level_streak_current">🔥 Racha actual: %1$d días</string>
+
+    <string name="achievements_badges_title">Insignias</string>
+    <string name="achievements_badge_unlocked_on">Desbloqueado el %1$s</string>
+    <string name="achievements_badge_locked_cd">Bloqueado</string>
+
+    <string name="achievements_next_section_title">🎯 Próximo Logro</string>
+    <string name="achievements_next_badge_emoji">💪</string>
+    <string name="achievements_next_badge_title">Autodisciplina</string>
+    <string name="achievements_next_badge_description">Usa menos de 1 hora diaria por 3 días consecutivos</string>
+
+    <string name="achievements_rewards_title">🎁 Sistema de Recompensas</string>
+    <string name="achievements_rewards_item1">✨  Desbloquea logros completando metas</string>
+    <string name="achievements_rewards_item2">📈  Sube de nivel manteniendo tu racha</string>
+    <string name="achievements_rewards_item3">🏆  Colecciona todas las insignias</string>
+
+    <string name="achievements_stats_title">Estadísticas de Logros</string>
+    <string name="achievements_stats_unlocked">Logros desbloqueados</string>
+    <string name="achievements_stats_level">Nivel actual</string>
+    <string name="achievements_stats_best_streak">Mejor racha</string>
+    <string name="achievements_stats_best_streak_value">%1$d días 🔥</string>
+
+    <!-- Badge titles and descriptions -->
+    <string name="achievement_badge_primer_paso_title">Primer Paso</string>
+    <string name="achievement_badge_primer_paso_desc">Completa tu primera meta diaria</string>
+    <string name="achievement_badge_racha_fuego_title">Racha de Fuego</string>
+    <string name="achievement_badge_racha_fuego_desc">Mantén una racha de 7 días</string>
+
 </resources>
+
