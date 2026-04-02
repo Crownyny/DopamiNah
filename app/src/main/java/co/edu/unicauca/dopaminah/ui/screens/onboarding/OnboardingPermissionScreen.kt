@@ -45,7 +45,10 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import android.app.Activity
 
-
+/**
+ * Screen of the start of the application
+ * asks the permissions of the user
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingPermissionScreen(
@@ -73,7 +76,7 @@ fun OnboardingPermissionScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            coroutineScope.launch { 
+            coroutineScope.launch {
                 if (pagerState.currentPage < 2) pagerState.animateScrollToPage(pagerState.currentPage + 1)
             }
         }
