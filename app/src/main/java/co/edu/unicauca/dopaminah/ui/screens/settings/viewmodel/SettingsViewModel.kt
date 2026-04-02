@@ -3,6 +3,7 @@ package co.edu.unicauca.dopaminah.ui.screens.settings.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.unicauca.dopaminah.ui.theme.ThemeController
+import co.edu.unicauca.dopaminah.utils.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val themeController: ThemeController
+    private val themeController: ThemeController,
+    private val notificationHelper: NotificationHelper
 ) : ViewModel() {
 
     val isDarkTheme: StateFlow<Boolean?> = themeController.isDarkTheme
@@ -49,5 +51,13 @@ class SettingsViewModel @Inject constructor(
 
     fun setPremium(enabled: Boolean) {
         _isPremium.value = enabled
+    }
+
+    fun sendTestNotification() {
+        notificationHelper.showNotification(
+            id = 999,
+            title = "Prueba de DopamiNah",
+            message = "¡Las notificaciones están funcionando correctamente!"
+        )
     }
 }

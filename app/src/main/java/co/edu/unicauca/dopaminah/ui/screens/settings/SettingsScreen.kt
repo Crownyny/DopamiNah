@@ -104,6 +104,15 @@ fun SettingsScreen(
                         modifier = Modifier.padding(vertical = 4.dp),
                         color = colorScheme.outlineVariant
                     )
+                    SettingsNavigationItem(
+                        icon = Icons.Default.NotificationsActive,
+                        title = stringResource(R.string.settings_test_notifications),
+                        onClick = { viewModel.sendTestNotification() }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = colorScheme.outlineVariant
+                    )
                     SettingsToggleItem(
                         icon = Icons.Default.Bolt,
                         title = stringResource(R.string.settings_pajaro_verde),

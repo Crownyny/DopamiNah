@@ -40,6 +40,8 @@
     <string name="settings_dark_mode_desc">Reduce la fatiga visual</string>
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_desc">Recibe recordatorios y alertas</string>
+    <string name="settings_test_notifications">Probar Notificación</string>
+    <string name="settings_test_notifications_desc">Envía una notificación de prueba</string>
     <string name="settings_pajaro_verde">Modo Pájaro Verde 🦜</string>
     <string name="settings_pajaro_verde_desc">Presión activa y mensajes insistentes</string>
 
@@ -102,4 +104,3 @@
     <string name="achievement_badge_racha_fuego_desc">Mantén una racha de 7 días</string>
 
 </resources>
-
