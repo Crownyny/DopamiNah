@@ -1,3 +1,106 @@
 <resources>
     <string name="app_name">DopamiNah</string>
+    <string name="app_description">Tu asistente de bienestar digital</string>
+    <string name="app_halfname2">Nah</string>
+    <string name="app_halfname1">Dopami</string>
+    <string name="dashboard_streak">RACHA ACTUAL</string>
+    <string name="dashboard_streaks_days">" días consecutivos"</string>
+    <string name="dashboard_level">Nivel</string>
+    <string name="motivational_message">¡Increíble! Mantén el impulso</string>
+    <string name="dashboard_unlocks">Desbloqueos de Hoy</string>
+    <string name="dashboard_unlocks_times">" veces"</string>
+    <string name="dashboard_most_used_apps">Apps Más Usadas Hoy</string>
+    <string name="search_app">Buscar app...</string>
+    <string name="search_filter_most_used">↓ Más usado</string>
+    <string name="search_filter_least_used">↑ Menos usado</string>
+    <string name="streak_lvl_0">¿Listo para empezar el reto? 💪</string>
+    <string name="streak_lvl_1">¡Excelente inicio! Sigue así 🌱</string>
+    <string name="streak_lvl_2">¡Sigue esforzándote! 🚀</string> <!-- Your R.string.motivational_message -->
+    <string name="streak_lvl_3">¡Imparable! Tienes un autocontrol de hierro 🔥</string>
+    <string name="streak_lvl_4">¡Maestro Zen! Eres una inspiración 🧘</string>
+    <string name="onboarding_permission_title">Accesibilidad</string>
+    <string name="onboarding_permission_desc">Detectaremos cuando desbloqueas tu teléfono para llevar un conteo preciso.</string>
+    <string name="onboarding_permission_badge">Tus datos se almacenan de forma segura en tu dispositivo. No compartimos información con terceros.</string>
+    <string name="onboarding_permission_button">Comenzar</string>
+
+    <string name="onboarding_apps_title">Uso de Aplicaciones</string>
+    <string name="onboarding_apps_desc">Necesitamos monitorear el tiempo que usas tus aplicaciones para darte estadísticas precisas.</string>
+
+    <string name="onboarding_notif_title">Notificaciones</string>
+    <string name="onboarding_notif_desc">Te enviaremos recordatorios motivacionales cuando estés cerca de superar tus metas.</string>
+    
+    <string name="onboarding_next_button">Continuar</string>
+
+    <!-- Settings Screen Strings -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_subtitle">Personaliza tu experiencia</string>
+
+    <string name="settings_section_appearance">Apariencia y Notificaciones</string>
+    <string name="settings_dark_mode">Modo Oscuro</string>
+    <string name="settings_dark_mode_desc">Reduce la fatiga visual</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_notifications_desc">Recibe recordatorios y alertas</string>
+    <string name="settings_test_notifications">Probar Notificación</string>
+    <string name="settings_test_notifications_desc">Envía una notificación de prueba</string>
+    <string name="settings_pajaro_verde">Modo Pájaro Verde 🦜</string>
+    <string name="settings_pajaro_verde_desc">Presión activa y mensajes insistentes</string>
+
+    <string name="settings_section_privacy">Privacidad y Seguridad</string>
+    <string name="settings_privacy_policy">Política de Privacidad</string>
+    <string name="settings_app_permissions">Permisos de la App</string>
+
+    <string name="settings_section_support">Soporte</string>
+    <string name="settings_help_center">Centro de Ayuda</string>
+    <string name="settings_contact_support">Contactar Soporte</string>
+
+    <!-- Stats Screen Strings -->
+    <string name="stats_title">Estadísticas</string>
+    <string name="stats_subtitle">Análisis detallado de tu uso</string>
+    <string name="stats_tab_weekly">Semanal</string>
+    <string name="stats_tab_monthly">Mensual</string>
+    <string name="stats_daily_average">Promedio Diario</string>
+    <string name="stats_unlocks">Desbloqueos</string>
+    <string name="stats_app_usage">Uso por Aplicación</string>
+    <string name="stats_day_details">Detalles del Día</string>
+    <string name="stats_total_time">Tiempo Total</string>
+
+    <!-- Achievements Screen Strings -->
+    <string name="achievements_title">Logros &amp; Rachas</string>
+    <string name="achievements_subtitle">Tus conquistas y progreso</string>
+
+    <string name="achievements_streak_label">RACHA ACTUAL</string>
+    <string name="achievements_streak_days">días consecutivos</string>
+    <string name="achievements_streak_legendary_title">⭐ ¡RACHA LEGENDARIA! ⭐</string>
+    <string name="achievements_streak_legendary_subtitle">Estás en modo campeón, ¡sigue así!</string>
+
+    <string name="achievements_level_subtitle">Tu Nivel de Autocontrol</string>
+    <string name="achievements_level_prefix">Nivel</string>
+    <string name="achievements_level_streak_current">🔥 Racha actual: %1$d días</string>
+
+    <string name="achievements_badges_title">Insignias</string>
+    <string name="achievements_badge_unlocked_on">Desbloqueado el %1$s</string>
+    <string name="achievements_badge_locked_cd">Bloqueado</string>
+
+    <string name="achievements_next_section_title">🎯 Próximo Logro</string>
+    <string name="achievements_next_badge_emoji">💪</string>
+    <string name="achievements_next_badge_title">Autodisciplina</string>
+    <string name="achievements_next_badge_description">Usa menos de 1 hora diaria por 3 días consecutivos</string>
+
+    <string name="achievements_rewards_title">🎁 Sistema de Recompensas</string>
+    <string name="achievements_rewards_item1">✨  Desbloquea logros completando metas</string>
+    <string name="achievements_rewards_item2">📈  Sube de nivel manteniendo tu racha</string>
+    <string name="achievements_rewards_item3">🏆  Colecciona todas las insignias</string>
+
+    <string name="achievements_stats_title">Estadísticas de Logros</string>
+    <string name="achievements_stats_unlocked">Logros desbloqueados</string>
+    <string name="achievements_stats_level">Nivel actual</string>
+    <string name="achievements_stats_best_streak">Mejor racha</string>
+    <string name="achievements_stats_best_streak_value">%1$d días 🔥</string>
+
+    <!-- Badge titles and descriptions -->
+    <string name="achievement_badge_primer_paso_title">Primer Paso</string>
+    <string name="achievement_badge_primer_paso_desc">Completa tu primera meta diaria</string>
+    <string name="achievement_badge_racha_fuego_title">Racha de Fuego</string>
+    <string name="achievement_badge_racha_fuego_desc">Mantén una racha de 7 días</string>
+
 </resources>
