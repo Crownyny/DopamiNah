@@ -15,4 +15,7 @@ interface UsageMonitoringRepository {
     suspend fun resetDailyStats(date: String)
     suspend fun setLastScreenOnTime(timestamp: Long)
     suspend fun getLastScreenOnTime(): Long
+    
+    suspend fun isAlertNotified(alertId: String): Boolean
+    suspend fun markAlertNotified(alertId: String)
 }

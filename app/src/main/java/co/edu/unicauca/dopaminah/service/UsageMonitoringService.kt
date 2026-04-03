@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
+import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
 import co.edu.unicauca.dopaminah.domain.repository.UsageMonitoringRepository
 import co.edu.unicauca.dopaminah.utils.NotificationHelper
@@ -21,10 +22,12 @@ class UsageMonitoringService : Service() {
 
     @Inject lateinit var monitoringRepository: UsageMonitoringRepository
     @Inject lateinit var goalsRepository: GoalsRepository
+    @Inject lateinit var deviceUsageRepository: DeviceUsageRepository
     @Inject lateinit var notificationHelper: NotificationHelper
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var screenOffReceiver: BroadcastReceiver? = null
+    private var pollingJob: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -36,6 +39,17 @@ class UsageMonitoringService : Service() {
         )
         registerScreenReceivers()
         checkDailyReset()
+        startAppUsagePolling()
+    }
+
+    private fun startAppUsagePolling() {
+        pollingJob?.cancel()
+        pollingJob = serviceScope.launch {
+            while (isActive) {
+                checkAppUsageLimits()
+                delay(60_000) // Check every minute
+            }
+        }
     }
 
     private fun registerScreenReceivers() {
@@ -54,6 +68,7 @@ class UsageMonitoringService : Service() {
                                 val duration = System.currentTimeMillis() - startTime
                                 monitoringRepository.updateScreenTime(duration)
                                 checkScreenTimeLimit()
+                                checkAppUsageLimits() // Check app limits when screen goes off
                             }
                         }
                     }
@@ -75,6 +90,46 @@ class UsageMonitoringService : Service() {
         registerReceiver(screenOffReceiver, filter)
     }
 
+    private suspend fun checkAppUsageLimits() {
+        if (!deviceUsageRepository.hasUsageStatsPermission()) return
+
+        val dailyStats = deviceUsageRepository.getDailyUsageStats()
+        val allGoals = goalsRepository.getAllGoals().first()
+        val appLimits = allGoals.filter { it.goalType == "APP_LIMIT" }
+
+        for (goal in appLimits) {
+            val appStat = dailyStats.find { it.packageName == goal.packageName }
+            
+            if (appStat != null) {
+                // Check Usage Time
+                if (goal.maxTimeMillis > 0 && appStat.totalTimeForegroundMillis > goal.maxTimeMillis) {
+                    val alertId = "app_usage_${goal.id}"
+                    if (!monitoringRepository.isAlertNotified(alertId)) {
+                        notificationHelper.showNotification(
+                            NotificationHelper.APP_USAGE_NOTIF_ID + goal.id,
+                            "Límite de uso excedido",
+                            "Has usado ${appStat.appName} más tiempo del límite diario."
+                        )
+                        monitoringRepository.markAlertNotified(alertId)
+                    }
+                }
+
+                // Check Open Count
+                if (goal.maxUnlocks > 0 && appStat.unlockCount > goal.maxUnlocks) {
+                    val alertId = "app_open_${goal.id}"
+                    if (!monitoringRepository.isAlertNotified(alertId)) {
+                        notificationHelper.showNotification(
+                            NotificationHelper.APP_OPEN_NOTIF_ID + goal.id,
+                            "Límite de aperturas excedido",
+                            "Has abierto ${appStat.appName} demasiadas veces hoy."
+                        )
+                        monitoringRepository.markAlertNotified(alertId)
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun checkScreenTimeLimit() {
         val stats = monitoringRepository.getMonitoringStats().first()
         val goals = goalsRepository.getAllGoals().first()
@@ -82,11 +137,15 @@ class UsageMonitoringService : Service() {
         
         screenGoal?.let {
             if (stats.totalScreenTimeMillis > it.maxTimeMillis) {
-                notificationHelper.showNotification(
-                    NotificationHelper.SCREEN_TIME_NOTIF_ID,
-                    "Límite de tiempo excedido",
-                    "Has superado tu límite diario de uso del celular."
-                )
+                val alertId = "screen_time_total"
+                if (!monitoringRepository.isAlertNotified(alertId)) {
+                    notificationHelper.showNotification(
+                        NotificationHelper.SCREEN_TIME_NOTIF_ID,
+                        "Límite de tiempo excedido",
+                        "Has superado tu límite diario de uso del celular."
+                    )
+                    monitoringRepository.markAlertNotified(alertId)
+                }
             }
         }
     }
@@ -98,11 +157,15 @@ class UsageMonitoringService : Service() {
         
         unlockGoal?.let {
             if (stats.unlockCount > it.maxUnlocks) {
-                notificationHelper.showNotification(
-                    NotificationHelper.UNLOCK_COUNT_NOTIF_ID,
-                    "Límite de desbloqueos",
-                    "Has desbloqueado tu teléfono demasiadas veces hoy."
-                )
+                val alertId = "unlock_limit_total"
+                if (!monitoringRepository.isAlertNotified(alertId)) {
+                    notificationHelper.showNotification(
+                        NotificationHelper.UNLOCK_COUNT_NOTIF_ID,
+                        "Límite de desbloqueos",
+                        "Has desbloqueado tu teléfono demasiadas veces hoy."
+                    )
+                    monitoringRepository.markAlertNotified(alertId)
+                }
             }
         }
     }
@@ -120,6 +183,7 @@ class UsageMonitoringService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         screenOffReceiver?.let { unregisterReceiver(it) }
+        pollingJob?.cancel()
         serviceScope.cancel()
     }
 

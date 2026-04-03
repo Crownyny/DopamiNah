@@ -10,6 +10,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +28,7 @@ class UsageMonitoringRepositoryImpl @Inject constructor(
         val UNLOCK_COUNT = intPreferencesKey("unlock_count")
         val LAST_RESET_DATE = stringPreferencesKey("last_reset_date")
         val LAST_SCREEN_ON_TIME = longPreferencesKey("last_screen_on_time")
+        fun notifiedKey(id: String) = booleanPreferencesKey("notified_$id")
     }
 
     override fun getMonitoringStats(): Flow<MonitoringStats> {
@@ -53,6 +57,10 @@ class UsageMonitoringRepositoryImpl @Inject constructor(
 
     override suspend fun resetDailyStats(date: String) {
         context.monitoringDataStore.edit { preferences ->
+            // Clear all notification flags when resetting daily stats
+            val keysToRemove = preferences.asMap().keys.filter { it.name.startsWith("notified_") }
+            keysToRemove.forEach { preferences.remove(it) }
+
             preferences[PreferencesKeys.TOTAL_SCREEN_TIME] = 0L
             preferences[PreferencesKeys.UNLOCK_COUNT] = 0
             preferences[PreferencesKeys.LAST_RESET_DATE] = date
@@ -67,5 +75,19 @@ class UsageMonitoringRepositoryImpl @Inject constructor(
 
     override suspend fun getLastScreenOnTime(): Long {
         return context.monitoringDataStore.data.first()[PreferencesKeys.LAST_SCREEN_ON_TIME] ?: 0L
+    }
+
+    override suspend fun isAlertNotified(alertId: String): Boolean {
+        val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+        val key = PreferencesKeys.notifiedKey("${today}_$alertId")
+        return context.monitoringDataStore.data.first()[key] ?: false
+    }
+
+    override suspend fun markAlertNotified(alertId: String) {
+        val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+        val key = PreferencesKeys.notifiedKey("${today}_$alertId")
+        context.monitoringDataStore.edit { preferences ->
+            preferences[key] = true
+        }
     }
 }

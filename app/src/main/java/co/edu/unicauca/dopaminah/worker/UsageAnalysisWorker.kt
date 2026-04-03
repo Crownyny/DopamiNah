@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
+import co.edu.unicauca.dopaminah.domain.repository.UsageMonitoringRepository
 import co.edu.unicauca.dopaminah.utils.NotificationHelper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -17,6 +18,7 @@ class UsageAnalysisWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val deviceUsageRepository: DeviceUsageRepository,
     private val goalsRepository: GoalsRepository,
+    private val monitoringRepository: UsageMonitoringRepository,
     private val notificationHelper: NotificationHelper
 ) : CoroutineWorker(context, workerParams) {
 
@@ -35,20 +37,28 @@ class UsageAnalysisWorker @AssistedInject constructor(
             if (appStat != null) {
                 // Check Usage Time
                 if (goal.maxTimeMillis > 0 && appStat.totalTimeForegroundMillis > goal.maxTimeMillis) {
-                    notificationHelper.showNotification(
-                        NotificationHelper.APP_USAGE_NOTIF_ID + goal.id,
-                        "Límite de uso excedido",
-                        "Has usado ${appStat.appName} más tiempo del límite diario."
-                    )
+                    val alertId = "app_usage_${goal.id}"
+                    if (!monitoringRepository.isAlertNotified(alertId)) {
+                        notificationHelper.showNotification(
+                            NotificationHelper.APP_USAGE_NOTIF_ID + goal.id,
+                            "Límite de uso excedido",
+                            "Has usado ${appStat.appName} más tiempo del límite diario."
+                        )
+                        monitoringRepository.markAlertNotified(alertId)
+                    }
                 }
 
                 // Check Open Count
                 if (goal.maxUnlocks > 0 && appStat.unlockCount > goal.maxUnlocks) {
-                    notificationHelper.showNotification(
-                        NotificationHelper.APP_OPEN_NOTIF_ID + goal.id,
-                        "Límite de aperturas excedido",
-                        "Has abierto ${appStat.appName} demasiadas veces hoy."
-                    )
+                    val alertId = "app_open_${goal.id}"
+                    if (!monitoringRepository.isAlertNotified(alertId)) {
+                        notificationHelper.showNotification(
+                            NotificationHelper.APP_OPEN_NOTIF_ID + goal.id,
+                            "Límite de aperturas excedido",
+                            "Has abierto ${appStat.appName} demasiadas veces hoy."
+                        )
+                        monitoringRepository.markAlertNotified(alertId)
+                    }
                 }
             }
         }
