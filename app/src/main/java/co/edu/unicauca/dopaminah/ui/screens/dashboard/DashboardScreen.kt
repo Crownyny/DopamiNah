@@ -24,7 +24,7 @@ import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.UsageSummaryCarousel
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.HeaderSection
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.MostUsedAppsSection
-import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.AppLimitCarouselInfo
+import co.edu.unicauca.dopaminah.domain.usecase.AppLimitCardInfo
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopamiNahTheme
 
@@ -84,7 +84,7 @@ fun DashboardContent(
     totalDailyUsageMs: Long,
     hasPermission: Boolean,
     dailyUsageStats: List<AppUsageSummary>,
-    appLimitCards: List<AppLimitCarouselInfo>,
+    appLimitCards: List<AppLimitCardInfo>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -135,7 +135,7 @@ fun DashboardScreenPreview() {
             totalDailyUsageMs = 7200000L,
             hasPermission = true,
             appLimitCards = listOf(
-                AppLimitCarouselInfo(
+                AppLimitCardInfo(
                     packageName = "com.instagram.android",
                     appName = "Instagram",
                     timeUsedMs = 1800000L,
@@ -150,5 +150,3 @@ fun DashboardScreenPreview() {
         )
     }
 }
-
-

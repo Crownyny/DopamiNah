@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.domain.model.AppLimitGoal
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
@@ -105,7 +106,7 @@ class GoalsViewModel @Inject constructor(
                     GoalDisplayModel(
                         id = goal.id,
                         goalType = goal.goalType,
-                        title = "Tiempo Total Diario",
+                        title = context.getString(R.string.goal_type_total_daily),
                         subtitle = "Máximo: ${formatMillis(limitMillis)}",
                         progressLabel = "Progreso Hoy",
                         progressPercent = "$percent%",
@@ -125,7 +126,7 @@ class GoalsViewModel @Inject constructor(
                         id = goal.id,
                         goalType = goal.goalType,
                         appPackageName = goal.packageName.ifBlank { null },
-                        title = "Límite de Aplicación",
+                        title = context.getString(R.string.goal_type_app_limit),
                         subtitle = "$displayName — máx ${formatMillis(limitMillis)}",
                         progressLabel = "Uso hoy",
                         progressPercent = "$percent%",
@@ -141,7 +142,7 @@ class GoalsViewModel @Inject constructor(
                     GoalDisplayModel(
                         id = goal.id,
                         goalType = goal.goalType,
-                        title = "Límite de Desbloqueos",
+                        title = context.getString(R.string.goal_type_unlock_limit),
                         subtitle = "Máximo: $limitUnlocks desbloqueos",
                         progressLabel = "Desbloqueos hoy",
                         progressPercent = "$percent%",
@@ -153,7 +154,7 @@ class GoalsViewModel @Inject constructor(
                 else -> GoalDisplayModel(
                     id = goal.id,
                     goalType = goal.goalType,
-                    title = "Meta desconocida",
+                    title = context.getString(R.string.error_generic),
                     subtitle = "",
                     progressLabel = "",
                     progressPercent = "0%",
@@ -185,9 +186,9 @@ class GoalsViewModel @Inject constructor(
     fun submitNewGoal(typeLabel: String, appName: String?, limitMinutes: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val goalType = when (typeLabel) {
-                "Tiempo Total Diario" -> GoalType.TOTAL_DAILY
-                "Límite de Aplicación" -> GoalType.APP_LIMIT
-                "Límite Desbloqueos" -> GoalType.UNLOCK_LIMIT
+                context.getString(R.string.goal_type_total_daily) -> GoalType.TOTAL_DAILY
+                context.getString(R.string.goal_type_app_limit) -> GoalType.APP_LIMIT
+                context.getString(R.string.goal_type_unlock_limit) -> GoalType.UNLOCK_LIMIT
                 else -> GoalType.TOTAL_DAILY
             }
 

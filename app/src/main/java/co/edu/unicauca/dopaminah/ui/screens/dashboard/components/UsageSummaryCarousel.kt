@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import co.edu.unicauca.dopaminah.R
-import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.AppLimitCarouselInfo
+import co.edu.unicauca.dopaminah.domain.usecase.AppLimitCardInfo
 import co.edu.unicauca.dopaminah.ui.theme.*
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateDiffText
 import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateTimeDiff
@@ -36,19 +36,17 @@ fun UsageSummaryCarousel(
     dailyUnlocks: Int,
     yesterdayUnlocks: Int,
     totalDailyUsageMs: Long,
-    appLimitCards: List<AppLimitCarouselInfo> = emptyList(),
-    yesterdayUsageMs: Long? = null // Optional, if we want to add comparison later
+    appLimitCards: List<AppLimitCardInfo> = emptyList(),
+    yesterdayUsageMs: Long? = null 
 ) {
     val totalPages = 2 + appLimitCards.size
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val coroutineScope = rememberCoroutineScope()
 
-    // Auto-scroll effect: pause when user is interacting
-    val isScrollInProgress = pagerState.isScrollInProgress
-    LaunchedEffect(isScrollInProgress) {
-        if (!isScrollInProgress) {
+    LaunchedEffect(pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
             while (true) {
-                delay(5000) // Wait for 5 seconds
+                delay(5000)
                 val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
                 pagerState.animateScrollToPage(
                     page = nextPage,
@@ -83,11 +81,11 @@ fun UsageSummaryCarousel(
                 1 -> {
                     // Second Card: Screen Time
                     StatCard(
-                        title = "Uso de Pantalla",
+                        title = stringResource(R.string.dashboard_screen_time),
                         icon = Icons.Default.Schedule,
                         mainValue = formatUsageTime(totalDailyUsageMs),
-                        subtext = "hoy",
-                        diffText = if (yesterdayUsageMs != null) calculateTimeDiff(totalDailyUsageMs, yesterdayUsageMs) else "Datos calculándose...",
+                        subtext = stringResource(R.string.dashboard_today),
+                        diffText = if (yesterdayUsageMs != null) calculateTimeDiff(totalDailyUsageMs, yesterdayUsageMs) else stringResource(R.string.dashboard_calculating),
                         diffColor = TextSecondaryDark,
                         diffBgColor = Color.White.copy(alpha = 0.05f),
                         containerColor = StatCardDark,
@@ -110,8 +108,8 @@ fun UsageSummaryCarousel(
                         title = cardInfo.appName,
                         icon = Icons.Default.Smartphone,
                         mainValue = formatUsageTime(cardInfo.timeUsedMs),
-                        subtext = "hoy",
-                        diffText = "Límite: ${formatUsageTime(cardInfo.timeLimitMs)}",
+                        subtext = stringResource(R.string.dashboard_today),
+                        diffText = stringResource(R.string.dashboard_limit_prefix, formatUsageTime(cardInfo.timeLimitMs)),
                         diffColor = contentCol,
                         containerColor = containerCol,
                         contentColor = contentCol,
@@ -123,7 +121,6 @@ fun UsageSummaryCarousel(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Pager indicators
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
