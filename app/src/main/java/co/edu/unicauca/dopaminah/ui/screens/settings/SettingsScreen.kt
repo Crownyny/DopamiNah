@@ -1,11 +1,14 @@
 package co.edu.unicauca.dopaminah.ui.screens.settings
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,8 +32,11 @@ import co.edu.unicauca.dopaminah.ui.screens.settings.components.PremiumCard
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.SettingsNavigationItem
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.SettingsSection
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.SettingsToggleItem
+import co.edu.unicauca.dopaminah.ui.screens.settings.components.GoogleSignInDialog
 import co.edu.unicauca.dopaminah.ui.screens.settings.viewmodel.SettingsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.*
+
+private const val TAG = "SettingsScreen"
 
 @Composable
 fun SettingsScreen(
@@ -41,6 +47,22 @@ fun SettingsScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val pajaroVerdeMode by viewModel.pajaroVerdeMode.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isSigningIn by viewModel.isSigningIn.collectAsState()
+
+    var showSignInDialog by remember { mutableStateOf(false) }
+
+    Log.d(TAG, "SettingsScreen recomposed - isPremium: $isPremium, isSigningIn: $isSigningIn, currentUser: ${currentUser?.email}")
+
+    // Close dialog when premium is activated or error is cleared
+    LaunchedEffect(isPremium, errorMessage) {
+        Log.d(TAG, "LaunchedEffect triggered - isPremium: $isPremium, showSignInDialog: $showSignInDialog")
+        if (isPremium && showSignInDialog) {
+            Log.d(TAG, "Closing sign-in dialog because isPremium is true")
+            showSignInDialog = false
+        }
+    }
 
     val colorScheme = MaterialTheme.colorScheme
     val extended = MaterialTheme.extendedColors
@@ -52,6 +74,26 @@ fun SettingsScreen(
             window.statusBarColor = android.graphics.Color.TRANSPARENT
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
+    }
+
+    if (showSignInDialog) {
+        Log.d(TAG, "Showing GoogleSignInDialog")
+        GoogleSignInDialog(
+            isLoading = isSigningIn,
+            errorMessage = errorMessage,
+            onSignInSuccess = { idToken ->
+                Log.d(TAG, "Dialog onSignInSuccess called with idToken length: ${idToken.length}")
+                viewModel.signInWithGoogle(idToken)
+            },
+            onSignInError = { error ->
+                Log.d(TAG, "Dialog onSignInError called: $error")
+                viewModel.setError(error)
+            },
+            onDismiss = { 
+                showSignInDialog = false
+                viewModel.clearError()
+            }
+        )
     }
 
     Column(
@@ -69,11 +111,51 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+            // Error message
+            if (errorMessage != null) {
+                item {
+                    Spacer(Modifier.height(24.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFEBEE)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = errorMessage!!,
+                                fontSize = 12.sp,
+                                color = Color(0xFFC62828),
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { viewModel.clearError() },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Dismiss",
+                                    tint = Color(0xFFC62828),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Premium Card
             item {
                 Spacer(Modifier.height(24.dp))
                 if (!isPremium) {
-                    PremiumCard(onClick = { viewModel.setPremium(true) })
+                    PremiumCard(onClick = { showSignInDialog = true })
                 } else {
                     PremiumActiveCard()
                 }
@@ -124,6 +206,28 @@ fun SettingsScreen(
                 }
             }
 
+            // User Account Section
+            if (currentUser != null) {
+                item {
+                    SettingsSection(title = "Cuenta") {
+                        SettingsNavigationItem(
+                            icon = Icons.Default.AccountCircle,
+                            title = currentUser!!.displayName ?: currentUser!!.email ?: "Usuario",
+                            onClick = {}
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = colorScheme.outlineVariant
+                        )
+                        SettingsNavigationItem(
+                            icon = Icons.AutoMirrored.Filled.Logout,
+                            title = "Cerrar sesión",
+                            onClick = { viewModel.signOut() }
+                        )
+                    }
+                }
+            }
+
             // Privacy & Security
             item {
                 SettingsSection(title = stringResource(R.string.settings_section_privacy)) {
@@ -146,7 +250,7 @@ fun SettingsScreen(
             item {
                 SettingsSection(title = stringResource(R.string.settings_section_support)) {
                     SettingsNavigationItem(
-                        icon = Icons.Default.Help,
+                        icon = Icons.AutoMirrored.Filled.Help,
                         title = stringResource(R.string.settings_help_center),
                     )
                     HorizontalDivider(
