@@ -59,11 +59,13 @@ class SettingsViewModel @Inject constructor(
     private fun observeAuthState() {
         viewModelScope.launch {
             authRepository.currentUser.collect { user ->
+                Log.d(TAG, "Auth state changed: user=${user?.email}")
                 _currentUser.value = user
                 if (user != null) {
                     checkPremiumStatus(user.uid)
                 } else {
                     _isPremium.value = false
+                    _isSigningIn.value = false
                 }
             }
         }
@@ -72,7 +74,12 @@ class SettingsViewModel @Inject constructor(
     private fun checkPremiumStatus(userId: String) {
         viewModelScope.launch {
             premiumRepository.getPremiumStatus(userId).collect { status ->
+                Log.d(TAG, "Premium status received: ${status.isPremium}")
                 _isPremium.value = status.isPremium
+                // If we've confirmed the premium status (one way or another), we can stop the signing in state
+                if (status.isPremium) {
+                    _isSigningIn.value = false
+                }
             }
         }
     }
@@ -92,7 +99,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun signInWithGoogle(idToken: String) {
-        Log.d(TAG, "signInWithGoogle called with idToken length: ${idToken.length}")
+        Log.d(TAG, "signInWithGoogle called")
+        if (_isSigningIn.value) {
+            Log.d(TAG, "Already signing in, ignoring request")
+            return
+        }
+        
         viewModelScope.launch {
             _isSigningIn.value = true
             _errorMessage.value = null
@@ -102,7 +114,9 @@ class SettingsViewModel @Inject constructor(
             Log.d(TAG, "authRepository.signInWithGoogle result: ${result.isSuccess}")
             
             result.onSuccess { user ->
-                Log.d(TAG, "Sign-in successful - user: ${user.email}, uid: ${user.uid}")
+                Log.d(TAG, "Sign-in successful - user: ${user.email}")
+                // The observeAuthState will pick up the user change and call checkPremiumStatus,
+                // but we also explicitly call activatePremium to ensure it's set if it was a new sign-in
                 activatePremium(user.uid)
             }.onFailure { error ->
                 Log.e(TAG, "Sign-in failed: ${error.message}", error)
@@ -117,7 +131,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.signOut()
             _isPremium.value = false
-            Log.d(TAG, "User signed out")
+            _isSigningIn.value = false // Reset loading state
+            _errorMessage.value = null
+            Log.d(TAG, "User signed out and states reset")
         }
     }
 
@@ -138,8 +154,10 @@ class SettingsViewModel @Inject constructor(
                 )
             }.onFailure { error ->
                 Log.e(TAG, "Failed to set premium status: ${error.message}", error)
-                _errorMessage.value = "Error al activar premium: ${error.message}"
+                // Even if setting premium status fails, we should stop the loading state
                 _isSigningIn.value = false
+                // But we show the error
+                _errorMessage.value = "Error al activar premium: ${error.message}"
             }
         }
     }
@@ -164,5 +182,6 @@ class SettingsViewModel @Inject constructor(
 
     fun clearError() {
         _errorMessage.value = null
+        _isSigningIn.value = false // Ensure loading is cleared when user dismisses error
     }
 }
