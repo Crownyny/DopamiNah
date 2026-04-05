@@ -59,7 +59,7 @@ class SettingsViewModel @Inject constructor(
     private fun observeAuthState() {
         viewModelScope.launch {
             authRepository.currentUser.collect { user ->
-w                Log.d(TAG, "Auth state changed: user=${user?.email}")
+                Log.d(TAG, "Auth state changed: user=${user?.email}")
                 _currentUser.value = user
                 if (user != null) {
                     checkPremiumStatus(user.uid)
