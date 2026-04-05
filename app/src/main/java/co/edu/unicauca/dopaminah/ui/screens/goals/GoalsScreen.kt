@@ -20,10 +20,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.ui.icons.LucideLock
 import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
@@ -81,7 +83,7 @@ fun GoalsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No tienes metas definidas aún.\nToca \"Agregar Meta\" para comenzar.",
+                            text = stringResource(R.string.goals_empty_state),
                             fontSize = 15.sp,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -91,7 +93,6 @@ fun GoalsScreen(
 
                 else -> {
                     state.goals.forEach { goal ->
-                        // Map goalType to an appropriate icon and colors
                         val icon = when (goal.goalType) {
                             GoalType.TOTAL_DAILY -> LucideTimer
                             GoalType.APP_LIMIT -> LucideSmartphone

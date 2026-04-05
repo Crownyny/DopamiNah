@@ -40,6 +40,8 @@
     <string name="settings_dark_mode_desc">Reduce la fatiga visual</string>
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_desc">Recibe recordatorios y alertas</string>
+    <string name="settings_test_notifications">Probar Notificación</string>
+    <string name="settings_test_notifications_desc">Envía una notificación de prueba</string>
     <string name="settings_pajaro_verde">Modo Pájaro Verde 🦜</string>
     <string name="settings_pajaro_verde_desc">Presión activa y mensajes insistentes</string>
 
@@ -101,5 +103,54 @@
     <string name="achievement_badge_racha_fuego_title">Racha de Fuego</string>
     <string name="achievement_badge_racha_fuego_desc">Mantén una racha de 7 días</string>
 
-</resources>
+    <!-- Goals Screen Strings -->
+    <string name="goals_title">Metas &amp; Límites</string>
+    <string name="goals_subtitle">Reduce tu tiempo en pantalla</string>
+    <string name="goals_header_title">¡Alcanza tu libertad digital!</string>
+    <string name="goals_header_desc">Define límites inteligentes y recupera tu tiempo para lo que realmente importa.</string>
+    <string name="goals_tip_title">💡 Consejo del Día</string>
+    <string name="goals_tip_desc">Empieza con metas pequeñas. Reducir 15 minutos al día puede marcar una gran diferencia a largo plazo.</string>
+    <string name="goals_empty_state">No has creado metas todavía. \nEmpieza definiendo tu primera meta.</string>
+    <string name="goals_add_button">Nueva Meta</string>
+    
+    <!-- Goal Types -->
+    <string name="goal_type_total_daily">Tiempo Total Diario</string>
+    <string name="goal_type_app_limit">Límite de Aplicación</string>
+    <string name="goal_type_unlock_limit">Límite Desbloqueos</string>
+    <string name="goal_type_label">Tipo de Meta</string>
+    
+    <!-- Goal Dialogs -->
+    <string name="goal_create_title">Crear Nueva Meta</string>
+    <string name="goal_edit_title">Editar Meta</string>
+    <string name="goal_delete_title">Eliminar Meta</string>
+    <string name="goal_delete_confirm">¿Estás seguro de que quieres eliminar esta meta?</string>
+    <string name="goal_cancel">Cancelar</string>
+    <string name="goal_save">Guardar</string>
+    <string name="goal_create">Crear</string>
+    <string name="goal_delete">Eliminar</string>
+    <string name="goal_select_app">Seleccionar Aplicación</string>
+    <string name="goal_limit_minutes">Límite (minutos)</string>
+    <string name="goal_limit_count">Límite (cantidad)</string>
+    <string name="goal_limit_new_minutes">Nuevo límite (minutos)</string>
+    <string name="goal_limit_new_count">Nuevo límite (cantidad)</string>
+    <string name="goal_loading_apps">Cargando aplicaciones...</string>
+    <string name="goal_streak_format">%1$d días 🔥</string>
+    <string name="goal_exceeded">¡Has excedido tu límite!</string>
+    <string name="goal_edit_warning">El nuevo límite se aplicará a partir de mañana. El límite de hoy permanece sin cambios.</string>
 
+    <!-- Dashboard Strings -->
+    <string name="dashboard_limit_prefix">Límite: %1$s</string>
+    <string name="dashboard_no_usage_permission">Acepta los permisos de uso para ver estadísticas de apps</string>
+    <string name="dashboard_no_data">No hay datos suficientes</string>
+    <string name="dashboard_screen_time">Uso de Pantalla</string>
+    <string name="dashboard_today">hoy</string>
+    <string name="dashboard_calculating">Datos calculándose...</string>
+    <string name="dashboard_refresh">Actualizar</string>
+
+    <!-- Error Messages -->
+    <string name="error_generic">Ha ocurrido un error inesperado</string>
+    <string name="error_auth_failed">Error de autenticación</string>
+    <string name="error_permission_denied">Permiso denegado</string>
+    <string name="error_network">Error de conexión</string>
+
+</resources>

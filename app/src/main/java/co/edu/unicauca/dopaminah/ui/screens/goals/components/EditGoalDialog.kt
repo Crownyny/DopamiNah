@@ -28,15 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import co.edu.unicauca.dopaminah.R
 import co.edu.unicauca.dopaminah.ui.icons.LucideCalendarClock
-import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
 /**
  * Dialog to edit the time/unlock limit of an existing goal.
@@ -67,7 +67,7 @@ fun EditGoalDialog(
             Column(modifier = Modifier.fillMaxWidth()) {
                 // Title
                 Text(
-                    text = "Editar Meta",
+                    text = stringResource(R.string.goal_edit_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -97,7 +97,7 @@ fun EditGoalDialog(
                         modifier = Modifier.size(22.dp)
                     )
                     Text(
-                        text = "El nuevo límite se aplicará a partir de mañana. El límite de hoy permanece sin cambios.",
+                        text = stringResource(R.string.goal_edit_warning),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
@@ -106,7 +106,11 @@ fun EditGoalDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                val fieldLabel = if (isUnlockType) "Nuevo límite (cantidad)" else "Nuevo límite (minutos)"
+                val fieldLabel = if (isUnlockType) 
+                    stringResource(R.string.goal_limit_new_count) 
+                else 
+                    stringResource(R.string.goal_limit_new_minutes)
+                    
                 Text(
                     text = fieldLabel,
                     fontSize = 14.sp,
@@ -145,7 +149,11 @@ fun EditGoalDialog(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text("Guardar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.goal_save), 
+                            fontSize = 16.sp, 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Button(
                         onClick = onDismiss,
@@ -156,7 +164,11 @@ fun EditGoalDialog(
                             contentColor = MaterialTheme.colorScheme.onSurface
                         )
                     ) {
-                        Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.goal_cancel), 
+                            fontSize = 16.sp, 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

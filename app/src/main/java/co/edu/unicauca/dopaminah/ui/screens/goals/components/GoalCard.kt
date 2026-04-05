@@ -35,9 +35,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.R
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import co.edu.unicauca.dopaminah.ui.icons.LucidePencil
 import co.edu.unicauca.dopaminah.ui.icons.LucideTrash
@@ -78,14 +80,14 @@ fun GoalCard(
             onDismissRequest = { showDeleteDialog = false },
             title = {
                 Text(
-                    text = "Eliminar meta",
+                    text = stringResource(R.string.goal_delete_title),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
                 Text(
-                    text = "¿Seguro que quieres eliminar \"$title\"? Esta acción no se puede deshacer.",
+                    text = stringResource(R.string.goal_delete_confirm),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -95,7 +97,7 @@ fun GoalCard(
                     onDelete()
                 }) {
                     Text(
-                        "Eliminar",
+                        stringResource(R.string.goal_delete),
                         color = MaterialTheme.extendedColors.dangerRed,
                         fontWeight = FontWeight.Bold
                     )
@@ -103,7 +105,7 @@ fun GoalCard(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.goal_cancel))
                 }
             },
             containerColor = Color.White,
@@ -269,7 +271,7 @@ fun GoalCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "¡Has excedido tu límite!",
+                        text = stringResource(R.string.goal_exceeded),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.error

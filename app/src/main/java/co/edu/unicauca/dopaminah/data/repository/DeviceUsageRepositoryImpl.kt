@@ -29,13 +29,9 @@ class DeviceUsageRepositoryImpl(
         calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
 
-        // queryAndAggregateUsageStats is the most reliable API:
-        // it aggregates ALL events in the given time range, not just pre-computed daily/weekly buckets.
-        // INTERVAL_DAILY and INTERVAL_BEST can be stale or empty for the current day.
         val aggregatedStats: Map<String, UsageStats> = usageStatsManager
             .queryAndAggregateUsageStats(startTime, endTime)
 
-        // Build unlock counts from a single events query (efficient: one query for all apps)
         val unlockCounts = mutableMapOf<String, Int>()
         val events = usageStatsManager.queryEvents(startTime, endTime)
         val event = android.app.usage.UsageEvents.Event()
@@ -46,7 +42,6 @@ class DeviceUsageRepositoryImpl(
             }
         }
 
-        // Resolve app names only once per list to keep it efficient
         val packageManager = context.packageManager
 
         aggregatedStats.values
@@ -76,9 +71,6 @@ class DeviceUsageRepositoryImpl(
         val calendar = Calendar.getInstance()
         val endTime = calendar.timeInMillis
         calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
 
         countDeviceUnlocks(startTime, endTime)
@@ -182,7 +174,6 @@ class DeviceUsageRepositoryImpl(
 
     override suspend fun getDailyDetails(dayOffset: Int): DailyDetailStats = withContext(Dispatchers.IO) {
         val cal = Calendar.getInstance()
-        // Move to the target day's midnight
         cal.add(Calendar.DAY_OF_YEAR, -dayOffset)
         cal.set(Calendar.HOUR_OF_DAY, 23)
         cal.set(Calendar.MINUTE, 59)
@@ -196,7 +187,6 @@ class DeviceUsageRepositoryImpl(
         cal.set(Calendar.MILLISECOND, 0)
         val startTime = cal.timeInMillis
 
-        // Format date label (e.g. "viernes, 7 de marzo")
         val dateFormat = java.text.SimpleDateFormat("EEEE, d 'de' MMMM", java.util.Locale("es"))
         val dateLabel = dateFormat.format(cal.time)
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
@@ -215,11 +205,9 @@ class DeviceUsageRepositoryImpl(
             )
         }
 
-        // Aggregate usage stats for the day
         val aggregated = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
         val totalTime = aggregated.values.sumOf { it.totalTimeInForeground }
 
-        // Most used app
         val topApp = aggregated.values.maxByOrNull { it.totalTimeInForeground }
         val mostUsedName = topApp?.let {
             try {
@@ -233,28 +221,20 @@ class DeviceUsageRepositoryImpl(
         val mostUsedM = ((mostUsedMillis % 3_600_000) / 60_000).toInt()
         val mostUsedTimeStr = if (mostUsedH > 0) "${mostUsedH}h ${mostUsedM}m" else "${mostUsedM}m"
 
-        // First use time and session counting via usage events
         val events = usageStatsManager.queryEvents(startTime, endTime)
         val event = android.app.usage.UsageEvents.Event()
 
         var firstEventTime = Long.MAX_VALUE
         var sessionCount = 0
         var lastActivityResumedTime = 0L
-        var lastScreenInteractiveTime = 0L
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            when (event.eventType) {
-                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
-                    val t = event.timeStamp
-                    if (t < firstEventTime) firstEventTime = t
-                    // Count as new session if gap > 5 min from last activity
-                    if (t - lastActivityResumedTime > 5 * 60_000) sessionCount++
-                    lastActivityResumedTime = t
-                }
-                15 -> { // SCREEN_INTERACTIVE
-                    lastScreenInteractiveTime = event.timeStamp
-                }
+            if (event.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
+                val t = event.timeStamp
+                if (t < firstEventTime) firstEventTime = t
+                if (t - lastActivityResumedTime > 5 * 60_000) sessionCount++
+                lastActivityResumedTime = t
             }
         }
 
@@ -269,7 +249,6 @@ class DeviceUsageRepositoryImpl(
             ((totalTime / sessionCount) / 60_000).toInt()
         } else 0
 
-        // Unlock count
         val unlocks = countDeviceUnlocks(startTime, endTime)
 
         DailyDetailStats(
@@ -291,17 +270,9 @@ class DeviceUsageRepositoryImpl(
         
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            // EventType 15 is SCREEN_INTERACTIVE (Device wake up / unlock)
-            // EventType 18 is KEYGUARD_HIDDEN (Unlock)
-            // EventType 1 is ACTIVITY_RESUMED
-            
-            // If the device doesn't reliably send 15 or 18, we can infer a "session start"
-            // if an activity is resumed and it has been at least 1 minute since the last resumed activity.
             if (event.eventType == 15 || event.eventType == 18) {
                  if (event.eventType == 15) count++
-            } else if (event.eventType == 1) { // ACTIVITY_RESUMED
-                // Backup metric: if no screen interactive events were counted, 
-                // we treat resumed activities with a gap > 5 mins as a new 'unlock/session'
+            } else if (event.eventType == 1) { 
                 if (event.timeStamp - lastEventTime > 5 * 60 * 1000) {
                     count++
                 }
@@ -337,7 +308,6 @@ class DeviceUsageRepositoryImpl(
                     if (currentResumedTime != -1L) {
                         val pauseTime = event.timeStamp
                         val duration = pauseTime - currentResumedTime
-                        
                         if (duration > 0) {
                             distributeDurationToHours(currentResumedTime, pauseTime, hourlyMillis)
                         }
@@ -347,30 +317,21 @@ class DeviceUsageRepositoryImpl(
             }
         }
         
-        // Final distribution for any pending resumed activity (capped at endTime)
         if (currentResumedTime != -1L && currentResumedTime < endTime) {
             distributeDurationToHours(currentResumedTime, endTime, hourlyMillis)
         }
 
-        // Convert to minutes and average by days
         hourlyMillis.map { (it / (60_000f * days)) }
     }
 
-    /**
-     * Helper to distribute a time range across hour-of-day buckets.
-     */
     private fun distributeDurationToHours(startMillis: Long, endMillis: Long, hourlyBuckets: LongArray) {
-        val startCal = Calendar.getInstance().apply { timeInMillis = startMillis }
-        val endCal = Calendar.getInstance().apply { timeInMillis = endMillis }
-        
-        var current = startMillis
         val tempCal = Calendar.getInstance()
+        var current = startMillis
         
         while (current < endMillis) {
             tempCal.timeInMillis = current
             val hour = tempCal.get(Calendar.HOUR_OF_DAY)
             
-            // Calculate next hour boundary
             tempCal.set(Calendar.MINUTE, 0)
             tempCal.set(Calendar.SECOND, 0)
             tempCal.set(Calendar.MILLISECOND, 0)

@@ -30,12 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import co.edu.unicauca.dopaminah.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,11 +49,20 @@ fun CreateGoalDialog(
     var expandedType by remember { mutableStateOf(false) }
     var expandedApp by remember { mutableStateOf(false) }
     
-    val goalTypes = listOf("Tiempo Total Diario", "Límite de Aplicación", "Límite Desbloqueos")
+    val goalTypeTotalDaily = stringResource(R.string.goal_type_total_daily)
+    val goalTypeAppLimit = stringResource(R.string.goal_type_app_limit)
+    val goalTypeUnlockLimit = stringResource(R.string.goal_type_unlock_limit)
+
+    val goalTypes = listOf(
+        goalTypeTotalDaily,
+        goalTypeAppLimit,
+        goalTypeUnlockLimit
+    )
     var selectedGoalType by remember { mutableStateOf(goalTypes[0]) }
     
+    val loadingAppsStr = stringResource(R.string.goal_loading_apps)
     var selectedApp by remember(installedApps) { 
-        mutableStateOf(installedApps.firstOrNull() ?: "Cargando aplicaciones...") 
+        mutableStateOf(installedApps.firstOrNull() ?: loadingAppsStr) 
     }
     var limitInput by remember { mutableStateOf("120") }
 
@@ -71,7 +82,7 @@ fun CreateGoalDialog(
                 // Title
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Nueva Meta",
+                        text = stringResource(R.string.goal_create_title),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -87,7 +98,7 @@ fun CreateGoalDialog(
 
                 // Tipo de Meta
                 Text(
-                    text = "Tipo de Meta",
+                    text = stringResource(R.string.goal_type_label),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -129,10 +140,10 @@ fun CreateGoalDialog(
                     }
                 }
 
-                if (selectedGoalType == "Límite de Aplicación") {
+                if (selectedGoalType == goalTypeAppLimit) {
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = "Aplicación a Limitar",
+                        text = stringResource(R.string.goal_select_app),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -178,7 +189,11 @@ fun CreateGoalDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Tiempo Máximo (minutos)
-                val limitLabel = if (selectedGoalType == "Límite Desbloqueos") "Límite (cantidad)" else "Tiempo Máximo (minutos)"
+                val limitLabel = if (selectedGoalType == goalTypeUnlockLimit) 
+                    stringResource(R.string.goal_limit_count) 
+                else 
+                    stringResource(R.string.goal_limit_minutes)
+                    
                 Text(
                     text = limitLabel,
                     fontSize = 14.sp,
@@ -227,7 +242,7 @@ fun CreateGoalDialog(
                     Button(
                         onClick = {
                             val limit = limitInput.toIntOrNull() ?: 0
-                            val appSelection = if (selectedGoalType == "Límite de Aplicación") selectedApp else null
+                            val appSelection = if (selectedGoalType == goalTypeAppLimit) selectedApp else null
                             onSave(selectedGoalType, appSelection, limit)
                         },
                         modifier = Modifier
@@ -239,7 +254,7 @@ fun CreateGoalDialog(
                         )
                     ) {
                         Text(
-                            text = "Guardar",
+                            text = stringResource(R.string.goal_save),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -257,7 +272,7 @@ fun CreateGoalDialog(
                         )
                     ) {
                         Text(
-                            text = "Cancelar",
+                            text = stringResource(R.string.goal_cancel),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )

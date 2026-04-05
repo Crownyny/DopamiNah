@@ -1,36 +1,30 @@
 package co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel
 
 import android.content.Context
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
+import co.edu.unicauca.dopaminah.domain.usecase.GetDashboardDataUseCase
+import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
+import co.edu.unicauca.dopaminah.domain.usecase.AppLimitCardInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
-
-data class AppLimitCarouselInfo(
-    val packageName: String,
-    val appName: String,
-    val timeUsedMs: Long,
-    val timeLimitMs: Long
-)
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val gamificationRepository: GamificationRepository,
     private val deviceUsageRepository: DeviceUsageRepository,
-    private val goalsRepository: GoalsRepository,
+    private val getDashboardDataUseCase: GetDashboardDataUseCase,
+    private val updateStreakUseCase: UpdateStreakUseCase,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -52,8 +46,8 @@ class DashboardViewModel @Inject constructor(
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
-    private val _appLimitCards = MutableStateFlow<List<AppLimitCarouselInfo>>(emptyList())
-    val appLimitCards: StateFlow<List<AppLimitCarouselInfo>> = _appLimitCards.asStateFlow()
+    private val _appLimitCards = MutableStateFlow<List<AppLimitCardInfo>>(emptyList())
+    val appLimitCards: StateFlow<List<AppLimitCardInfo>> = _appLimitCards.asStateFlow()
 
     init {
         loadGamificationStats()
@@ -64,20 +58,10 @@ class DashboardViewModel @Inject constructor(
 
     private fun observeAppLimits() {
         viewModelScope.launch {
-            combine(goalsRepository.getAllGoals(), _dailyUsageStats) { goals, stats ->
-                val appLimits = goals.filter { it.goalType == "APP_LIMIT" }
-                appLimits.map { goal ->
-                    val usedMs = stats.find { it.packageName == goal.packageName }?.totalTimeForegroundMillis ?: 0L
-                    AppLimitCarouselInfo(
-                        packageName = goal.packageName,
-                        appName = goal.appDisplayName.ifEmpty { goal.packageName },
-                        timeUsedMs = usedMs,
-                        timeLimitMs = goal.maxTimeMillis
-                    )
+            getDashboardDataUseCase.getAppLimitCards(_dailyUsageStats)
+                .collect { cards ->
+                    _appLimitCards.value = cards
                 }
-            }.collect { cards ->
-                _appLimitCards.value = cards
-            }
         }
     }
 
@@ -105,7 +89,6 @@ class DashboardViewModel @Inject constructor(
                 _dailyUnlocks.value = today
                 _yesterdayUnlocks.value = yesterday
 
-                // Only exclude our own app — show everything else so the list is complete
                 val ownPackage = appContext.packageName
                 val allApps = usageStats.filter { summary ->
                     summary.packageName != ownPackage
@@ -122,11 +105,9 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-
-
     fun checkAndIncrementStreak() {
         viewModelScope.launch {
-            gamificationRepository.incrementStreakAndPoints()
+            updateStreakUseCase.execute()
         }
     }
 
@@ -134,4 +115,3 @@ class DashboardViewModel @Inject constructor(
         loadUnlockStats()
     }
 }
-

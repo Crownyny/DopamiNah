@@ -92,7 +92,7 @@ fun PremiumCard(onClick: () -> Unit) {
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
-                Text("Desbloquear Ahora", fontWeight = FontWeight.Bold)
+                Text("Iniciar sesión para desbloquear", fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -22,12 +22,13 @@ import androidx.compose.ui.unit.dp
 fun SettingsNavigationItem(
     icon: ImageVector,
     title: String,
+    onClick: () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Navigate */ }
+            .clickable { onClick() }
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

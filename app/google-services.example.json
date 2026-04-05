@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "123456789",
+    "firebase_url": "https://dopaminah-project.firebaseio.com",
+    "project_id": "dopaminah-project",
+    "storage_bucket": "dopaminah-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:abcdef0123456789",
+        "android_client_info": {
+          "package_name": "co.edu.unicauca.dopaminah"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123456789-abcdefgh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABC123XYZ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123456789-web.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

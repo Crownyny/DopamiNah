@@ -93,7 +93,7 @@ fun MostUsedAppsSection(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(stringResource(R.string.search_app), color = colorScheme.onSurfaceVariant) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = colorScheme.primary)
+                    Icon(imageVector = Icons.Default.Search, contentDescription = stringResource(R.string.search_app), tint = colorScheme.primary)
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -111,7 +111,6 @@ fun MostUsedAppsSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // "Más usadas" button — active when sortOrder == MOST_USED
                 Button(
                     onClick = { sortOrder = SortOrder.MOST_USED },
                     modifier = Modifier.weight(1f),
@@ -126,7 +125,6 @@ fun MostUsedAppsSection(
                     Text(stringResource(R.string.search_filter_most_used), fontWeight = FontWeight.Bold)
                 }
 
-                // "Menos usadas" button — active when sortOrder == LEAST_USED
                 Button(
                     onClick = { sortOrder = SortOrder.LEAST_USED },
                     modifier = Modifier.weight(1f),
@@ -147,13 +145,13 @@ fun MostUsedAppsSection(
 
             if (!hasPermission) {
                 Text(
-                    text = "Acepta los permisos de uso para ver estadísticas de apps",
+                    text = stringResource(R.string.dashboard_no_usage_permission),
                     color = colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
                 )
             } else if (dailyUsageStats.isEmpty()) {
                 Text(
-                    text = "No hay datos suficientes",
+                    text = stringResource(R.string.dashboard_no_data),
                     color = colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
                 )

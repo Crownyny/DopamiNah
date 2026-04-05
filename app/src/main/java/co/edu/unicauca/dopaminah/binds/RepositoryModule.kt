@@ -4,9 +4,15 @@ import android.content.Context
 import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
 import co.edu.unicauca.dopaminah.data.repository.GamificationRepositoryImpl
 import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
+import co.edu.unicauca.dopaminah.data.repository.UsageMonitoringRepositoryImpl
+import co.edu.unicauca.dopaminah.data.repository.AuthRepositoryImpl
+import co.edu.unicauca.dopaminah.data.repository.PremiumRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
+import co.edu.unicauca.dopaminah.domain.repository.UsageMonitoringRepository
+import co.edu.unicauca.dopaminah.domain.repository.AuthRepository
+import co.edu.unicauca.dopaminah.domain.repository.PremiumRepository
 import co.edu.unicauca.dopaminah.ui.theme.ThemeController
 import dagger.Binds
 import dagger.Module
@@ -31,6 +37,24 @@ abstract class RepositoryModule {
     abstract fun bindGamificationRepository(
         gamificationRepositoryImpl: GamificationRepositoryImpl
     ): GamificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUsageMonitoringRepository(
+        usageMonitoringRepositoryImpl: UsageMonitoringRepositoryImpl
+    ): UsageMonitoringRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPremiumRepository(
+        premiumRepositoryImpl: PremiumRepositoryImpl
+    ): PremiumRepository
 }
 
 @Module
