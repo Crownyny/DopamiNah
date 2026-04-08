@@ -27,6 +27,15 @@ import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 
 import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
 
+/**
+ * Main Composable entry point for the app's UI and Navigation.
+ * * Key Features:
+ * - Dynamic Start Destination: Checks for [hasUsageStatsPermission] to decide whether 
+ * to show the Onboarding/Permission flow or the main Dashboard.
+ * - Navigation Host: Manages the transitions between all primary screens.
+ * - Conditional Bottom Bar: Automatically hides the navigation bar when the user 
+ * is on the Onboarding screen to ensure a focused user experience.
+ */
 @Composable
 fun DopamiNahApp() {
     val navController = rememberNavController()
@@ -82,6 +91,13 @@ fun DopamiNahApp() {
     }
 }
 
+/**
+ * Custom Bottom Navigation Bar for the application.
+ * * Implementation Details:
+ * - Uses [NavigationBarItem] to represent each primary destination.
+ * - Navigation logic includes [launchSingleTop] and [restoreState] to prevent 
+ * multiple instances of the same screen and preserve UI state when switching tabs.
+ */
 @Composable
 fun DopamiNahBottomBar(navController: NavHostController) {
     val colorScheme = MaterialTheme.colorScheme
