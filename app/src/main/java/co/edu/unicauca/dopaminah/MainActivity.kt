@@ -16,6 +16,17 @@ import co.edu.unicauca.dopaminah.ui.theme.LocalThemeController
 import co.edu.unicauca.dopaminah.ui.theme.ThemeController
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main entry point of the application.
+ * * Key responsibilities:
+ * - @AndroidEntryPoint: Enables Hilt dependency injection for this activity.
+ * - installSplashScreen(): Handles the brand splash screen transition (Android 12+).
+ * - enableEdgeToEdge(): Configures the UI to be drawn behind system bars.
+ * - themeController: Manages the dynamic switching between light and dark themes 
+ * based on user preferences or system settings.
+ * - CompositionLocalProvider: Provides the ThemeController to the entire Compose 
+ * hierarchy via LocalThemeController.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

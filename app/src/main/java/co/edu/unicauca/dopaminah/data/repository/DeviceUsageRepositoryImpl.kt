@@ -16,6 +16,16 @@ class DeviceUsageRepositoryImpl(
     private val context: Context
 ) : DeviceUsageRepository {
 
+    /**
+     * Manager service providing access to device usage history and statistics.
+     * * This service is used to:
+     * - queryAndAggregateUsageStats: Retrieve total foreground time per application 
+     * over a specific period. This method is generally more reliable for cumulative 
+     * data than querying individual INTERVAL_DAILY buckets.
+     * - queryEvents: Iterate through raw system events to track specific interactions, 
+     * such as counting device unlocks by filtering for event type 15 (SCREEN_INTERACTIVE) 
+     * or constructing detailed usage timelines.
+     */
     private val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
     override suspend fun getDailyUsageStats(): List<AppUsageSummary> = withContext(Dispatchers.IO) {
@@ -180,29 +190,49 @@ class DeviceUsageRepositoryImpl(
             .take(limit)
     }
 
-    override suspend fun getDailyDetails(dayOffset: Int): DailyDetailStats = withContext(Dispatchers.IO) {
+        /**
+     * Retrieves detailed usage statistics for a specific day based on an offset.
+     * * Process flow:
+     * 1. Time Calculation: Defines the 24-hour window (midnight to midnight) for the target day.
+     * 2. Permission Check: Validates 'Usage Stats' access; returns empty stats if denied.
+     * 3. Aggregation: Uses [queryAndAggregateUsageStats] for total foreground time and 
+     * identifying the most used application.
+     * 4. Event Analysis: Iterates through [UsageEvents] to determine:
+     * - First use of the day (first ACTIVITY_RESUMED event).
+     * - Session counting (increments if a gap > 5 minutes exists between activities).
+     * - Screen interactions (Event type 15).
+     * 5. Data Mapping: Packages results into a [DailyDetailStats] object for the UI.
+     *
+     * @param dayOffset Number of days back from today (0 for today, 1 for yesterday, etc.)
+     * @return A [DailyDetailStats] object containing formatted labels, times, and counts.
+     */
+    override fun getDailyDetails(dayOffset: Int): DailyDetailStats = withContext(Dispatchers.IO) {
+        // Setting up the time range for the selected day
         val cal = Calendar.getInstance()
-        // Move to the target day's midnight
         cal.add(Calendar.DAY_OF_YEAR, -dayOffset)
+        
+        // Set to end of day (23:59:59.999)
         cal.set(Calendar.HOUR_OF_DAY, 23)
         cal.set(Calendar.MINUTE, 59)
         cal.set(Calendar.SECOND, 59)
         cal.set(Calendar.MILLISECOND, 999)
         val endTime = cal.timeInMillis
 
+        // Set to start of day (00:00:00.000)
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
         val startTime = cal.timeInMillis
 
-        // Format date label (e.g. "viernes, 7 de marzo")
+        // Format the date label for Spanish locale (e.g., "Viernes, 7 de marzo")
         val dateFormat = java.text.SimpleDateFormat("EEEE, d 'de' MMMM", java.util.Locale("es"))
         val dateLabel = dateFormat.format(cal.time)
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
 
         val pm = context.packageManager
 
+        // Safety check: Avoid crash or empty queries if permission is missing
         if (!hasUsageStatsPermission()) {
             return@withContext DailyDetailStats(
                 dateLabel = dateLabel,
@@ -215,11 +245,11 @@ class DeviceUsageRepositoryImpl(
             )
         }
 
-        // Aggregate usage stats for the day
+        // Retrieve aggregated stats to calculate total time and the "Top App"
         val aggregated = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
         val totalTime = aggregated.values.sumOf { it.totalTimeInForeground }
 
-        // Most used app
+        // Identify and resolve the name of the most used application
         val topApp = aggregated.values.maxByOrNull { it.totalTimeInForeground }
         val mostUsedName = topApp?.let {
             try {
@@ -228,36 +258,38 @@ class DeviceUsageRepositoryImpl(
             } catch (_: Exception) { it.packageName }
         } ?: "--"
 
+        // Format most used app time (e.g., "1h 30m" or "45m")
         val mostUsedMillis = topApp?.totalTimeInForeground ?: 0L
         val mostUsedH = (mostUsedMillis / 3_600_000).toInt()
         val mostUsedM = ((mostUsedMillis % 3_600_000) / 60_000).toInt()
         val mostUsedTimeStr = if (mostUsedH > 0) "${mostUsedH}h ${mostUsedM}m" else "${mostUsedM}m"
 
-        // First use time and session counting via usage events
+        // Raw Event Processing for granular data (First Use and Sessions)
         val events = usageStatsManager.queryEvents(startTime, endTime)
         val event = android.app.usage.UsageEvents.Event()
 
         var firstEventTime = Long.MAX_VALUE
         var sessionCount = 0
         var lastActivityResumedTime = 0L
-        var lastScreenInteractiveTime = 0L
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             when (event.eventType) {
                 android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
                     val t = event.timeStamp
+                    // Capture the very first activity of the day
                     if (t < firstEventTime) firstEventTime = t
-                    // Count as new session if gap > 5 min from last activity
+                    
+                    // Heuristic: If there's a 5-minute gap since the last activity, 
+                    // count it as a new "session".
                     if (t - lastActivityResumedTime > 5 * 60_000) sessionCount++
                     lastActivityResumedTime = t
                 }
-                15 -> { // SCREEN_INTERACTIVE
-                    lastScreenInteractiveTime = event.timeStamp
-                }
+                15 -> { /* SCREEN_INTERACTIVE handled here if needed */ }
             }
         }
 
+        // Format the first interaction time (e.g., "8:30 AM")
         val firstUseStr = if (firstEventTime == Long.MAX_VALUE) {
             "--"
         } else {
@@ -265,11 +297,12 @@ class DeviceUsageRepositoryImpl(
                 .format(java.util.Date(firstEventTime))
         }
 
+        // Calculate average session duration
         val avgSessionMins = if (sessionCount > 0 && totalTime > 0) {
             ((totalTime / sessionCount) / 60_000).toInt()
         } else 0
 
-        // Unlock count
+        // Fetch unlock count from helper method
         val unlocks = countDeviceUnlocks(startTime, endTime)
 
         DailyDetailStats(
@@ -282,34 +315,33 @@ class DeviceUsageRepositoryImpl(
             totalTimeMillis = totalTime
         )
     }
-
-    private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {
-        var count = 0
-        val events = usageStatsManager.queryEvents(startTime, endTime)
-        val event = android.app.usage.UsageEvents.Event()
-        var lastEventTime = 0L
-        
-        while (events.hasNextEvent()) {
-            events.getNextEvent(event)
-            // EventType 15 is SCREEN_INTERACTIVE (Device wake up / unlock)
-            // EventType 18 is KEYGUARD_HIDDEN (Unlock)
-            // EventType 1 is ACTIVITY_RESUMED
+        private fun countDeviceUnlocks(startTime: Long, endTime: Long): Int {
+            var count = 0
+            val events = usageStatsManager.queryEvents(startTime, endTime)
+            val event = android.app.usage.UsageEvents.Event()
+            var lastEventTime = 0L
             
-            // If the device doesn't reliably send 15 or 18, we can infer a "session start"
-            // if an activity is resumed and it has been at least 1 minute since the last resumed activity.
-            if (event.eventType == 15 || event.eventType == 18) {
-                 if (event.eventType == 15) count++
-            } else if (event.eventType == 1) { // ACTIVITY_RESUMED
-                // Backup metric: if no screen interactive events were counted, 
-                // we treat resumed activities with a gap > 5 mins as a new 'unlock/session'
-                if (event.timeStamp - lastEventTime > 5 * 60 * 1000) {
-                    count++
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                // EventType 15 is SCREEN_INTERACTIVE (Device wake up / unlock)
+                // EventType 18 is KEYGUARD_HIDDEN (Unlock)
+                // EventType 1 is ACTIVITY_RESUMED
+                
+                // If the device doesn't reliably send 15 or 18, we can infer a "session start"
+                // if an activity is resumed and it has been at least 1 minute since the last resumed activity.
+                if (event.eventType == 15 || event.eventType == 18) {
+                    if (event.eventType == 15) count++
+                } else if (event.eventType == 1) { // ACTIVITY_RESUMED
+                    // Backup metric: if no screen interactive events were counted, 
+                    // we treat resumed activities with a gap > 5 mins as a new 'unlock/session'
+                    if (event.timeStamp - lastEventTime > 5 * 60 * 1000) {
+                        count++
+                    }
+                    lastEventTime = event.timeStamp
                 }
-                lastEventTime = event.timeStamp
             }
+            return count
         }
-        return count
-    }
 
     override suspend fun getHourlyUsage(days: Int): List<Float> = withContext(Dispatchers.IO) {
         if (!hasUsageStatsPermission() || days <= 0) return@withContext List(24) { 0f }
@@ -385,21 +417,35 @@ class DeviceUsageRepositoryImpl(
         }
     }
 
+    /**
+     * Checks if the application has the "Usage Stats" permission (PACKAGE_USAGE_STATS).
+     * * This is a special permission that cannot be granted via a standard runtime 
+     * dialog and must be enabled by the user in System Settings.
+     *
+     * @return True if the permission is granted (MODE_ALLOWED), false otherwise.
+     * * Note: Uses [AppOpsManager] to check the operational mode, handling API 
+     * differences between Android Q (and newer) and older versions.
+     */
     override fun hasUsageStatsPermission(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        
+        // Check operation status using version-specific methods
         val mode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // For API 29+, unsafeCheckOpNoThrow is preferred for standard checks
             appOps.unsafeCheckOpNoThrow(
                 AppOpsManager.OPSTR_GET_USAGE_STATS,
                 Process.myUid(),
                 context.packageName
             )
         } else {
+            // Fallback for older Android versions
             appOps.checkOpNoThrow(
                 AppOpsManager.OPSTR_GET_USAGE_STATS,
                 Process.myUid(),
                 context.packageName
             )
         }
+        
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
