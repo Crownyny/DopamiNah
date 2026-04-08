@@ -1,6 +1,43 @@
-# DopamiNah — Flujo interno del código
+# DopamiNah
 
-> Monitor de tiempo de pantalla con mecánicas de gamificación estilo Duolingo para Android.
+> *"Recupera tu tiempo"*
+
+**DopamiNah** es una aplicación móvil de bienestar digital desarrollada con **Android Jetpack Compose** como microproyecto para la asignatura de Desarrollo de Aplicaciones Móviles de la Universidad del Cauca.
+
+El nombre es un juego de palabras entre **dopamina** — el neurotransmisor que los algoritmos de redes sociales explotan para mantenernos enganchados — y la expresión **"Nah"**, que simboliza el rechazo a ese ciclo de consumo excesivo. Su objetivo es ayudar a los usuarios a recuperar el control sobre su tiempo de pantalla.
+
+---
+
+## ¿Qué problema resuelve?
+
+En la economía de la atención actual, las aplicaciones móviles están diseñadas para maximizar el tiempo que pasamos frente a la pantalla, aprovechando mecanismos biológicos como la liberación de dopamina para generar hábitos adictivos. DopamiNah actúa como contrapeso: monitorea el comportamiento real del usuario en su dispositivo y lo confronta con datos concretos, combinando tres estrategias:
+
+- **Monitoreo inteligente** — Registra el tiempo total de uso, la frecuencia de desbloqueos y las horas pico de actividad.
+- **Modo "Intenso" (Presión Activa)** — Inspirado en Duolingo, lanza notificaciones insistentes y mensajes persuasivos (ej. *"¿En serio llevas 40 minutos?"*) para interrumpir el uso excesivo en el momento justo.
+- **Gamificación** — Sistema de rachas diarias, niveles de autocontrol e insignias que premian la disciplina digital y hacen que mejorar el hábito sea motivador.
+
+---
+
+## Modelo de negocio
+
+La app adopta un modelo **Freemium con pago único**:
+
+| Plan | Incluye |
+|------|---------|
+| **Gratuito** | Monitoreo básico, estadísticas diarias y una meta general de tiempo de pantalla |
+| **Premium** | Funcionalidades avanzadas (metas por app, desbloqueos, notificaciones intensivas) y protección de datos mediante cuenta Google (OAuth) |
+
+---
+
+## Equipo
+
+Desarrollado por **Julian David Meneses Daza** y **Fredy Esteban Anaya Salazar**, estudiantes del Departamento de Telemática — Facultad de Ingeniería Electrónica y Telecomunicaciones, Universidad del Cauca. Popayán, 2026.
+
+---
+
+## Flujo interno del código
+
+> Las secciones siguientes documentan la arquitectura técnica de la aplicación: cómo arranca, cómo navega, cómo gestiona dependencias y cómo fluye la información desde el sistema Android hasta la interfaz de usuario.
 
 ---
 
