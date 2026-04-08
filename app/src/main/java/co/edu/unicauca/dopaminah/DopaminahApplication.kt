@@ -1,7 +1,10 @@
 package co.edu.unicauca.dopaminah
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * Main Application class for the app.
@@ -10,4 +13,13 @@ import dagger.hilt.android.HiltAndroidApp
  * dependency container.
  */
 @HiltAndroidApp
-class DopaminahApplication : Application()
+class DopaminahApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+}
