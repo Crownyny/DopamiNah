@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>com.dopaminah.usageAnalysis</string>
+    </array>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.dopaminah.usageAnalysis</string>
+    </array>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.415916233594-pboineujac8hj3rr8lo41hnr7l653ol5</string>
+            </array>
+        </dict>
+    </array>
+    <key>NSHealthShareUsageDescription</key>
+    <string>DopamiNah usa datos de tiempo en pantalla para ayudarte a controlar tu uso del dispositivo.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>DopamiNah configura límites de tiempo para promover un uso saludable del dispositivo.</string>
+</dict>
+</plist>
