@@ -1,46 +1,148 @@
 import Foundation
+import SwiftData
 
 @MainActor
 struct CheckUsageLimitsUseCase {
-    static func execute() async {
+    static func execute(modelContext: ModelContext? = nil) async {
         let defaults = AppGroupHelper.defaults
-
-        let totalScreenTime = defaults.integer(forKey: "total_screen_time")
+        let totalScreenTime = Int64(defaults.integer(forKey: "total_screen_time"))
         let unlockCount = defaults.integer(forKey: "unlock_count")
-
         let notificationHelper = NotificationHelper.shared
 
-        await checkAppLimits(notificationHelper: notificationHelper)
-        await checkTotalDailyLimit(totalScreenTime: Int64(totalScreenTime), notificationHelper: notificationHelper)
-        await checkUnlockLimit(unlockCount: unlockCount, notificationHelper: notificationHelper)
+        await checkAppLimits(
+            totalScreenTime: totalScreenTime,
+            unlockCount: unlockCount,
+            defaults: defaults,
+            notificationHelper: notificationHelper,
+            modelContext: modelContext
+        )
+        await checkTotalDailyLimit(
+            totalScreenTime: totalScreenTime,
+            defaults: defaults,
+            notificationHelper: notificationHelper
+        )
+        await checkUnlockLimit(
+            unlockCount: unlockCount,
+            defaults: defaults,
+            notificationHelper: notificationHelper
+        )
     }
 
-    private static func checkAppLimits(notificationHelper: NotificationHelper) async {
+    private static func checkAppLimits(
+        totalScreenTime: Int64,
+        unlockCount: Int,
+        defaults: UserDefaults,
+        notificationHelper: NotificationHelper,
+        modelContext: ModelContext?
+    ) async {
+        guard let modelContext else { return }
+
+        let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
+            predicate: #Predicate { $0.goalType == GoalType.appLimit }
+        )
+        let appLimitGoals: [AppLimitGoal]
+        do {
+            appLimitGoals = try modelContext.fetch(fetchDescriptor)
+        } catch {
+            print("Error fetching app limit goals: \(error)")
+            return
+        }
+
+        let dailyUsage = DeviceUsageRepositoryMock().getDailyUsageStats()
+
+        for goal in appLimitGoals {
+            let usage = dailyUsage.first { $0.appName == goal.appDisplayName }
+            let usedMillis = usage?.totalTimeForegroundMillis ?? 0
+            let limitMillis = goal.maxTimeMillis
+
+            guard limitMillis > 0 else { continue }
+
+            if usedMillis > limitMillis {
+                let alertId = "app_limit_\(goal.id)"
+                if !defaults.bool(forKey: "notified_\(alertId)_\(todayString())") {
+                    notificationHelper.showNotification(
+                        id: NotificationHelper.appUsageNotifID,
+                        title: "Límite superado",
+                        message: "Has superado el límite de \(goal.appDisplayName) (\(usedMillis.formattedUsageTime) usado de \(limitMillis.formattedUsageTime))",
+                        isTimeSensitive: true
+                    )
+                    defaults.set(true, forKey: "notified_\(alertId)_\(todayString())")
+                }
+            }
+
+            let unlockLimit = goal.maxUnlocks
+            if unlockLimit > 0 && unlockCount > unlockLimit {
+                let alertId = "app_unlock_\(goal.id)"
+                if !defaults.bool(forKey: "notified_\(alertId)_\(todayString())") {
+                    notificationHelper.showNotification(
+                        id: NotificationHelper.appUsageNotifID,
+                        title: "Desbloqueos excedidos",
+                        message: "Has abierto \(goal.appDisplayName) \(unlockCount) veces (límite: \(unlockLimit))",
+                        isTimeSensitive: true
+                    )
+                    defaults.set(true, forKey: "notified_\(alertId)_\(todayString())")
+                }
+            }
+        }
     }
 
-    private static func checkTotalDailyLimit(totalScreenTime: Int64, notificationHelper: NotificationHelper) async {
+    private static func checkTotalDailyLimit(
+        totalScreenTime: Int64,
+        defaults: UserDefaults,
+        notificationHelper: NotificationHelper
+    ) async {
+        guard let modelContext = try? ModelContainer(for: AppLimitGoal.self).mainContext else { return }
+
+        let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
+            predicate: #Predicate { $0.goalType == GoalType.totalDaily }
+        )
+        guard let goal = try? modelContext.fetch(fetchDescriptor).first,
+              goal.maxTimeMillis > 0 else { return }
+
+        if totalScreenTime > goal.maxTimeMillis {
+            let alertId = "total_daily"
+            if !defaults.bool(forKey: "notified_\(alertId)_\(todayString())") {
+                notificationHelper.showNotification(
+                    id: NotificationHelper.screenTimeNotifID,
+                    title: "Tiempo diario superado",
+                    message: "Has superado tu límite de tiempo en pantalla (\(totalScreenTime.formattedUsageTime) usado de \(goal.maxTimeMillis.formattedUsageTime))",
+                    isTimeSensitive: true
+                )
+                defaults.set(true, forKey: "notified_\(alertId)_\(todayString())")
+            }
+        }
     }
 
-    private static func checkUnlockLimit(unlockCount: Int, notificationHelper: NotificationHelper) async {
+    private static func checkUnlockLimit(
+        unlockCount: Int,
+        defaults: UserDefaults,
+        notificationHelper: NotificationHelper
+    ) async {
+        guard let modelContext = try? ModelContainer(for: AppLimitGoal.self).mainContext else { return }
+
+        let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
+            predicate: #Predicate { $0.goalType == GoalType.unlockLimit }
+        )
+        guard let goal = try? modelContext.fetch(fetchDescriptor).first,
+              goal.maxUnlocks > 0 else { return }
+
+        if unlockCount > goal.maxUnlocks {
+            let alertId = "unlock_limit"
+            if !defaults.bool(forKey: "notified_\(alertId)_\(todayString())") {
+                notificationHelper.showNotification(
+                    id: NotificationHelper.unlockCountNotifID,
+                    title: "Desbloqueos excedidos",
+                    message: "Has desbloqueado el dispositivo \(unlockCount) veces (límite: \(goal.maxUnlocks))",
+                    isTimeSensitive: true
+                )
+                defaults.set(true, forKey: "notified_\(alertId)_\(todayString())")
+            }
+        }
     }
 
-    private static func shouldNotify(alertId: String) -> Bool {
-        let today = Calendar.current.startOfDay(for: Date())
+    private static func todayString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        let todayStr = formatter.string(from: today)
-
-        let key = "notified_\(alertId)_\(todayStr)"
-        return !AppGroupHelper.defaults.bool(forKey: key)
-    }
-
-    private static func markNotified(alertId: String) {
-        let today = Calendar.current.startOfDay(for: Date())
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let todayStr = formatter.string(from: today)
-
-        let key = "notified_\(alertId)_\(todayStr)"
-        AppGroupHelper.defaults.set(true, forKey: key)
+        return formatter.string(from: Date())
     }
 }

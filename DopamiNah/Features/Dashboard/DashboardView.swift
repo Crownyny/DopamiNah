@@ -11,7 +11,10 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.cardSpacing) {
-                    HeaderSection(gamificationStats: viewModel.gamificationStats)
+                    HeaderSection(
+                        gamificationStats: viewModel.gamificationStats,
+                        motivationText: viewModel.streakMotivation
+                    )
 
                     if !viewModel.isLoading {
                         UsageSummaryCarousel(
@@ -49,6 +52,7 @@ struct DashboardView: View {
 // MARK: - Header Section
 struct HeaderSection: View {
     let gamificationStats: UserGamificationStats
+    let motivationText: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -89,13 +93,17 @@ struct HeaderSection: View {
                 }
             }
 
-            StreakMotivationCard()
+            StreakMotivationCard(
+                streak: GamificationManager.shared.streak,
+                motivationText: motivationText
+            )
         }
     }
 }
 
 struct StreakMotivationCard: View {
-    let streak = GamificationManager.shared.streak
+    let streak: Int
+    let motivationText: String
 
     var body: some View {
         HStack(spacing: 12) {
@@ -107,8 +115,7 @@ struct StreakMotivationCard: View {
                     .font(AppTypography.headline())
                     .foregroundColor(.textPrimary)
 
-                let viewModel = DashboardViewModel()
-                Text(viewModel.streakMotivation)
+                Text(motivationText)
                     .font(AppTypography.caption())
                     .foregroundColor(.textSecondary)
             }

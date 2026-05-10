@@ -3,6 +3,7 @@ import FirebaseCore
 import FirebaseDatabase
 import GoogleSignIn
 import BackgroundTasks
+import SwiftData
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -28,6 +29,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             }
         }
 
+        registerForScreenTimeEvents()
+
         return true
     }
 
@@ -41,6 +44,41 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         scheduleUsageAnalysis()
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        GamificationManager.shared.checkDailyOpen()
+        checkDailyReset()
+    }
+
+    private func registerForScreenTimeEvents() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleScreenDidTurnOn),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleScreenDidTurnOn() {
+        Task {
+            let repo = UsageMonitoringRepositoryImpl()
+            await repo.setLastScreenOnTime(Date())
+        }
+    }
+
+    private func checkDailyReset() {
+        Task {
+            let repo = UsageMonitoringRepositoryImpl()
+            let stats = await repo.getMonitoringStats()
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            let today = formatter.string(from: Date())
+
+            if stats.lastResetDate != today {
+                await repo.resetDailyStats()
+            }
+        }
     }
 
     private func scheduleUsageAnalysis() {
@@ -61,7 +99,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             task.setTaskCompleted(success: false)
         }
 
-        await CheckUsageLimitsUseCase.execute()
+        do {
+            let container = try ModelContainer(for: AppLimitGoal.self, configurations: ModelConfiguration(url: AppGroupHelper.storeURL, allowsSave: true, cloudKitDatabase: .none))
+            let context = container.mainContext
+            await CheckUsageLimitsUseCase.execute(modelContext: context)
+        } catch {
+            print("ModelContainer error in background task: \(error)")
+            await CheckUsageLimitsUseCase.execute(modelContext: nil)
+        }
 
         scheduleUsageAnalysis()
         task.setTaskCompleted(success: true)

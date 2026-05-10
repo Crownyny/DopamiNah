@@ -5,6 +5,8 @@ import Combine
 struct AchievementsState {
     var streakDays: Int = 7
     var level: Int = 5
+    var currentPoints: Int = 0
+    var pointsToNextLevel: Int = 100
     var badges: [BadgeUi] = [
         BadgeUi(emoji: "🌅", title: "Early Bird", description: "Abre la app antes de las 8 AM por 5 días", unlockDate: "2026-04-20"),
         BadgeUi(emoji: "🎯", title: "Focus Master", description: "Cumple todas tus metas por 7 días seguidos", unlockDate: "2026-04-25"),
@@ -29,9 +31,12 @@ final class AchievementsViewModel: ObservableObject {
         let gamification = GamificationManager.shared
         state.streakDays = gamification.streak
         state.level = gamification.stats.level
+        state.currentPoints = gamification.totalPoints
+        state.pointsToNextLevel = gamification.stats.pointsToNextLevel
         state.bestStreak = max(gamification.bestStreak, gamification.streak)
 
-        state.unlockedCount = state.badges.filter(\.isUnlocked).count
+        let unlockedCount = state.badges.filter(\.isUnlocked).count
+        state.unlockedCount = unlockedCount
         state.totalCount = state.badges.count
     }
 }
@@ -47,7 +52,12 @@ struct AchievementsView: View {
 
                     StreakCard(streakDays: viewModel.state.streakDays)
 
-                    LevelCard(level: viewModel.state.level, streakDays: viewModel.state.streakDays)
+                    LevelCard(
+                        level: viewModel.state.level,
+                        streakDays: viewModel.state.streakDays,
+                        currentPoints: viewModel.state.currentPoints,
+                        pointsToNextLevel: viewModel.state.pointsToNextLevel
+                    )
 
                     BadgesGrid(badges: viewModel.state.badges)
 
@@ -63,7 +73,8 @@ struct AchievementsView: View {
                         unlockedCount: viewModel.state.unlockedCount,
                         totalCount: viewModel.state.totalCount,
                         level: viewModel.state.level,
-                        bestStreak: viewModel.state.bestStreak
+                        bestStreak: viewModel.state.bestStreak,
+                        totalPoints: viewModel.state.currentPoints
                     )
                 }
                 .padding(.horizontal, AppSpacing.horizontalPadding)
@@ -147,6 +158,8 @@ struct StreakCard: View {
 struct LevelCard: View {
     let level: Int
     let streakDays: Int
+    let currentPoints: Int
+    let pointsToNextLevel: Int
 
     var levelTitle: String {
         switch level {
@@ -160,7 +173,9 @@ struct LevelCard: View {
     }
 
     var progress: Double {
-        Double(streakDays) / Double(level * 10)
+        let totalNeeded = currentPoints + pointsToNextLevel
+        guard totalNeeded > 0 else { return 0 }
+        return Double(currentPoints) / Double(totalNeeded)
     }
 
     var body: some View {
@@ -177,12 +192,17 @@ struct LevelCard: View {
 
                 Spacer()
 
-                HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.dopaminahOrange)
-                    Text("\(streakDays)d")
-                        .font(AppTypography.footnote())
+                VStack(alignment: .trailing, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.dopaminahOrange)
+                        Text("\(currentPoints)")
+                            .font(AppTypography.footnote())
+                            .foregroundColor(.textPrimary)
+                    }
+                    Text("\(pointsToNextLevel) pts para nivel \(level + 1)")
+                        .font(AppTypography.caption())
                         .foregroundColor(.textSecondary)
                 }
             }
@@ -190,7 +210,7 @@ struct LevelCard: View {
             ProgressView(value: min(progress, 1.0))
                 .tint(.dopaminahPurple)
 
-            Text("Faltan \(max(0, level * 10 - streakDays)) días para el nivel \(level + 1)")
+            Text("Faltan \(pointsToNextLevel) puntos para el nivel \(level + 1)")
                 .font(AppTypography.caption())
                 .foregroundColor(.textSecondary)
         }
@@ -340,6 +360,7 @@ struct AchievementStatsCard: View {
     let totalCount: Int
     let level: Int
     let bestStreak: Int
+    let totalPoints: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -351,6 +372,8 @@ struct AchievementStatsCard: View {
                 StatRow(label: "Insignias desbloqueadas", value: "\(unlockedCount) / \(totalCount)")
                 Divider()
                 StatRow(label: "Nivel actual", value: "\(level)")
+                Divider()
+                StatRow(label: "Puntos totales", value: "\(totalPoints)")
                 Divider()
                 StatRow(label: "Mejor racha", value: "\(bestStreak) días")
             }

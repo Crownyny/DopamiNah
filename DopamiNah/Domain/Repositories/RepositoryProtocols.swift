@@ -41,3 +41,14 @@ protocol PremiumRepositoryProtocol {
     func setPremiumStatus(userId: String, isPremium: Bool) async throws
     func isPremiumUser(userId: String) async -> Bool
 }
+
+protocol UsageMonitoringRepositoryProtocol {
+    func getMonitoringStats() async -> MonitoringStats
+    func updateScreenTime(_ millis: Int64) async
+    func incrementUnlockCount() async
+    func resetDailyStats() async
+    func setLastScreenOnTime(_ date: Date) async
+    func getLastScreenOnTime() async -> Date?
+    func isAlertNotified(alertId: String) async -> Bool
+    func markAlertNotified(alertId: String) async
+}

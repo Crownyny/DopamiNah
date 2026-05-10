@@ -15,13 +15,16 @@ final class DashboardViewModel: ObservableObject {
 
     private let deviceUsageRepo: DeviceUsageRepositoryProtocol
     private let goalsRepo: GoalsRepositoryProtocol
+    private let monitoringRepo: UsageMonitoringRepositoryProtocol
 
     init(
         deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage,
-        goalsRepo: GoalsRepositoryProtocol = MockRepositories.goals
+        goalsRepo: GoalsRepositoryProtocol = MockRepositories.goals,
+        monitoringRepo: UsageMonitoringRepositoryProtocol = UsageMonitoringRepositoryImpl()
     ) {
         self.deviceUsageRepo = deviceUsageRepo
         self.goalsRepo = goalsRepo
+        self.monitoringRepo = monitoringRepo
     }
 
     func loadData() async {
@@ -43,6 +46,12 @@ final class DashboardViewModel: ObservableObject {
 
         totalDailyUsageMs = dailyUsageStats.reduce(0) { $0 + $1.totalTimeForegroundMillis }
 
+        let goals = await goalsRepo.getAllGoals()
+        let combinedCards = await buildAppLimitCards(goals: goals, usageStats: dailyUsageStats)
+        if !combinedCards.isEmpty {
+            appLimitCards = combinedCards
+        }
+
         isLoading = false
     }
 
@@ -54,6 +63,28 @@ final class DashboardViewModel: ObservableObject {
     func refreshStats() async {
         dailyUnlocks = await deviceUsageRepo.getDailyDeviceUnlocks()
         yesterdayUnlocks = await deviceUsageRepo.getYesterdayDeviceUnlocks()
+        dailyUsageStats = await deviceUsageRepo.getDailyUsageStats()
+        totalDailyUsageMs = dailyUsageStats.reduce(0) { $0 + $1.totalTimeForegroundMillis }
+
+        let goals = await goalsRepo.getAllGoals()
+        let combinedCards = await buildAppLimitCards(goals: goals, usageStats: dailyUsageStats)
+        if !combinedCards.isEmpty {
+            appLimitCards = combinedCards
+        }
+    }
+
+    private func buildAppLimitCards(goals: [AppLimitGoal], usageStats: [AppUsageSummary]) async -> [AppLimitCardInfo] {
+        goals.filter { $0.goalType == GoalType.appLimit && $0.maxTimeMillis > 0 }
+            .compactMap { goal in
+                let usage = usageStats.first { $0.appName == goal.appDisplayName }
+                let usedMs = usage?.totalTimeForegroundMillis ?? 0
+                return AppLimitCardInfo(
+                    packageName: goal.packageName,
+                    appName: goal.appDisplayName,
+                    timeUsedMs: usedMs,
+                    timeLimitMs: goal.maxTimeMillis
+                )
+            }
     }
 
     var streakMotivation: String {

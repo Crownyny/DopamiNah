@@ -26,7 +26,7 @@ struct GamificationCalculator {
 
         return UserGamificationStats(
             level: level,
-            currentPoints: streak,
+            currentPoints: totalPoints,
             pointsToNextLevel: max(pointsToNext, 0),
             activeBadges: []
         )

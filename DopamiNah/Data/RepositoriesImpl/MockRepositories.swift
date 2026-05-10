@@ -8,6 +8,7 @@ final class MockRepositories {
     static let gamification = MockGamificationRepository()
     static let auth = MockAuthRepository()
     static let premium = MockPremiumRepository()
+    static let monitoring = MockUsageMonitoringRepository()
 }
 
 @MainActor
@@ -85,4 +86,50 @@ final class MockPremiumRepository: PremiumRepositoryProtocol {
     func setPremiumStatus(userId: String, isPremium: Bool) async throws {}
 
     func isPremiumUser(userId: String) async -> Bool { false }
+}
+
+@MainActor
+final class MockUsageMonitoringRepository: UsageMonitoringRepositoryProtocol {
+    private var totalScreenTime: Int64 = 0
+    private var unlockCount: Int = 0
+    private var lastScreenOnTime: Date?
+    private var notifiedAlerts: Set<String> = []
+
+    func getMonitoringStats() async -> MonitoringStats {
+        MonitoringStats(
+            totalScreenTimeMillis: totalScreenTime,
+            unlockCount: unlockCount,
+            lastResetDate: ""
+        )
+    }
+
+    func updateScreenTime(_ millis: Int64) async {
+        totalScreenTime += millis
+    }
+
+    func incrementUnlockCount() async {
+        unlockCount += 1
+    }
+
+    func resetDailyStats() async {
+        totalScreenTime = 0
+        unlockCount = 0
+        notifiedAlerts.removeAll()
+    }
+
+    func setLastScreenOnTime(_ date: Date) async {
+        lastScreenOnTime = date
+    }
+
+    func getLastScreenOnTime() async -> Date? {
+        lastScreenOnTime
+    }
+
+    func isAlertNotified(alertId: String) async -> Bool {
+        notifiedAlerts.contains(alertId)
+    }
+
+    func markAlertNotified(alertId: String) async {
+        notifiedAlerts.insert(alertId)
+    }
 }
