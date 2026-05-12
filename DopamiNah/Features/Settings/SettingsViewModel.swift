@@ -14,6 +14,7 @@ final class SettingsViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showSignInDialog: Bool = false
     @Published var showAppleSignIn: Bool = false
+    @Published var showDebugData: Bool = false
 
     private let authRepo: AuthRepositoryProtocol
     private let premiumRepo: PremiumRepositoryProtocol

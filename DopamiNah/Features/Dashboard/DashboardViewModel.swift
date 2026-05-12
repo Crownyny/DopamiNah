@@ -18,7 +18,7 @@ final class DashboardViewModel: ObservableObject {
     private let monitoringRepo: UsageMonitoringRepositoryProtocol
 
     init(
-        deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage,
+        deviceUsageRepo: DeviceUsageRepositoryProtocol = ManualDeviceUsageRepository(),
         goalsRepo: GoalsRepositoryProtocol = MockRepositories.goals,
         monitoringRepo: UsageMonitoringRepositoryProtocol = UsageMonitoringRepositoryImpl()
     ) {

@@ -77,6 +77,9 @@ struct SettingsView: View {
                     SettingsSectionView(title: "Soporte") {
                         SettingsNavigationItem(icon: "questionmark.circle.fill", title: "Centro de ayuda") {}
                         SettingsNavigationItem(icon: "envelope.fill", title: "Contactar soporte") {}
+                        SettingsNavigationItem(icon: "wrench.fill", title: "Datos de Prueba") {
+                            viewModel.showDebugData = true
+                        }
                     }
 
                     AboutSection()
@@ -93,6 +96,9 @@ struct SettingsView: View {
                     onSignInSuccess: {},
                     onSignInError: viewModel.setError
                 )
+            }
+            .sheet(isPresented: $viewModel.showDebugData) {
+                DebugDataView()
             }
         }
     }

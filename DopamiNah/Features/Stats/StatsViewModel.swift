@@ -25,7 +25,7 @@ final class StatsViewModel: ObservableObject {
 
     private let deviceUsageRepo: DeviceUsageRepositoryProtocol
 
-    init(deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage) {
+    init(deviceUsageRepo: DeviceUsageRepositoryProtocol = ManualDeviceUsageRepository()) {
         self.deviceUsageRepo = deviceUsageRepo
     }
 

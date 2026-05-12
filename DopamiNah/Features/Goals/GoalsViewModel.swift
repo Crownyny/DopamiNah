@@ -5,7 +5,7 @@ import Combine
 
 struct GoalsState {
     var goals: [GoalDisplayModel] = []
-    var installedApps: [String] = ["Instagram", "TikTok", "X", "WhatsApp", "YouTube", "Spotify", "Chrome", "Maps"]
+    var installedApps: [String] = StoredUsageData.allAppsList.map(\.name)
     var showCreateDialog: Bool = false
     var isLoading: Bool = false
 }
@@ -19,7 +19,7 @@ final class GoalsViewModel: ObservableObject {
     private let goalsRepo: GoalsRepositoryProtocol
 
     init(
-        deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage,
+        deviceUsageRepo: DeviceUsageRepositoryProtocol = ManualDeviceUsageRepository(),
         goalsRepo: GoalsRepositoryProtocol = MockRepositories.goals
     ) {
         self.deviceUsageRepo = deviceUsageRepo

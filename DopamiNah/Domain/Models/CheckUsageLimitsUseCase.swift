@@ -5,8 +5,10 @@ import SwiftData
 struct CheckUsageLimitsUseCase {
     static func execute(modelContext: ModelContext? = nil) async {
         let defaults = AppGroupHelper.defaults
-        let totalScreenTime = Int64(defaults.integer(forKey: "total_screen_time"))
-        let unlockCount = defaults.integer(forKey: "unlock_count")
+        let manualRepo = ManualDeviceUsageRepository()
+        let usageStats = await manualRepo.getDailyUsageStats()
+        let totalScreenTime = usageStats.reduce(0) { $0 + $1.totalTimeForegroundMillis }
+        let unlockCount = await manualRepo.getDailyDeviceUnlocks()
         let notificationHelper = NotificationHelper.shared
 
         await checkAppLimits(
@@ -48,7 +50,7 @@ struct CheckUsageLimitsUseCase {
             return
         }
 
-        let dailyUsage = DeviceUsageRepositoryMock().getDailyUsageStats()
+        let dailyUsage = ManualDeviceUsageRepository().getDailyUsageStats()
 
         for goal in appLimitGoals {
             let usage = dailyUsage.first { $0.appName == goal.appDisplayName }
