@@ -10,6 +10,7 @@ final class AppLimitGoal {
     var maxTimeMillis: Int64
     var maxUnlocks: Int
     var currentStreak: Int
+    var lastStreakUpdateDate: Date?
 
     init(
         id: UUID = UUID(),
@@ -18,7 +19,8 @@ final class AppLimitGoal {
         appDisplayName: String = "",
         maxTimeMillis: Int64 = 0,
         maxUnlocks: Int = 0,
-        currentStreak: Int = 0
+        currentStreak: Int = 0,
+        lastStreakUpdateDate: Date? = nil
     ) {
         self.id = id
         self.goalType = goalType
@@ -27,6 +29,7 @@ final class AppLimitGoal {
         self.maxTimeMillis = maxTimeMillis
         self.maxUnlocks = maxUnlocks
         self.currentStreak = currentStreak
+        self.lastStreakUpdateDate = lastStreakUpdateDate
     }
 }
 

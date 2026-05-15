@@ -5,8 +5,10 @@ import SwiftData
 struct CheckUsageLimitsUseCase {
     static func execute(modelContext: ModelContext? = nil) async {
         let defaults = AppGroupHelper.defaults
-        let totalScreenTime = Int64(defaults.integer(forKey: "total_screen_time"))
-        let unlockCount = defaults.integer(forKey: "unlock_count")
+        let manualRepo = ManualDeviceUsageRepository()
+        let usageStats = await manualRepo.getDailyUsageStats()
+        let totalScreenTime = usageStats.reduce(0) { $0 + $1.totalTimeForegroundMillis }
+        let unlockCount = await manualRepo.getDailyDeviceUnlocks()
         let notificationHelper = NotificationHelper.shared
 
         await checkAppLimits(
@@ -38,7 +40,7 @@ struct CheckUsageLimitsUseCase {
         guard let modelContext else { return }
 
         let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
-            predicate: #Predicate { $0.goalType == GoalType.appLimit }
+            predicate: #Predicate { $0.goalType == "APP_LIMIT" }
         )
         let appLimitGoals: [AppLimitGoal]
         do {
@@ -48,7 +50,7 @@ struct CheckUsageLimitsUseCase {
             return
         }
 
-        let dailyUsage = DeviceUsageRepositoryMock().getDailyUsageStats()
+        let dailyUsage = await ManualDeviceUsageRepository().getDailyUsageStats()
 
         for goal in appLimitGoals {
             let usage = dailyUsage.first { $0.appName == goal.appDisplayName }
@@ -94,7 +96,7 @@ struct CheckUsageLimitsUseCase {
         guard let modelContext = try? ModelContainer(for: AppLimitGoal.self).mainContext else { return }
 
         let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
-            predicate: #Predicate { $0.goalType == GoalType.totalDaily }
+            predicate: #Predicate { $0.goalType == "TOTAL_DAILY" }
         )
         guard let goal = try? modelContext.fetch(fetchDescriptor).first,
               goal.maxTimeMillis > 0 else { return }
@@ -121,7 +123,7 @@ struct CheckUsageLimitsUseCase {
         guard let modelContext = try? ModelContainer(for: AppLimitGoal.self).mainContext else { return }
 
         let fetchDescriptor = FetchDescriptor<AppLimitGoal>(
-            predicate: #Predicate { $0.goalType == GoalType.unlockLimit }
+            predicate: #Predicate { $0.goalType == "UNLOCK_LIMIT" }
         )
         guard let goal = try? modelContext.fetch(fetchDescriptor).first,
               goal.maxUnlocks > 0 else { return }

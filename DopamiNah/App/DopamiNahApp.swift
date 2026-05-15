@@ -25,7 +25,7 @@ struct DopamiNahApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreenView()
                 .environmentObject(themeController)
                 .preferredColorScheme(themeController.currentColorScheme)
         }

@@ -72,6 +72,12 @@ extension Double {
     }
 }
 
+extension String {
+    var safeFilename: String {
+        components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+    }
+}
+
 extension View {
     func conditional(_ modifier: (Self) -> some View, when condition: Bool) -> some View {
         if condition {

@@ -13,10 +13,12 @@ struct StatsView: View {
 
                     StatsSummaryCards(
                         dailyAverageText: viewModel.uiState.dailyAverageText,
-                        unlockAverageText: viewModel.uiState.unlockAverageText
+                        unlockAverageText: viewModel.uiState.unlockAverageText,
+                        periodLabel: viewModel.uiState.selectedTab == .weekly ? "7 días" : "30 días"
                     )
 
                     StatsCarousel(
+                        dailyUsageMinutes: viewModel.uiState.dailyUsageMinutes,
                         appUsageData: viewModel.uiState.appUsageData,
                         hourlyUsage: viewModel.uiState.hourlyUsage,
                         selectedTab: viewModel.uiState.selectedTab
@@ -26,8 +28,8 @@ struct StatsView: View {
                         DailyDetailsCard(
                             details: details,
                             selectedDayOffset: viewModel.uiState.selectedDayOffset,
+                            showDatePicker: $showDatePicker,
                             onPreviousDay: viewModel.goToPreviousDay,
-                            onNextDay: viewModel.goToNextDay,
                             onSelectDay: { viewModel.selectDay($0) }
                         )
                     }
@@ -43,14 +45,6 @@ struct StatsView: View {
                     selectedDayOffset: viewModel.uiState.selectedDayOffset,
                     onSelectDay: viewModel.selectDay
                 )
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showDatePicker = true }) {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.dopaminahPurple)
-                    }
-                }
             }
         }
     }
@@ -80,6 +74,7 @@ struct StatsHeader: View {
 struct StatsSummaryCards: View {
     let dailyAverageText: String
     let unlockAverageText: String
+    let periodLabel: String
 
     var body: some View {
         HStack(spacing: 12) {
@@ -90,7 +85,7 @@ struct StatsSummaryCards: View {
                 Text(dailyAverageText)
                     .font(AppTypography.title3())
                     .foregroundColor(.textPrimary)
-                Text("Promedio diario")
+                Text("Promedio (\(periodLabel))")
                     .font(AppTypography.caption())
                     .foregroundColor(.textSecondary)
             }
@@ -107,7 +102,7 @@ struct StatsSummaryCards: View {
                 Text(unlockAverageText)
                     .font(AppTypography.title3())
                     .foregroundColor(.textPrimary)
-                Text("Desbloqueos")
+                Text("Desbloqueos (\(periodLabel))")
                     .font(AppTypography.caption())
                     .foregroundColor(.textSecondary)
             }
@@ -122,6 +117,7 @@ struct StatsSummaryCards: View {
 
 // MARK: - Charts Carousel
 struct StatsCarousel: View {
+    let dailyUsageMinutes: [Float]
     let appUsageData: [AppUsageEntry]
     let hourlyUsage: [Float]
     let selectedTab: StatsTab
@@ -129,7 +125,10 @@ struct StatsCarousel: View {
     var body: some View {
         VStack(spacing: 12) {
             TabView {
-                DailyUsageChartCard(usageData: [])
+                DailyUsageChartCard(
+                    usageMinutes: dailyUsageMinutes,
+                    isWeekly: selectedTab == .weekly
+                )
                     .tag(0)
 
                 AppUsageChartCard(appUsageData: appUsageData, selectedTab: selectedTab)
@@ -150,21 +149,33 @@ struct StatsCarousel: View {
 
 // MARK: - Daily Usage Chart (Line)
 struct DailyUsageChartCard: View {
-    let usageData: [Float]
+    let usageMinutes: [Float]
+    let isWeekly: Bool
 
-    var sampleData: [ChartDataPoint] {
-        let days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
-        let values: [Float] = [180, 240, 200, 300, 260, 150, 220]
-        return zip(days, values).map { ChartDataPoint(day: $0, minutes: $1) }
+    var chartData: [ChartDataPoint] {
+        if usageMinutes.isEmpty {
+            let labels = isWeekly
+                ? ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+                : (0..<30).map { "\($0 + 1)" }
+            let values: [Float] = isWeekly
+                ? [180, 240, 200, 300, 260, 150, 220]
+                : (0..<30).map { _ in Float(120 + Int.random(in: 0...180)) }
+            return zip(labels, values).map { ChartDataPoint(day: $0, minutes: $1) }
+        }
+        if isWeekly {
+            let labels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+            return zip(labels, usageMinutes).map { ChartDataPoint(day: $0, minutes: $1) }
+        }
+        return usageMinutes.enumerated().map { ChartDataPoint(day: "\($0 + 1)", minutes: $1) }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Uso diario")
+            Text(isWeekly ? "Uso diario (7 días)" : "Uso diario (30 días)")
                 .font(AppTypography.headline())
                 .foregroundColor(.textPrimary)
 
-            Chart(sampleData) { point in
+            Chart(chartData) { point in
                 LineMark(
                     x: .value("Día", point.day),
                     y: .value("Minutos", point.minutes)
@@ -204,6 +215,31 @@ struct DailyUsageChartCard: View {
                     }
                 }
             }
+            .chartXAxis {
+                if isWeekly {
+                    AxisMarks { value in
+                        AxisGridLine()
+                        AxisValueLabel() {
+                            if let label = value.as(String.self) {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundColor(.textSecondary)
+                            }
+                        }
+                    }
+                } else {
+                    AxisMarks(values: ["1", "6", "11", "16", "21", "26"]) { value in
+                        AxisGridLine()
+                        AxisValueLabel() {
+                            if let label = value.as(String.self) {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundColor(.textSecondary)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -235,9 +271,9 @@ struct AppUsageChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Distribución por App")
-                .font(AppTypography.headline())
-                .foregroundColor(.textPrimary)
+                Text("Distribución por App (\(selectedTab == .weekly ? "7d" : "30d"))")
+                    .font(AppTypography.headline())
+                    .foregroundColor(.textPrimary)
 
             HStack {
                 Chart(displayData.enumerated().map { (index, entry) in
@@ -294,9 +330,9 @@ struct PeakUsageChartCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Horas Pico")
-                .font(AppTypography.headline())
-                .foregroundColor(.textPrimary)
+                Text(selectedTab == .weekly ? "Horas Pico (7d)" : "Horas Pico (30d)")
+                    .font(AppTypography.headline())
+                    .foregroundColor(.textPrimary)
 
             Chart(barData) { point in
                 BarMark(
@@ -314,20 +350,27 @@ struct PeakUsageChartCard: View {
             }
             .frame(height: 200)
             .chartXAxis {
-                AxisMarks(values: .stride(by: 4)) { value in
+                AxisMarks(values: ["00", "04", "08", "12", "16", "20"]) { value in
                     AxisGridLine()
                     AxisValueLabel() {
                         if let hour = value.as(String.self) {
-                            Text(hour)
-                                .font(.caption2)
-                                .foregroundColor(.textSecondary)
+                            Text("\(hour)h")
+                                .font(.caption)
+                                .foregroundColor(.textPrimary)
                         }
                     }
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading) { _ in
+                AxisMarks(position: .leading) { value in
                     AxisGridLine()
+                    AxisValueLabel() {
+                        if let mins = value.as(Float.self) {
+                            Text("\(Int(mins))m")
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
+                        }
+                    }
                 }
             }
         }
@@ -344,8 +387,8 @@ struct HourlyDataPoint: Identifiable {
 struct DailyDetailsCard: View {
     let details: DailyDetailStats
     let selectedDayOffset: Int
+    @Binding var showDatePicker: Bool
     let onPreviousDay: () -> Void
-    let onNextDay: () -> Void
     let onSelectDay: (Int) -> Void
 
     var dayLabel: String {
@@ -374,11 +417,10 @@ struct DailyDetailsCard: View {
 
                 Spacer()
 
-                Button(action: onNextDay) {
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(selectedDayOffset > 0 ? .white : .white.opacity(0.3))
+                Button(action: { showDatePicker = true }) {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.white)
                 }
-                .disabled(selectedDayOffset == 0)
             }
             .padding(16)
             .background(
@@ -392,7 +434,7 @@ struct DailyDetailsCard: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                 DetailItem(icon: "sunrise.fill", title: "Primer uso", value: details.firstUseTime)
                 DetailItem(icon: "timer", title: "Sesión promedio", value: "\(details.avgSessionMinutes)m")
-                DetailItem(icon: "iphone.fill", title: "Más usada", value: details.mostUsedAppName)
+                DetailItem(icon: "app.fill", title: "Más usada", value: details.mostUsedAppName)
                 DetailItem(icon: "lock.open.fill", title: "Desbloqueos", value: "\(details.unlocks)")
             }
             .padding(16)

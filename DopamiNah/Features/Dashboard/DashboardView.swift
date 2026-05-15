@@ -39,6 +39,7 @@ struct DashboardView: View {
             }
             .background(Color.backgroundLight.ignoresSafeArea())
             .task {
+                viewModel.checkAndIncrementStreak()
                 await viewModel.loadData()
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
@@ -68,29 +69,21 @@ struct HeaderSection: View {
 
                 Spacer()
 
-                HStack(spacing: 8) {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.dopaminahOrange)
-                            Text("\(GamificationManager.shared.totalPoints)")
-                                .font(AppTypography.footnote())
-                                .foregroundColor(.textPrimary)
+                    HStack(spacing: 8) {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.dopaminahOrange)
+                                Text("\(GamificationManager.shared.totalPoints)")
+                                    .font(AppTypography.footnote())
+                                    .foregroundColor(.textPrimary)
+                            }
+                            Text("Nivel \(gamificationStats.level)")
+                                .font(AppTypography.caption())
+                                .foregroundColor(.textSecondary)
                         }
-                        Text("Nivel \(gamificationStats.level)")
-                            .font(AppTypography.caption())
-                            .foregroundColor(.textSecondary)
                     }
-
-                    ZStack {
-                        Circle()
-                            .fill(Color.dopaminahPurpleLight)
-                            .frame(width: 44, height: 44)
-                        Text("⭐")
-                            .font(.system(size: 20))
-                    }
-                }
             }
 
             StreakMotivationCard(
@@ -105,19 +98,33 @@ struct StreakMotivationCard: View {
     let streak: Int
     let motivationText: String
 
+    var streakSymbol: String {
+        if streak >= 30 { return "flame.fill" }
+        if streak >= 14 { return "hand.raised.fill" }
+        if streak >= 7 { return "star.fill" }
+        if streak >= 3 { return "rocket.fill" }
+        return "sparkles"
+    }
+
     var body: some View {
         HStack(spacing: 12) {
-            Text(streak >= 7 ? "🔥" : "🌱")
+            Image(systemName: streak >= 7 ? "flame.fill" : "leaf.fill")
                 .font(.system(size: 28))
+                .foregroundColor(streak >= 7 ? .dopaminahOrange : .successGreen)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Racha: \(streak) días")
                     .font(AppTypography.headline())
                     .foregroundColor(.textPrimary)
 
-                Text(motivationText)
-                    .font(AppTypography.caption())
-                    .foregroundColor(.textSecondary)
+                HStack(spacing: 4) {
+                    Text(motivationText)
+                        .font(AppTypography.caption())
+                        .foregroundColor(.textSecondary)
+                    Image(systemName: streakSymbol)
+                        .font(.caption)
+                        .foregroundColor(.dopaminahOrange)
+                }
             }
 
             Spacer()
@@ -358,14 +365,7 @@ struct AppUsageItem: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.dopaminahPurpleLight)
-                    .frame(width: 40, height: 40)
-                Image(systemName: "app.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.dopaminahPurple)
-            }
+            AppIconView(appName: usage.appName, size: 40)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(usage.appName)

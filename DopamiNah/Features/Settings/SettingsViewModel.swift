@@ -5,7 +5,7 @@ import Combine
 
 @MainActor
 final class SettingsViewModel: ObservableObject {
-    @Published var isDarkTheme: Bool? = nil
+    @Published var isDarkTheme: Bool = false
     @Published var notificationsEnabled: Bool = true
     @Published var pajaroVerdeMode: Bool = false
     @Published var isPremium: Bool = false
@@ -14,28 +14,18 @@ final class SettingsViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showSignInDialog: Bool = false
     @Published var showAppleSignIn: Bool = false
+    @Published var showDebugData: Bool = false
 
     private let authRepo: AuthRepositoryProtocol
     private let premiumRepo: PremiumRepositoryProtocol
-    private let themeController: ThemeController
 
     init(
-        authRepo: AuthRepositoryProtocol = MockRepositories.auth,
-        premiumRepo: PremiumRepositoryProtocol = MockRepositories.premium,
-        themeController: ThemeController
-    ) {
-        self.authRepo = authRepo
-        self.premiumRepo = premiumRepo
-        self.themeController = themeController
-        isDarkTheme = themeController.isDarkMode
-        loadUser()
-    }
-
-    convenience init(
-        authRepo: AuthRepositoryProtocol = MockRepositories.auth,
+        authRepo: AuthRepositoryProtocol? = nil,
         premiumRepo: PremiumRepositoryProtocol = MockRepositories.premium
     ) {
-        self.init(authRepo: authRepo, premiumRepo: premiumRepo, themeController: ThemeController())
+        self.authRepo = authRepo ?? AuthRepositoryImpl()
+        self.premiumRepo = premiumRepo
+        loadUser()
     }
 
     func loadUser() {
@@ -45,11 +35,6 @@ final class SettingsViewModel: ObservableObject {
                 isPremium = await premiumRepo.isPremiumUser(userId: user.uid)
             }
         }
-    }
-
-    func toggleDarkMode(_ enabled: Bool) {
-        isDarkTheme = enabled
-        themeController.setDarkMode(enabled)
     }
 
     func toggleNotifications(_ enabled: Bool) {
@@ -119,12 +104,17 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func sendTestNotification() {
-        NotificationHelper.shared.showNotification(
-            id: NotificationHelper.appOpenNotifID,
-            title: "DopamiNah",
-            message: "Esta es una notificación de prueba ✅",
-            isTimeSensitive: true
-        )
+        Task {
+            let granted = await NotificationHelper.shared.requestAuthorization()
+            if granted {
+                NotificationHelper.shared.showNotification(
+                    id: NotificationHelper.appOpenNotifID,
+                    title: "DopamiNah",
+                    message: "Esta es una notificación de prueba",
+                    isTimeSensitive: true
+                )
+            }
+        }
     }
 
     func setError(_ error: String) {

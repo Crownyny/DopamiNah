@@ -4,7 +4,6 @@ import SwiftData
 struct GoalsView: View {
     @StateObject private var viewModel = GoalsViewModel()
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \AppLimitGoal.id) private var goals: [AppLimitGoal]
 
     var body: some View {
         NavigationStack {
@@ -15,15 +14,15 @@ struct GoalsView: View {
                     if viewModel.state.isLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity, minHeight: 200)
-                    } else if goals.isEmpty {
+                    } else if viewModel.state.goals.isEmpty {
                         EmptyGoalsView(onAddGoal: viewModel.showCreateGoalDialog)
                     } else {
                         LazyVStack(spacing: 12) {
-                            ForEach(goals, id: \.id) { goal in
+                            ForEach(viewModel.state.goals) { goal in
                                 GoalCardView(
                                     goal: goal,
-                                    onDelete: { Task { await viewModel.deleteGoal(id: goal.id) } },
-                                    onEdit: { newLimit in Task { await viewModel.editGoal(id: goal.id, newLimitMinutes: newLimit) } }
+                                    onDelete: { Task { await viewModel.deleteGoal(id: goal.id, modelContext: modelContext) } },
+                                    onEdit: { newLimit in Task { await viewModel.editGoal(id: goal.id, newLimitMinutes: newLimit, modelContext: modelContext) } }
                                 )
                             }
                         }
@@ -38,12 +37,12 @@ struct GoalsView: View {
                 .padding(.bottom, AppSpacing.bottomPadding)
             }
             .background(Color.backgroundLight.ignoresSafeArea())
-            .task { await viewModel.loadData() }
+            .task { await viewModel.loadData(modelContext: modelContext) }
             .sheet(isPresented: $viewModel.state.showCreateDialog) {
                 CreateGoalDialog(
                     installedApps: viewModel.state.installedApps,
                     onSave: { type, app, limit in
-                        Task { await viewModel.submitNewGoal(typeLabel: type, appName: app, limitMinutes: limit) }
+                        Task { await viewModel.submitNewGoal(typeLabel: type, appName: app, limitMinutes: limit, modelContext: modelContext) }
                     }
                 )
             }
@@ -70,53 +69,11 @@ struct GoalsHeader: View {
 
 // MARK: - Goal Card
 struct GoalCardView: View {
-    let goal: AppLimitGoal
+    let goal: GoalDisplayModel
     let onDelete: () -> Void
     let onEdit: (Int) -> Void
     @State private var showEditDialog = false
     @State private var showDeleteConfirmation = false
-
-    var progress: Double {
-        switch goal.goalType {
-        case GoalType.appLimit, GoalType.totalDaily:
-            guard goal.maxTimeMillis > 0 else { return 0 }
-            return 0.5
-        case GoalType.unlockLimit:
-            guard goal.maxUnlocks > 0 else { return 0 }
-            return 0.5
-        default:
-            return 0
-        }
-    }
-
-    var isExceeded: Bool { progress > 0.8 }
-
-    var title: String {
-        switch goal.goalType {
-        case GoalType.appLimit: return goal.appDisplayName
-        case GoalType.totalDaily: return "Tiempo Total Diario"
-        case GoalType.unlockLimit: return "Límite de Desbloqueos"
-        default: return goal.appDisplayName
-        }
-    }
-
-    var subtitle: String {
-        switch goal.goalType {
-        case GoalType.appLimit: return "Límite de \(Int(goal.maxTimeMillis / 60_000))m"
-        case GoalType.totalDaily: return "Límite de \(Int(goal.maxTimeMillis / 60_000))m"
-        case GoalType.unlockLimit: return "Máximo \(goal.maxUnlocks)"
-        default: return ""
-        }
-    }
-
-    var progressLabel: String {
-        switch goal.goalType {
-        case GoalType.appLimit: return "0m / \(Int(goal.maxTimeMillis / 60_000))m"
-        case GoalType.totalDaily: return "0m / \(Int(goal.maxTimeMillis / 60_000))m"
-        case GoalType.unlockLimit: return "0 / \(goal.maxUnlocks)"
-        default: return ""
-        }
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -124,10 +81,10 @@ struct GoalCardView: View {
                 goalIcon
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(goal.title)
                         .font(AppTypography.headline())
                         .foregroundColor(.textPrimary)
-                    Text(subtitle)
+                    Text(goal.subtitle)
                         .font(AppTypography.caption())
                         .foregroundColor(.textSecondary)
                 }
@@ -135,10 +92,15 @@ struct GoalCardView: View {
                 Spacer()
 
                 HStack(spacing: 4) {
-                    if goal.currentStreak > 0 {
-                        Text("\(goal.currentStreak)d 🔥")
-                            .font(AppTypography.caption())
-                            .foregroundColor(.dopaminahOrange)
+                    if goal.streak > 0 {
+                        HStack(spacing: 2) {
+                            Text("\(goal.streak)")
+                                .font(AppTypography.caption())
+                                .foregroundColor(.dopaminahOrange)
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.dopaminahOrange)
+                        }
                     }
 
                     Menu {
@@ -151,15 +113,15 @@ struct GoalCardView: View {
                 }
             }
 
-            ProgressView(value: progress)
-                .tint(isExceeded ? .dangerRed : .dopaminahOrange)
+            ProgressView(value: Double(goal.progressFraction))
+                .tint(goal.isExceeded ? .dangerRed : .dopaminahOrange)
 
             HStack {
-                Text(progressLabel)
+                Text(goal.progressLabel)
                     .font(AppTypography.caption())
-                    .foregroundColor(isExceeded ? .dangerRed : .textSecondary)
+                    .foregroundColor(goal.isExceeded ? .dangerRed : .textSecondary)
 
-                if isExceeded {
+                if goal.isExceeded {
                     Spacer()
                     HStack(spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -178,9 +140,8 @@ struct GoalCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cardRadius))
         .sheet(isPresented: $showEditDialog) {
             EditGoalDialog(
-                currentLimitMinutes: goal.goalType == GoalType.unlockLimit ?
-                    goal.maxUnlocks : Int(goal.maxTimeMillis / 60_000),
-                goalTitle: title,
+                currentLimitMinutes: goal.currentLimitMinutes,
+                goalTitle: goal.title,
                 isUnlockType: goal.goalType == GoalType.unlockLimit,
                 onSave: onEdit
             )
@@ -194,14 +155,18 @@ struct GoalCardView: View {
     }
 
     var goalIcon: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(isExceeded ? Color.dangerRed.opacity(0.15) : Color.dopaminahPurpleLight)
-                .frame(width: 44, height: 44)
+        if goal.goalType == GoalType.appLimit {
+            AnyView(AppIconView(appName: goal.title, size: 44))
+        } else {
+            AnyView(ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(goal.isExceeded ? Color.dangerRed.opacity(0.15) : Color.dopaminahPurpleLight)
+                    .frame(width: 44, height: 44)
 
-            Image(systemName: goalTypeIcon)
-                .font(.system(size: 20))
-                .foregroundColor(isExceeded ? .dangerRed : .dopaminahPurple)
+                Image(systemName: goalTypeIcon)
+                    .font(.system(size: 20))
+                    .foregroundColor(goal.isExceeded ? .dangerRed : .dopaminahPurple)
+            })
         }
     }
 

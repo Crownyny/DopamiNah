@@ -51,14 +51,14 @@ struct AppUsageEntry: Identifiable {
 
 struct BadgeUi: Identifiable {
     let id = UUID()
-    let emoji: String
+    let icon: String
     let title: String
     let description: String
     let unlockDate: String?
     let isUnlocked: Bool
 
-    init(emoji: String, title: String, description: String, unlockDate: String? = nil) {
-        self.emoji = emoji
+    init(icon: String, title: String, description: String, unlockDate: String? = nil) {
+        self.icon = icon
         self.title = title
         self.description = description
         self.unlockDate = unlockDate
@@ -67,7 +67,7 @@ struct BadgeUi: Identifiable {
 }
 
 struct GoalDisplayModel: Identifiable {
-    let id: Int
+    let id: UUID
     let goalType: String
     let appPackageName: String?
     let title: String
@@ -77,4 +77,5 @@ struct GoalDisplayModel: Identifiable {
     let progressFraction: Float
     let isExceeded: Bool
     let currentLimitMinutes: Int
+    let streak: Int
 }

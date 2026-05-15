@@ -8,14 +8,14 @@ struct AchievementsState {
     var currentPoints: Int = 0
     var pointsToNextLevel: Int = 100
     var badges: [BadgeUi] = [
-        BadgeUi(emoji: "🌅", title: "Early Bird", description: "Abre la app antes de las 8 AM por 5 días", unlockDate: "2026-04-20"),
-        BadgeUi(emoji: "🎯", title: "Focus Master", description: "Cumple todas tus metas por 7 días seguidos", unlockDate: "2026-04-25"),
-        BadgeUi(emoji: "💪", title: "Autodisciplina", description: "Usa menos de 1 hora diaria por 3 días", unlockDate: nil),
-        BadgeUi(emoji: "🧘", title: "Zen Digital", description: "Mantén una racha de 30 días", unlockDate: nil),
-        BadgeUi(emoji: "🏆", title: "Leyenda", description: "Alcanza el nivel 10", unlockDate: nil),
-        BadgeUi(emoji: "⭐", title: "Constancia", description: "Abre la app todos los días por un mes", unlockDate: nil)
+        BadgeUi(icon: "sunrise.fill", title: "Early Bird", description: "Abre la app antes de las 8 AM por 5 días", unlockDate: "2026-04-20"),
+        BadgeUi(icon: "scope", title: "Focus Master", description: "Cumple todas tus metas por 7 días seguidos", unlockDate: "2026-04-25"),
+        BadgeUi(icon: "bolt.fill", title: "Autodisciplina", description: "Usa menos de 1 hora diaria por 3 días", unlockDate: nil),
+        BadgeUi(icon: "leaf.fill", title: "Zen Digital", description: "Mantén una racha de 30 días", unlockDate: nil),
+        BadgeUi(icon: "trophy.fill", title: "Leyenda", description: "Alcanza el nivel 10", unlockDate: nil),
+        BadgeUi(icon: "star.fill", title: "Constancia", description: "Abre la app todos los días por un mes", unlockDate: nil)
     ]
-    var nextBadgeEmoji: String = "💪"
+    var nextBadgeIcon: String = "bolt.fill"
     var nextBadgeTitle: String = "Autodisciplina"
     var nextBadgeDescription: String = "Usa menos de 1 hora diaria por 3 días consecutivos"
     var unlockedCount: Int = 2
@@ -62,7 +62,7 @@ struct AchievementsView: View {
                     BadgesGrid(badges: viewModel.state.badges)
 
                     NextAchievementCard(
-                        emoji: viewModel.state.nextBadgeEmoji,
+                        icon: viewModel.state.nextBadgeIcon,
                         title: viewModel.state.nextBadgeTitle,
                         description: viewModel.state.nextBadgeDescription
                     )
@@ -113,8 +113,9 @@ struct StreakCard: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("🔥")
-                .font(.system(size: 64))
+            Image(systemName: "flame.fill")
+                .font(.system(size: 56))
+                .foregroundColor(.dopaminahOrange)
 
             Text("\(streakDays)")
                 .font(.system(.title, design: .rounded, weight: .bold))
@@ -262,8 +263,9 @@ struct BadgeCard: View {
                 }
 
                 if badge.isUnlocked {
-                    Text(badge.emoji)
-                        .font(.system(size: 28))
+                    Image(systemName: badge.icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(.white)
                 } else {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 20))
@@ -283,14 +285,15 @@ struct BadgeCard: View {
 
 // MARK: - Next Achievement Card
 struct NextAchievementCard: View {
-    let emoji: String
+    let icon: String
     let title: String
     let description: String
 
     var body: some View {
         HStack(spacing: 16) {
-            Text(emoji)
-                .font(.system(size: 40))
+            Image(systemName: icon)
+                .font(.system(size: 36))
+                .foregroundColor(.dopaminahPurple)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Próximo logro")
@@ -327,7 +330,7 @@ struct RewardsSystemCard: View {
 
             VStack(spacing: 8) {
                 RewardItem(icon: "arrow.up.circle.fill", text: "+10 puntos por abrir la app cada día")
-                RewardItem(icon: "fire.fill", text: "+50 puntos diarios por cumplir todas las metas")
+                RewardItem(icon: "flame.fill", text: "+50 puntos diarios por cumplir todas las metas")
                 RewardItem(icon: "star.circle.fill", text: "Sube de nivel cada 500 puntos acumulados")
             }
         }

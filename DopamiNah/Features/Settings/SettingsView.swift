@@ -5,6 +5,14 @@ struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @EnvironmentObject var themeController: ThemeController
 
+    private var rootViewController: UIViewController? {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = windowScene.windows.first?.rootViewController else {
+            return nil
+        }
+        return root
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -18,10 +26,12 @@ struct SettingsView: View {
                     if !viewModel.isPremium {
                         PremiumCard(
                             onGoogleSignIn: {
-                                viewModel.showSignInDialog = true
+                                guard let vc = rootViewController else { return }
+                                viewModel.signInWithGoogle(presenting: vc)
                             },
                             onAppleSignIn: {
-                                viewModel.showAppleSignIn = true
+                                guard let vc = rootViewController else { return }
+                                viewModel.signInWithApple(presenting: vc)
                             }
                         )
                     } else {
@@ -30,11 +40,14 @@ struct SettingsView: View {
 
                     SettingsSectionView(title: "Apariencia y Notificaciones") {
                         SettingsToggleItem(
-                            icon: viewModel.isDarkTheme == true ? "moon.fill" : "sun.max.fill",
+                            icon: themeController.isDarkMode ? "moon.fill" : "sun.max.fill",
                             title: "Modo Oscuro",
                             subtitle: "Reduce la fatiga visual",
-                            checked: viewModel.isDarkTheme ?? false,
-                            onCheckedChange: viewModel.toggleDarkMode,
+                            checked: themeController.isDarkMode,
+                            onCheckedChange: { enabled in
+                                viewModel.isDarkTheme = enabled
+                                themeController.setDarkMode(enabled)
+                            },
                             activeColor: .dopaminahPurple
                         )
 
@@ -77,6 +90,9 @@ struct SettingsView: View {
                     SettingsSectionView(title: "Soporte") {
                         SettingsNavigationItem(icon: "questionmark.circle.fill", title: "Centro de ayuda") {}
                         SettingsNavigationItem(icon: "envelope.fill", title: "Contactar soporte") {}
+                        SettingsNavigationItem(icon: "wrench.fill", title: "Datos de Prueba") {
+                            viewModel.showDebugData = true
+                        }
                     }
 
                     AboutSection()
@@ -86,13 +102,18 @@ struct SettingsView: View {
                 .padding(.bottom, AppSpacing.bottomPadding)
             }
             .background(Color.backgroundLight.ignoresSafeArea())
-            .sheet(isPresented: $viewModel.showSignInDialog) {
-                GoogleSignInDialog(
-                    isLoading: viewModel.isSigningIn,
-                    errorMessage: viewModel.errorMessage,
-                    onSignInSuccess: {},
-                    onSignInError: viewModel.setError
-                )
+            .overlay {
+                if viewModel.isSigningIn {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    ProgressView("Iniciando sesión...")
+                        .padding(24)
+                        .background(Color.surfaceCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+            .sheet(isPresented: $viewModel.showDebugData) {
+                DebugDataView()
             }
         }
     }
@@ -106,14 +127,6 @@ struct SettingsHeaderView: View {
                 .font(AppTypography.largeTitle())
                 .foregroundColor(.textPrimary)
             Spacer()
-            ZStack {
-                Circle()
-                    .fill(Color.dopaminahPurpleLight)
-                    .frame(width: 40, height: 40)
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.dopaminahPurple)
-            }
         }
     }
 }
@@ -155,11 +168,11 @@ struct PremiumCard: View {
                     HStack(spacing: 8) {
                         Image(systemName: "crown.fill")
                             .foregroundColor(.dopaminahOrange)
-                        Text("Eres Premium")
+                        Text("Activa Premium")
                             .font(AppTypography.title3())
                             .foregroundColor(.textPrimary)
                     }
-                    Text("Desbloquea todas las funciones")
+                    Text("Desbloquea todas las funciones con un solo pago")
                         .font(AppTypography.caption())
                         .foregroundColor(.textSecondary)
                 }
@@ -175,7 +188,7 @@ struct PremiumCard: View {
             HStack {
                 Text("$9.99 pago único")
                     .font(AppTypography.headline())
-                    .foregroundColor(.white)
+                    .foregroundColor(.dopaminahOrange)
                 Spacer()
             }
 
@@ -385,63 +398,14 @@ struct UserProfileRow: View {
     }
 }
 
-// MARK: - Google Sign-In Dialog
-struct GoogleSignInDialog: View {
-    let isLoading: Bool
-    let errorMessage: String?
-    let onSignInSuccess: () -> Void
-    let onSignInError: (String) -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 64))
-                    .foregroundColor(.dopaminahPurple)
-
-                Text("Iniciar Sesión")
-                    .font(AppTypography.title2())
-                    .foregroundColor(.textPrimary)
-
-                Text("Inicia sesión para activar Premium y sincronizar tu progreso.")
-                    .font(AppTypography.body())
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.center)
-
-                if let error = errorMessage {
-                    Text(error)
-                        .font(AppTypography.caption())
-                        .foregroundColor(.dangerRed)
-                }
-
-                if isLoading {
-                    ProgressView()
-                }
-            }
-            .padding(24)
-            .presentationDetents([.medium])
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancelar") { dismiss() }
-                }
-            }
-        }
-    }
-}
-
 // MARK: - About Section
 struct AboutSection: View {
     var body: some View {
         VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.dopaminahPurpleLight)
-                    .frame(width: 56, height: 56)
-                Text("🧠")
-                    .font(.system(size: 28))
-            }
+            Image("AppLogo")
+                .resizable()
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
 
             Text("DopamiNah")
                 .font(AppTypography.title3())

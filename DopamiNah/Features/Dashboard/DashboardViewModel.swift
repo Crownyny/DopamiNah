@@ -18,7 +18,7 @@ final class DashboardViewModel: ObservableObject {
     private let monitoringRepo: UsageMonitoringRepositoryProtocol
 
     init(
-        deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage,
+        deviceUsageRepo: DeviceUsageRepositoryProtocol = ManualDeviceUsageRepository(),
         goalsRepo: GoalsRepositoryProtocol = MockRepositories.goals,
         monitoringRepo: UsageMonitoringRepositoryProtocol = UsageMonitoringRepositoryImpl()
     ) {
@@ -90,15 +90,15 @@ final class DashboardViewModel: ObservableObject {
     var streakMotivation: String {
         let streak = GamificationManager.shared.streak
         if streak >= 30 {
-            return "Increíble! \(streak) días sin parar 🔥"
+            return "Increíble! \(streak) días sin parar"
         } else if streak >= 14 {
-            return "Estás en racha! Sigue así 💪"
+            return "Estás en racha! Sigue así"
         } else if streak >= 7 {
-            return "Una semana completa! 🎉"
+            return "Una semana completa!"
         } else if streak >= 3 {
-            return "Buen comienzo! No pares 🚀"
+            return "Buen comienzo! No pares"
         } else {
-            return "Cada día cuenta. Tú puedes ✨"
+            return "Cada día cuenta. Tú puedes"
         }
     }
 }

@@ -11,7 +11,7 @@ struct StatsState {
     var selectedTab: StatsTab = .weekly
     var dailyAverageText: String = "-"
     var unlockAverageText: String = "-"
-    var lastWeekUsage: [Float] = []
+    var dailyUsageMinutes: [Float] = []
     var appUsageData: [AppUsageEntry] = []
     var hourlyUsage: [Float] = Array(repeating: 0, count: 24)
     var selectedDayOffset: Int = 0
@@ -25,24 +25,26 @@ final class StatsViewModel: ObservableObject {
 
     private let deviceUsageRepo: DeviceUsageRepositoryProtocol
 
-    init(deviceUsageRepo: DeviceUsageRepositoryProtocol = MockRepositories.deviceUsage) {
+    init(deviceUsageRepo: DeviceUsageRepositoryProtocol = ManualDeviceUsageRepository()) {
         self.deviceUsageRepo = deviceUsageRepo
     }
 
     func loadData() async {
         uiState.isLoading = true
 
-        async let avgUsage = deviceUsageRepo.getAverageUsageMillis(days: 7)
-        async let avgUnlocks = deviceUsageRepo.getAverageUnlocks(days: 7)
-        async let weeklyData = deviceUsageRepo.getDailyUsageForLastDays(days: 7)
-        async let appUsage = deviceUsageRepo.getAverageUsagePerApp(days: 7, limit: 8)
-        async let hourly = deviceUsageRepo.getHourlyUsage(days: 7)
+        let days = uiState.selectedTab == .weekly ? 7 : 30
+
+        async let avgUsage = deviceUsageRepo.getAverageUsageMillis(days: days)
+        async let avgUnlocks = deviceUsageRepo.getAverageUnlocks(days: days)
+        async let dailyData = deviceUsageRepo.getDailyUsageForLastDays(days: days)
+        async let appUsage = deviceUsageRepo.getAverageUsagePerApp(days: days, limit: 8)
+        async let hourly = deviceUsageRepo.getHourlyUsage(days: days)
         async let details = deviceUsageRepo.getDailyDetails(dayOffset: uiState.selectedDayOffset)
 
         let avgUsageResult = await avgUsage
         uiState.dailyAverageText = avgUsageResult.formattedUsageTime
         uiState.unlockAverageText = "\(await avgUnlocks)"
-        uiState.lastWeekUsage = await weeklyData.map { Float($0) / 60_000 }
+        uiState.dailyUsageMinutes = await dailyData.map { Float($0) / 60_000 }
         uiState.appUsageData = await appUsage.map { AppUsageEntry(appName: $0, averageHours: Float($1) / 3_600_000) }
         uiState.hourlyUsage = await hourly
         uiState.dailyDetails = await details
@@ -52,12 +54,23 @@ final class StatsViewModel: ObservableObject {
 
     func selectTab(_ tab: StatsTab) {
         uiState.selectedTab = tab
+        uiState.selectedDayOffset = 0
         let days = tab == .weekly ? 7 : 30
         Task {
             uiState.isLoading = true
-            uiState.lastWeekUsage = await deviceUsageRepo.getDailyUsageForLastDays(days: days).map { Float($0) / 60_000 }
-            uiState.appUsageData = await deviceUsageRepo.getAverageUsagePerApp(days: days, limit: 8).map { AppUsageEntry(appName: $0, averageHours: Float($1) / 3_600_000) }
-            uiState.hourlyUsage = await deviceUsageRepo.getHourlyUsage(days: days)
+            async let dailyData = deviceUsageRepo.getDailyUsageForLastDays(days: days)
+            async let appUsage = deviceUsageRepo.getAverageUsagePerApp(days: days, limit: 8)
+            async let hourly = deviceUsageRepo.getHourlyUsage(days: days)
+            async let details = deviceUsageRepo.getDailyDetails(dayOffset: 0)
+            async let avgUsage = deviceUsageRepo.getAverageUsageMillis(days: days)
+            async let avgUnlocks = deviceUsageRepo.getAverageUnlocks(days: days)
+
+            uiState.dailyUsageMinutes = await dailyData.map { Float($0) / 60_000 }
+            uiState.appUsageData = await appUsage.map { AppUsageEntry(appName: $0, averageHours: Float($1) / 3_600_000) }
+            uiState.hourlyUsage = await hourly
+            uiState.dailyDetails = await details
+            uiState.dailyAverageText = (await avgUsage).formattedUsageTime
+            uiState.unlockAverageText = "\(await avgUnlocks)"
             uiState.isLoading = false
         }
     }

@@ -12,17 +12,34 @@ extension Color {
     static let warningYellow = Color(hex: "EAB308")
     static let dangerRed = Color(hex: "EF4444")
 
-    // MARK: - Light Mode
-    static let backgroundLight = Color(hex: "F8FAFC")
-    static let surfaceCard = Color(hex: "FFFFFF")
-    static let textPrimary = Color(hex: "0F172A")
-    static let textSecondary = Color(hex: "64748B")
+    // MARK: - Adaptive Colors
+    static var backgroundLight: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
+            ? UIColor(red: 28/255, green: 27/255, blue: 31/255, alpha: 1)
+            : UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1)
+        })
+    }
 
-    // MARK: - Dark Mode
-    static let backgroundDark = Color(hex: "1C1B1F")
-    static let surfaceDark = Color(hex: "2B2930")
-    static let textPrimaryDark = Color(hex: "E6E1E5")
-    static let textSecondaryDark = Color(hex: "CAC4D0")
+    static var surfaceCard: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
+            ? UIColor(red: 43/255, green: 41/255, blue: 48/255, alpha: 1)
+            : UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1)
+        })
+    }
+
+    static var textPrimary: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
+            ? UIColor(red: 230/255, green: 225/255, blue: 229/255, alpha: 1)
+            : UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 1)
+        })
+    }
+
+    static var textSecondary: Color {
+        Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
+            ? UIColor(red: 202/255, green: 196/255, blue: 208/255, alpha: 1)
+            : UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1)
+        })
+    }
 }
 
 // MARK: - Chart Gradient Colors
@@ -43,14 +60,10 @@ struct AppChartGradient: Identifiable {
     ]
 }
 
-// MARK: - Background/Surface resolver
+// MARK: - Background/Surface resolver (legacy)
 struct ThemeColors {
     static var background: Color {
-        #if os(iOS)
-        return Color("BackgroundLight", bundle: nil)
-        #else
-        return .backgroundLight
-        #endif
+        .backgroundLight
     }
 
     static var surface: Color {

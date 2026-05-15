@@ -1,6 +1,5 @@
 import Foundation
 
-@MainActor
 final class UsageMonitoringRepositoryImpl: UsageMonitoringRepositoryProtocol {
     private let defaults: UserDefaults
 

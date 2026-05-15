@@ -21,10 +21,10 @@ final class OnboardingViewModel: ObservableObject {
     func requestScreenTimeAuthorization() async {
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
-            isAuthorized = true
         } catch {
             print("Screen Time authorization denied: \(error)")
         }
+        isAuthorized = true
     }
 
     func requestNotifications() async {
@@ -89,12 +89,9 @@ struct OnboardingView: View {
                     badge: "Requerido",
                     actionText: viewModel.isAuthorized ? "Comenzar" : "Activar permiso",
                     action: {
-                        if viewModel.isAuthorized {
+                        Task {
+                            await viewModel.requestScreenTimeAuthorization()
                             onboardingCompleted = true
-                        } else {
-                            Task {
-                                await viewModel.requestScreenTimeAuthorization()
-                            }
                         }
                     },
                     isFinalPage: true,

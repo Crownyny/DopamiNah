@@ -2,14 +2,26 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSUserActivityTypes</key>
-    <array>
-        <string>com.dopaminah.usageAnalysis</string>
-    </array>
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
         <string>com.dopaminah.usageAnalysis</string>
     </array>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>DopamiNah</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
@@ -17,13 +29,39 @@
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>com.googleusercontent.apps.415916233594-pboineujac8hj3rr8lo41hnr7l653ol5</string>
+                <string>com.googleusercontent.apps.415916233594-d9655rn8ctog98afqqvkdl9jbsvph432</string>
             </array>
         </dict>
     </array>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>NSHealthShareUsageDescription</key>
     <string>DopamiNah usa datos de tiempo en pantalla para ayudarte a controlar tu uso del dispositivo.</string>
     <key>NSHealthUpdateUsageDescription</key>
     <string>DopamiNah configura límites de tiempo para promover un uso saludable del dispositivo.</string>
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>com.dopaminah.usageAnalysis</string>
+    </array>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UISupportedInterfaceOrientations~iphone</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
 </dict>
 </plist>
