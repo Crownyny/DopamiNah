@@ -387,3 +387,94 @@ multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", vers
 3. **Notificaciones**: Las notificaciones locales se pueden abstraer, pero las push requieren FCM (Android) y APNS (iOS).
 4. **GamificationManager**: En iOS usa `@AppStorage` con App Groups; en KMP se implementa con multiplatform-settings + DataStore.
 5. **BootReceiver**: Solo Android; iOS no tiene equivalente directo.
+
+---
+
+## Apéndice A: Estética Migrada
+
+La estética completa de ambas plataformas ya fue migrada a `shared/src/commonMain/kotlin/co/edu/unicauca/dopaminah/ui/theme/`:
+
+| Archivo | Contenido | Origen Android | Origen iOS |
+|---|---|---|---|
+| `Color.kt` | Colores base, ExtendedColors, chart gradients | `ui/theme/Color.kt` | `Core/Theme/Color+Theme.swift` |
+| `Type.kt` | Tipografía Material3 completa | `ui/theme/Type.kt` | `Core/Theme/Typography.swift` |
+| `Theme.kt` | DopamiNahTheme (dark/light schemes) | `ui/theme/Theme.kt` | — |
+| `ui/icons/LucideIcons.kt` | 18 íconos Lucide vectoriales | `ui/icons/LucideIcons.kt` | SF Symbols equivalentes |
+
+Los valores de color son **idénticos** en ambas plataformas (mismos hex: #8B5CF6, #FA832B, etc.). En iOS se definen como `Color` extensions de SwiftUI; en KMP se definen como `val` de Compose `Color`. La tipografía usa `system(.rounded, ...)` en iOS y Material3 `TextStyle` en KMP.
+
+## Apéndice B: Monitoreo de Uso en Desktop
+
+### macOS
+
+| Aspecto | Detalle |
+|---|---|
+| **API** | `NSWorkspace.shared.frontmostApplication` + Accessibility API (AXAPI) |
+| **Permiso** | **Accesibilidad**: System Preferences > Security & Privacy > Privacy > Accessibility |
+| **Implementación** | JNA/JNI para llamar a `[NSWorkspace sharedWorkspace] frontmostApplication]` |
+| **Bundle ID** | `[NSRunningApplication bundleIdentifier]` para identificar la app |
+| **Título ventana** | AXAPI: `kAXTitleAttribute` del elemento enfocado |
+| **Limitaciones** | Sin permiso de accesibilidad solo se obtiene bundle ID, no título de ventana |
+| **Alternativa** | `active-win` (npm) o `work_log` (Rust) como proceso helper |
+
+### Windows
+
+| Aspecto | Detalle |
+|---|---|
+| **API** | `User32.GetForegroundWindow()` + `GetWindowText()` + `GetWindowThreadProcessId()` |
+| **Permiso** | **Ninguno especial** para foreground window |
+| **Implementación** | JNA (`com.sun.jna.platform.win32.User32`) |
+| **Título ventana** | `GetWindowTextW(hwnd, buffer, length)` |
+| **Nombre proceso** | `Kernel32.OpenProcess()` + `Psapi.GetModuleBaseNameW()` |
+| **Limitaciones** | UWP apps pueden requerir permisos adicionales |
+| **Alternativa** | JNI + Win32 API directa |
+
+### Linux (X11)
+
+| Aspecto | Detalle |
+|---|---|
+| **API** | `_NET_ACTIVE_WINDOW` (EWMH) + `_NET_WM_NAME` + `_NET_WM_PID` |
+| **Permiso** | **Ninguno especial** en X11 |
+| **Implementación** | JNA + `libX11.so` (Xlib) o proceso `xdotool getactivewindow getwindowname` |
+| **Título ventana** | `XGetWindowProperty(display, window, _NET_WM_NAME)` |
+| **Nombre proceso** | Leer `/proc/<pid>/comm` después de obtener PID via `_NET_WM_PID` |
+| **Limitaciones** | Requiere X11; no funciona en Wayland |
+
+### Linux (Wayland)
+
+| Aspecto | Detalle |
+|---|---|
+| **API** | **No disponible**. Wayland no expone el active window por diseño de seguridad |
+| **Permiso** | Ninguna API disponible |
+| **Alternativas** | `xdg-desktop-portal` (Screencast portal) con intervención del usuario; o usar `libei` (desarrollado por Red Hat) |
+| **Recomendación** | Detectar si está en Wayland y mostrar mensaje de funcionalidad limitada, o usar polling de procesos activos |
+
+### Estrategia Recomendada para Desktop en KMP
+
+```kotlin
+// expect/actual pattern
+expect class DesktopUsageMonitor {
+    fun getActiveAppInfo(): ActiveAppInfo?
+}
+
+data class ActiveAppInfo(
+    val processName: String,
+    val windowTitle: String,
+    val bundleId: String?  // macOS only
+)
+```
+
+| Plataforma | Implementación |
+|---|---|
+| `jvmMain` (Windows) | JNA + User32 |
+| `jvmMain` (macOS) | JNA + Cocoa/Foundation + AXAPI |
+| `jvmMain` (Linux/X11) | JNA + Xlib |
+| `jvmMain` (Linux/Wayland) | Retorna `null` o usa `pgrep` como fallback |
+
+### Tecnologías Útiles para Desktop
+
+- **JNA** (Java Native Access) — acceso a APIs nativas sin JNI
+- **JWM** (JetBrains) — window management multiplatform (no expone active window tracking aún)
+- **Kotlin Desktop Toolkit** (JetBrains) — futura librería de OS integration
+- **`active-win`** (npm) — via Node.js proceso helper si se necesita solución rápida
+- **`work_log`** (Rust) — tracking CLI que puede ser invocado como subproceso
