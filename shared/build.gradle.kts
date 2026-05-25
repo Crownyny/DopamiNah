@@ -71,8 +71,8 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
-            implementation(libs.jna.core)
-            implementation(libs.jna.win32)
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)

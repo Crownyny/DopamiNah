@@ -1,9 +1,9 @@
 package co.edu.unicauca.dopaminah
 
 class Greeting {
-    private val platform = getPlatform()
+    private val platformName = getPlatformName()
 
     fun greet(): String {
-        return sayHello(platform.name)
+        return sayHello(platformName)
     }
 }
