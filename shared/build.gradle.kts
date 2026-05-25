@@ -49,6 +49,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -59,9 +60,19 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.koin.core)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.tabNavigator)
+            implementation(libs.voyager.transitions)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+        jvmMain.dependencies {
+            implementation(libs.jna.core)
+            implementation(libs.jna.win32)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
