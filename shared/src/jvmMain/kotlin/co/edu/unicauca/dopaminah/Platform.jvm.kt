@@ -1,7 +1,18 @@
 package co.edu.unicauca.dopaminah
 
-class JVMPlatform: Platform {
-    override val name: String = "Java ${System.getProperty("java.version")}"
-}
+import java.util.prefs.Preferences
 
-actual fun getPlatform(): Platform = JVMPlatform()
+actual fun getPlatformName(): String = "Java ${System.getProperty("java.version")}"
+
+actual class DevicePreferences {
+    private val prefs: Preferences = Preferences.userNodeForPackage(DevicePreferences::class.java)
+
+    actual fun getInt(key: String, default: Int): Int = prefs.getInt(key, default)
+    actual fun putInt(key: String, value: Int) { prefs.putInt(key, value) }
+    actual fun getLong(key: String, default: Long): Long = prefs.getLong(key, default)
+    actual fun putLong(key: String, value: Long) { prefs.putLong(key, value) }
+    actual fun getBoolean(key: String, default: Boolean): Boolean = prefs.getBoolean(key, default)
+    actual fun putBoolean(key: String, value: Boolean) { prefs.putBoolean(key, value) }
+    actual fun getString(key: String, default: String): String = prefs.get(key, default)
+    actual fun putString(key: String, value: String) { prefs.put(key, value) }
+}

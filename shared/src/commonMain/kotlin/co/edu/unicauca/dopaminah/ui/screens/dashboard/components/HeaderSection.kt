@@ -8,10 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.ui.components.AppIcon
 import co.edu.unicauca.dopaminah.ui.theme.*
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
@@ -43,7 +43,7 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                     Text("Tu asistente de bienestar digital", fontSize = 14.sp, color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                     Spacer(modifier = Modifier.height(24.dp))
                 }
-                Box(Modifier.padding(start = 16.dp, end = 16.dp)) { AppIcon(size = 84) }
+                Box(Modifier.padding(start = 16.dp, end = 16.dp)) { AppIcon(size = 84.dp) }
             }
 
             Card(
