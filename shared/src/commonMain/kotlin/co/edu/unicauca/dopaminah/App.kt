@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import coil3.compose.setSingletonImageLoaderFactory
 import co.edu.unicauca.dopaminah.ui.navigation.AppTab
 import co.edu.unicauca.dopaminah.ui.navigation.DopamiNahApp
 import co.edu.unicauca.dopaminah.ui.navigation.LocalPermissionState
@@ -27,8 +28,13 @@ fun App(
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
-    useWebGoals: Boolean = false
+    useWebGoals: Boolean = false,
+    onSyncGoalsToExtension: ((String) -> Unit)? = null
 ) {
+    setSingletonImageLoaderFactory { context ->
+        coil3.ImageLoader.Builder(context).build()
+    }
+
     var internalDarkMode by remember { mutableStateOf(darkMode) }
     val actualDarkMode = if (onDarkModeChange != null) darkMode else internalDarkMode
     val actualOnChange = onDarkModeChange ?: { internalDarkMode = it }
@@ -44,7 +50,8 @@ fun App(
             achievementsViewModel = achievementsViewModel,
             navRepository = repository,
             hiddenTabs = hiddenTabs,
-            useWebGoals = useWebGoals
+            useWebGoals = useWebGoals,
+            onSyncGoalsToExtension = onSyncGoalsToExtension
         )
     }
 }

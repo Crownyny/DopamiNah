@@ -43,6 +43,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import co.edu.unicauca.dopaminah.ui.icons.LucideGlobe
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.BrandAvatar
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.DomainSuggestion
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.domainSuggestions
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
@@ -54,6 +57,7 @@ private val timePresets = listOf(
     "1 hora" to 60,
     "2 horas" to 120,
     "3 horas" to 180,
+    "Inmediato" to 0,
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -116,10 +120,34 @@ fun CreateWebGoalDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Sitio web",
+                    text = "Sitios sugeridos",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    domainSuggestions.forEach { suggestion ->
+                        DomainSuggestionChip(
+                            suggestion = suggestion,
+                            selected = urlInput == suggestion.domain,
+                            onClick = { urlInput = suggestion.domain; urlError = false }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "O escribe un dominio",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -236,7 +264,7 @@ fun CreateWebGoalDialog(
                                 return@Button
                             }
                             val limit = if (isCustom) (customMinutes.toIntOrNull() ?: 30) else selectedMinutes
-                            onSave(domain, limit.coerceAtLeast(1))
+                            onSave(domain, limit.coerceAtLeast(0))
                         },
                         modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(12.dp),
@@ -310,5 +338,44 @@ private fun TimeChip(
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             color = if (selected) DopaminahPurpleDark else MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+private fun DomainSuggestionChip(
+    suggestion: DomainSuggestion,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                if (selected) DopaminahPurpleLight
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            )
+            .then(
+                if (selected) Modifier.border(
+                    1.5.dp, DopaminahPurple, RoundedCornerShape(10.dp)
+                ) else Modifier
+            )
+            .clickable { onClick() }
+            .padding(start = 6.dp, end = 14.dp, top = 4.dp, bottom = 4.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            BrandAvatar(
+                domain = suggestion.domain,
+                isBlocked = false,
+                size = 26.dp,
+                fontSize = 11.sp
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = suggestion.label,
+                fontSize = 13.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) DopaminahPurpleDark else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }

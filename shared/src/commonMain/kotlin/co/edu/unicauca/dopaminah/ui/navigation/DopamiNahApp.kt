@@ -14,6 +14,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsScreen
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebNavigationRepository
@@ -27,6 +28,7 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
 import co.edu.unicauca.dopaminah.ui.icons.LucideGlobe
 import co.edu.unicauca.dopaminah.ui.icons.LucideAward
 import co.edu.unicauca.dopaminah.ui.icons.LucideSettings as LucideSettingsIcon
+import co.edu.unicauca.dopaminah.SyncBridge
 
 enum class AppTab(val route: String, val title: String) {
     DASHBOARD("dashboard", "Inicio"),
@@ -47,7 +49,8 @@ fun DopamiNahApp(
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
-    useWebGoals: Boolean = false
+    useWebGoals: Boolean = false,
+    onSyncGoalsToExtension: ((String) -> Unit)? = null
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -70,7 +73,8 @@ fun DopamiNahApp(
                 achievementsViewModel = achievementsViewModel,
                 navRepository = navRepository,
                 hiddenTabs = hiddenTabs,
-                useWebGoals = useWebGoals
+                useWebGoals = useWebGoals,
+                onSyncGoalsToExtension = onSyncGoalsToExtension
             )
         }
     }
@@ -86,12 +90,37 @@ private fun MainContent(
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
-    useWebGoals: Boolean = false
+    useWebGoals: Boolean = false,
+    onSyncGoalsToExtension: ((String) -> Unit)? = null
 ) {
     val visibleTabs = AppTab.entries.filter { it !in hiddenTabs }
     val firstVisibleTab = visibleTabs.firstOrNull() ?: AppTab.SETTINGS
     var selectedTab by remember { mutableStateOf(firstVisibleTab) }
     var pendingUrl by remember { mutableStateOf<String?>(null) }
+    val webGoalsViewModel = remember {
+        if (useWebGoals) {
+            WebGoalsViewModel().also { vm ->
+                SyncBridge.onIncomingSync = { domain, minutes ->
+                    if (!vm.state.value.webGoals.any { it.domain == domain }) {
+                        vm.addGoal(domain, minutes)
+                    }
+                }
+                vm.onSyncOut = { uiModels ->
+                    val json = buildString {
+                        append("[")
+                        uiModels.forEachIndexed { i, g ->
+                            if (i > 0) append(",")
+                            val d = g.domain.replace("\\", "\\\\").replace("\"", "\\\"")
+                            val u = g.displayUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+                            append("""{"domain":"$d","displayUrl":"$u","timeLimitMinutes":${g.dailyTimeLimitMinutes},"isActive":${g.isActive}}""")
+                        }
+                        append("]")
+                    }
+                    onSyncGoalsToExtension?.invoke(json)
+                }
+            }
+        } else null
+    }
 
     LaunchedEffect(selectedTab, hiddenTabs) {
         if (selectedTab in hiddenTabs) {
@@ -158,12 +187,12 @@ private fun MainContent(
                     AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
                     AppTab.GOALS -> {
                         if (useWebGoals) {
-                            WebGoalsScreen()
+                            WebGoalsScreen(viewModel = webGoalsViewModel)
                         } else {
                             GoalsScreen(viewModel = goalsViewModel)
                         }
                     }
-                    AppTab.WEB -> WebStatsScreen(navRepository = navRepository)
+                    AppTab.WEB -> WebStatsScreen(navRepository = navRepository, goalsViewModel = webGoalsViewModel)
                     AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
                     AppTab.SETTINGS -> SettingsScreen(
                         darkMode = darkMode,
@@ -180,17 +209,21 @@ private fun MainContent(
                 url = url,
                 onClose = {
                     navRepository?.endSession()
+                    webGoalsViewModel?.notifyStop()
                     pendingUrl = null
                 },
                 shouldCheckBlock = navRepository?.let { repo ->
                     { urlToCheck ->
-                        val blocked = repo.isUrlBlocked(urlToCheck)
-                        if (blocked) {
+                        val repoBlocked = repo.isUrlBlocked(urlToCheck)
+                        val goalBlocked = webGoalsViewModel?.isDomainBlocked(urlToCheck) == true
+                        val isBlocked = repoBlocked || goalBlocked
+                        if (isBlocked) {
                             repo.incrementBlockedAttempts()
                         } else {
                             repo.recordVisit(urlToCheck)
+                            webGoalsViewModel?.notifyVisit(urlToCheck)
                         }
-                        blocked
+                        isBlocked
                     }
                 }
             )
@@ -200,6 +233,7 @@ private fun MainContent(
             if (pendingUrl != null) {
                 navRepository?.startSession()
                 navRepository?.recordVisit(pendingUrl!!)
+                webGoalsViewModel?.notifyVisit(pendingUrl!!)
             }
         }
     }

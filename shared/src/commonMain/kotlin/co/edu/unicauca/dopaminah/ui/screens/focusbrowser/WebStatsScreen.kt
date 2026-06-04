@@ -17,14 +17,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.currentTimeMillis
 import co.edu.unicauca.dopaminah.ui.icons.*
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsState
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import kotlinx.coroutines.delay
 
 @Composable
 fun WebStatsScreen(
-    navRepository: WebNavigationRepository? = null
+    navRepository: WebNavigationRepository? = null,
+    goalsViewModel: WebGoalsViewModel? = null
 ) {
     val repo = navRepository ?: remember { WebNavigationRepository() }
+    val goalsState by goalsViewModel?.state?.collectAsState() ?: remember { mutableStateOf(null) }
     var now by remember { mutableStateOf(currentTimeMillis()) }
 
     LaunchedEffect(Unit) {
@@ -84,7 +88,7 @@ fun WebStatsScreen(
             }
 
             item {
-                BlockedStatsCard(repo = repo)
+                BlockedStatsCard(repo = repo, goalsState = goalsState)
             }
         }
     }
@@ -240,7 +244,10 @@ private fun TopDomainsCard(repo: WebNavigationRepository) {
 }
 
 @Composable
-private fun BlockedStatsCard(repo: WebNavigationRepository) {
+private fun BlockedStatsCard(repo: WebNavigationRepository, goalsState: WebGoalsState?) {
+    val activeGoals = goalsState?.webGoals?.count { it.isActive } ?: 0
+    val blockedGoals = goalsState?.webGoals?.count { it.isBlocked } ?: 0
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -269,39 +276,39 @@ private fun BlockedStatsCard(repo: WebNavigationRepository) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "${repo.blockedAttempts}",
+                        "${blockedGoals}",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error
                     )
                     Text(
-                        "Intentos bloqueados",
+                        "Sitios bloqueados",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "${repo.rules.count { it.isActive }}",
+                        "${activeGoals}",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = DopaminahPurpleDark
                     )
                     Text(
-                        "Reglas activas",
+                        "Limites activos",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        if (repo.isFocusMode) "S\u00ed" else "No",
+                        "${repo.blockedAttempts}",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (repo.isFocusMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "Modo Enfoque",
+                        "Intentos bloqueados",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

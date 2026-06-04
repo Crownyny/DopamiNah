@@ -12,13 +12,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class WebGoalsViewModel {
+    var onSyncOut: ((List<WebGoalUiModel>) -> Unit)? = null
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _state = MutableStateFlow(WebGoalsState())
     val state: StateFlow<WebGoalsState> = _state.asStateFlow()
 
     private val goals = mutableListOf<WebGoal>()
-    private val domainTime = mutableMapOf<String, Int>()
+    private val domainAccumulatedMinutes = mutableMapOf<String, Int>()
+    private val domainActiveStartTime = mutableMapOf<String, Long>()
+    private var currentDomain: String? = null
     private var timerJob: Job? = null
 
     init {
@@ -27,30 +31,41 @@ class WebGoalsViewModel {
     }
 
     fun addGoal(url: String, timeLimitMinutes: Int) {
-        val domain = url
-            .removePrefix("https://")
-            .removePrefix("http://")
-            .removePrefix("www.")
-            .trimEnd('/')
-            .lowercase()
+        val domain = extractDomain(url)
         val id = "wg_${goals.size}_${currentTimeMillis()}"
         goals.add(WebGoal(id, domain, url, timeLimitMinutes, true))
-        domainTime[domain] = 0
+        domainAccumulatedMinutes[domain] = 0
+        if (domain == currentDomain) {
+            domainActiveStartTime[domain] = currentTimeMillis()
+        }
         rebuildState()
+        notifyOutboundSync()
     }
 
     fun deleteGoal(id: String) {
         val goal = goals.find { it.id == id } ?: return
         goals.removeAll { it.id == id }
-        domainTime.remove(goal.domain)
+        domainAccumulatedMinutes.remove(goal.domain)
+        domainActiveStartTime.remove(goal.domain)
+        if (currentDomain == goal.domain) currentDomain = null
         rebuildState()
+        notifyOutboundSync()
     }
 
     fun toggleGoal(id: String) {
         val index = goals.indexOfFirst { it.id == id }
         if (index != -1) {
-            goals[index] = goals[index].copy(isActive = !goals[index].isActive)
+            val goal = goals[index]
+            val wasActive = goal.isActive
+            goals[index] = goal.copy(isActive = !wasActive)
+
+            if (wasActive) {
+                pauseDomain(goal.domain)
+            } else if (goal.domain == currentDomain) {
+                domainActiveStartTime[goal.domain] = currentTimeMillis()
+            }
             rebuildState()
+            notifyOutboundSync()
         }
     }
 
@@ -59,7 +74,12 @@ class WebGoalsViewModel {
         if (index != -1) {
             goals[index] = goals[index].copy(dailyTimeLimitMinutes = newLimitMinutes)
             rebuildState()
+            notifyOutboundSync()
         }
+    }
+
+    private fun notifyOutboundSync() {
+        onSyncOut?.invoke(_state.value.webGoals)
     }
 
     fun showCreateDialog() {
@@ -70,32 +90,78 @@ class WebGoalsViewModel {
         _state.value = _state.value.copy(showCreateDialog = false)
     }
 
-    private fun startTimer() {
-        timerJob?.cancel()
-        timerJob = scope.launch {
-            while (true) {
-                delay(10_000L)
-                simulateTimeTick()
+    fun notifyVisit(url: String) {
+        val domain = extractDomain(url)
+        if (domain == currentDomain) return
+        pauseCurrentDomain()
+        currentDomain = domain
+        if (goals.any { it.domain == domain && it.isActive }) {
+            if (domainActiveStartTime[domain] == null) {
+                domainActiveStartTime[domain] = currentTimeMillis()
             }
-        }
-    }
-
-    private fun simulateTimeTick() {
-        val activeDomains = goals.filter { it.isActive }.map { it.domain }
-        activeDomains.forEach { domain ->
-            val current = domainTime[domain] ?: 0
-            domainTime[domain] = current + 1
         }
         rebuildState()
     }
 
+    fun notifyStop() {
+        pauseCurrentDomain()
+        currentDomain = null
+        rebuildState()
+    }
+
+    fun isDomainBlocked(url: String): Boolean {
+        val domain = extractDomain(url)
+        return state.value.webGoals.any { goal ->
+            goal.isBlocked && (goal.domain == domain || domain.endsWith(".${goal.domain}"))
+        }
+    }
+
+    private fun extractDomain(url: String): String {
+        return url
+            .removePrefix("https://")
+            .removePrefix("http://")
+            .removePrefix("ftp://")
+            .split("/").firstOrNull()
+            ?.split(":")?.firstOrNull()
+            ?.removePrefix("www.")
+            ?.lowercase() ?: url.lowercase()
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = scope.launch {
+            while (true) {
+                delay(1_000L)
+                rebuildState()
+            }
+        }
+    }
+
+    private fun pauseDomain(domain: String) {
+        domainActiveStartTime[domain]?.let { startTime ->
+            val elapsed = ((currentTimeMillis() - startTime) / 60000).toInt()
+            domainAccumulatedMinutes[domain] = (domainAccumulatedMinutes[domain] ?: 0) + elapsed
+            domainActiveStartTime.remove(domain)
+        }
+    }
+
+    private fun pauseCurrentDomain() {
+        currentDomain?.let { pauseDomain(it) }
+    }
+
+    private fun spentMinutesFor(domain: String): Int {
+        val accumulated = domainAccumulatedMinutes[domain] ?: return 0
+        val startTime = domainActiveStartTime[domain] ?: return accumulated
+        val sessionMinutes = ((currentTimeMillis() - startTime) / 60000).toInt()
+        return accumulated + sessionMinutes
+    }
+
     private fun rebuildState() {
         val uiModels = goals.map { goal ->
-            val spentSecs = domainTime[goal.domain] ?: 0
-            val spentMinutes = spentSecs / 60
+            val spentMinutes = spentMinutesFor(goal.domain)
             val limitMinutes = goal.dailyTimeLimitMinutes
             val percent = if (limitMinutes > 0) spentMinutes.toFloat() / limitMinutes else 0f
-            val blocked = spentMinutes >= limitMinutes && goal.isActive
+            val blocked = if (limitMinutes == 0) goal.isActive else spentMinutes >= limitMinutes && goal.isActive
 
             WebGoalUiModel(
                 id = goal.id,
@@ -105,7 +171,7 @@ class WebGoalsViewModel {
                 todaySpentMinutes = spentMinutes,
                 progressPercent = percent,
                 isBlocked = blocked,
-                remainingMinutes = (limitMinutes - spentMinutes).coerceAtLeast(0),
+                remainingMinutes = if (limitMinutes == 0) 0 else (limitMinutes - spentMinutes).coerceAtLeast(0),
                 isActive = goal.isActive
             )
         }

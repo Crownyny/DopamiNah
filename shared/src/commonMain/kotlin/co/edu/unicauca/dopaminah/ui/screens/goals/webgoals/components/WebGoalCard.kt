@@ -28,20 +28,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.icons.LucidePencil
-import co.edu.unicauca.dopaminah.ui.icons.LucideShieldAlert
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
 import co.edu.unicauca.dopaminah.ui.icons.LucideTrash
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.BrandAvatar
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalUiModel
 import co.edu.unicauca.dopaminah.ui.theme.DangerRed
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
@@ -49,31 +46,6 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.SuccessGreen
 import co.edu.unicauca.dopaminah.ui.theme.WarningYellow
-
-private val domainColorPalette = listOf(
-    Color(0xFF8B5CF6),
-    Color(0xFF3B82F6),
-    Color(0xFF10B981),
-    Color(0xFFF59E0B),
-    Color(0xFFEF4444),
-    Color(0xFFEC4899),
-    Color(0xFF6366F1),
-    Color(0xFF14B8A6),
-    Color(0xFFF97316),
-    Color(0xFF06B6D4),
-    Color(0xFF84CC16),
-    Color(0xFFD946EF),
-)
-
-private fun domainColor(domain: String): Color {
-    val clean = domain.removePrefix("www.").lowercase()
-    val index = (clean.hashCode() and Int.MAX_VALUE) % domainColorPalette.size
-    return domainColorPalette[index]
-}
-
-private fun domainInitial(domain: String): String {
-    return domain.removePrefix("www.").first().uppercase()
-}
 
 @Composable
 fun WebGoalCard(
@@ -106,7 +78,7 @@ fun WebGoalCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                DomainAvatar(
+                BrandAvatar(
                     domain = goal.domain,
                     isBlocked = goal.isBlocked,
                     size = 44.dp,
@@ -195,7 +167,7 @@ fun WebGoalCard(
                 }
 
                 Text(
-                    text = "de ${goal.dailyTimeLimitMinutes} min",
+                    text = if (goal.dailyTimeLimitMinutes == 0) "bloqueo inmediato" else "de ${goal.dailyTimeLimitMinutes} min",
                     fontSize = 13.sp,
                     color = if (!goal.isActive)
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -221,7 +193,7 @@ fun WebGoalCard(
             ) {
                 Text(
                     text = when {
-                        goal.isBlocked -> "Limite alcanzado — bloqueado hasta mañana"
+                        goal.isBlocked -> if (goal.dailyTimeLimitMinutes == 0) "Bloqueado inmediatamente" else "Limite alcanzado — bloqueado hasta mañana"
                         goal.remainingMinutes <= 5 -> "Quedan solo ${goal.remainingMinutes} min"
                         else -> "${goal.remainingMinutes} min restantes"
                     },
@@ -258,44 +230,6 @@ fun WebGoalCard(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DomainAvatar(
-    domain: String,
-    isBlocked: Boolean,
-    size: Dp = 44.dp,
-    fontSize: androidx.compose.ui.unit.TextUnit = 18.sp
-) {
-    val bg = if (isBlocked) DangerRed.copy(alpha = 0.1f) else domainColor(domain).copy(alpha = 0.13f)
-    val fg = if (isBlocked) DangerRed else domainColor(domain)
-    val icon = if (isBlocked) LucideShieldAlert else null
-    val letter = if (!isBlocked) domainInitial(domain) else null
-
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(RoundedCornerShape(12.dp))
-            .background(bg),
-        contentAlignment = Alignment.Center
-    ) {
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = fg,
-                modifier = Modifier.size(size * 0.48f)
-            )
-        } else if (letter != null) {
-            Text(
-                text = letter,
-                fontSize = fontSize,
-                fontWeight = FontWeight.Bold,
-                color = fg,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }

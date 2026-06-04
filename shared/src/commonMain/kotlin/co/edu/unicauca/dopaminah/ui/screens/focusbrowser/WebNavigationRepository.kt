@@ -36,22 +36,6 @@ class WebNavigationRepository {
 
     private var _counter = 0L
 
-    init {
-        resetDefaults()
-    }
-
-    fun resetDefaults() {
-        _rules.clear()
-        _rules.addAll(DEFAULT_BLOCKED_DOMAINS.map {
-            BlockRule(
-                id = (++_counter).toString(),
-                domain = it.first,
-                label = it.second,
-                isWildcard = it.first.startsWith("*.")
-            )
-        })
-    }
-
     fun startSession() {
         if (sessionStartTime == 0L) {
             sessionStartTime = currentTimeMillis()
@@ -91,6 +75,12 @@ class WebNavigationRepository {
     fun isUrlBlocked(url: String): Boolean {
         if (!isFocusMode) return false
         return _rules.any { it.matches(url) }
+    }
+
+    fun resetDefaults() {
+        DEFAULT_BLOCKED_DOMAINS.forEach { (domain, label) ->
+            addRule(domain, label)
+        }
     }
 
     fun incrementBlockedAttempts() {

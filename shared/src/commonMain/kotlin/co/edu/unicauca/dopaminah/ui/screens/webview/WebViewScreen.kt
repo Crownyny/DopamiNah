@@ -15,7 +15,6 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideChevronRight
 import co.edu.unicauca.dopaminah.ui.icons.LucideX
 import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.BlockedSiteScreen
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
-
 @Composable
 fun WebViewScreen(
     url: String,
@@ -24,6 +23,14 @@ fun WebViewScreen(
 ) {
     val state = remember { WebViewState() }
     state.shouldCheckBlock = shouldCheckBlock
+
+    LaunchedEffect(url, shouldCheckBlock) {
+        val check = shouldCheckBlock ?: return@LaunchedEffect
+        if (check(url)) {
+            state.isBlocked = true
+            state.blockedUrl = url
+        }
+    }
 
     if (state.isBlocked) {
         BlockedSiteScreen(

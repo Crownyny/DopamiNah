@@ -3,6 +3,7 @@ const ASSETS = [
   '/',
   '/index.html',
   '/webApp.js',
+  '/extension-bridge.js',
   '/styles.css',
   '/favicon.svg',
   '/manifest.json'
