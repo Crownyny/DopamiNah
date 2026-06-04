@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sitio bloqueado - DopamiNah</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 480px;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: #7c3aed;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #f0f0f0;
+    }
+    .domain {
+      font-size: 18px;
+      color: #fca5a5;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    p {
+      font-size: 14px;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 32px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    .btn-primary {
+      background: #7c3aed;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #6d28d9;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #9ca3af;
+      border: 1px solid #4b5563;
+    }
+    .btn-secondary:hover {
+      background: #374151;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">&#128274;</div>
+    <h1>Sitio bloqueado</h1>
+    <div class="domain" id="domain-name">cargando...</div>
+    <p>
+      Has alcanzado el limite de tiempo para este sitio.<br>
+      DopamiNah ha bloqueado el acceso para ayudarte a mantener el enfoque.
+    </p>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="history.back()">Volver atras</button>
+      <button class="btn btn-primary" id="unblock-btn">Desbloquear por hoy</button>
+    </div>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 380px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+#app {
+  padding: 16px;
+}
+
+header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background: #6d28d9;
+}
+
+.btn-secondary {
+  background: #374151;
+  color: #e0e0e0;
+  border: 1px solid #4b5563;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+#goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.goal-card {
+  background: #232340;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #2d2d4a;
+}
+
+.goal-card.blocked {
+  border-color: #dc2626;
+  background: #2a1a1a;
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.goal-domain {
+  font-weight: 600;
+  font-size: 14px;
+  color: #f0f0f0;
+}
+
+.goal-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.goal-status.active {
+  background: #065f46;
+  color: #6ee7b7;
+}
+
+.goal-status.blocked-status {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.goal-status.inactive {
+  background: #374151;
+  color: #9ca3af;
+}
+
+.goal-time {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #374151;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #7c3aed;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.progress-fill.danger {
+  background: #dc2626;
+}
+
+.progress-fill.warning {
+  background: #f59e0b;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.goal-actions button {
+  background: none;
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.goal-actions button:hover {
+  background: #374151;
+  color: #e0e0e0;
+}
+
+.goal-actions button.danger:hover {
+  background: #7f1d1d;
+  border-color: #dc2626;
+  color: #fca5a5;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#add-goal-form {
+  background: #232340;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #2d2d4a;
+}
+
+#add-goal-form h2 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #7c3aed;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.preset-btn {
+  background: #374151;
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.preset-btn.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: white;
+}
+
+.preset-btn:hover:not(.active) {
+  background: #4b5563;
+}
+
+.custom-time {
+  margin-top: 4px;
+}
+
+.custom-time input {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+footer {
+  margin-top: 16px;
+  text-align: center;
+}
+
+footer button {
+  width: 100%;
+}

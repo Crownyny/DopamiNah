@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "DopamiNah - Focus Browser",
+  "version": "1.0.0",
+  "description": "Controla tu tiempo en sitios web. Establece metas de navegacion y bloquea distracciones.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "webNavigation",
+    "declarativeNetRequest",
+    "idle",
+    "tabs"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:8080/*",
+        "http://localhost/*",
+        "https://*.dopaminah.app/*",
+        "https://dopaminah.app/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "DopamiNah"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked/blocked.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
