@@ -6,18 +6,21 @@ import co.edu.unicauca.dopaminah.ui.navigation.DopamiNahApp
 import co.edu.unicauca.dopaminah.ui.navigation.LocalPermissionState
 import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
 @Composable
 fun App(
     permissionState: PermissionState = PermissionState(),
     dashboardViewModel: DashboardViewModel? = null,
-    statsViewModel: StatsViewModel? = null
+    statsViewModel: StatsViewModel? = null,
+    goalsViewModel: GoalsViewModel? = null
 ) {
     CompositionLocalProvider(LocalPermissionState provides permissionState) {
         DopamiNahApp(
             dashboardViewModel = dashboardViewModel,
-            statsViewModel = statsViewModel
+            statsViewModel = statsViewModel,
+            goalsViewModel = goalsViewModel
         )
     }
 }

@@ -34,5 +34,12 @@
 - `AppIcon` refactored from inline composable to `expect`/`actual` pattern across all 6 KMP targets.
 - `HeaderSection` now displays the real brain icon on Android.
 
+- `GoalsScreen` ported from `dev` branch: full screen with loading indicator, empty state, and real goal cards with progress bars, edit/delete actions, and exceeded-state warnings.
+- `GoalsViewModel` in `commonMain` with real CRUD operations backed by `GoalsRepository` — computes per-goal progress fractions and exceeded flags from `DeviceUsageRepository` daily usage data (total screen time, per-app usage, device unlocks). Exposes `GoalsState` via `StateFlow`.
+- `GoalsRepositoryImpl` in `shared/androidMain` — SharedPreferences-backed persistence for `AppLimitGoal` objects (no Room/DataStore required).
+- `AddGoalButton`, `CreateGoalDialog`, `EditGoalDialog` composables ported from `dev` branch (accent colors adapted to Material3 theme).
+- `GoalCard` rewritten: shows icon box (LucideTimer/LucideSmartphone/LucideLock), title/subtitle, edit/delete icon buttons, exceeded alert row, progress label + percent, and `LinearProgressIndicator` with danger-red coloring when limit is exceeded.
+- Goals ViewModel wired through `App` → `DopamiNahApp` → `MainContent` → `GoalsScreen(viewModel)`. Created in `MainActivity` with `GoalsRepositoryImpl`, shared `DeviceUsageRepositoryImpl`, and launcher-app lookup map.
+
 ### Fixed
 - N/A

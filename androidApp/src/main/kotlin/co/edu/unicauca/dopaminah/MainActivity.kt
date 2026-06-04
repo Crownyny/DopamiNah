@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -15,9 +16,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
 import co.edu.unicauca.dopaminah.data.repository.GamificationRepositoryImpl
+import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
 import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
 class MainActivity : ComponentActivity() {
@@ -91,10 +94,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val goalsRepo = remember { GoalsRepositoryImpl(applicationContext) }
+            val installedApps = remember { getInstalledApps(this@MainActivity) }
+            val goalsViewModel = remember(goalsRepo) {
+                GoalsViewModel(
+                    goalsRepository = goalsRepo,
+                    deviceUsageRepository = deviceRepo,
+                    installedApps = installedApps
+                )
+            }
+
             App(
                 permissionState = permissionState,
                 dashboardViewModel = dashboardViewModel,
-                statsViewModel = statsViewModel
+                statsViewModel = statsViewModel,
+                goalsViewModel = goalsViewModel
             )
         }
     }
@@ -108,5 +122,16 @@ class MainActivity : ComponentActivity() {
             context.packageName
         )
         return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun getInstalledApps(context: Context): Map<String, String> {
+        val pm = context.packageManager
+        val intent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        val resolvedInfos = pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        return resolvedInfos
+            .associate { it.loadLabel(pm).toString() to it.activityInfo.packageName }
+            .toSortedMap(String.CASE_INSENSITIVE_ORDER)
     }
 }

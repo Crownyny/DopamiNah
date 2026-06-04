@@ -12,6 +12,7 @@ import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewMod
 import co.edu.unicauca.dopaminah.ui.screens.stats.StatsScreen
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
+import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.OnboardingPermissionScreen
@@ -32,7 +33,8 @@ enum class AppTab(val route: String, val title: String) {
 @Composable
 fun DopamiNahApp(
     dashboardViewModel: DashboardViewModel? = null,
-    statsViewModel: StatsViewModel? = null
+    statsViewModel: StatsViewModel? = null,
+    goalsViewModel: GoalsViewModel? = null
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -48,7 +50,8 @@ fun DopamiNahApp(
         } else {
             MainContent(
                 dashboardViewModel = dashboardViewModel,
-                statsViewModel = statsViewModel
+                statsViewModel = statsViewModel,
+                goalsViewModel = goalsViewModel
             )
         }
     }
@@ -57,7 +60,8 @@ fun DopamiNahApp(
 @Composable
 private fun MainContent(
     dashboardViewModel: DashboardViewModel? = null,
-    statsViewModel: StatsViewModel? = null
+    statsViewModel: StatsViewModel? = null,
+    goalsViewModel: GoalsViewModel? = null
 ) {
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
     Scaffold(
@@ -100,7 +104,7 @@ private fun MainContent(
             when (selectedTab) {
                 AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
                 AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
-                AppTab.GOALS -> GoalsScreen()
+                AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
                 AppTab.ACHIEVEMENTS -> AchievementsScreen()
                 AppTab.SETTINGS -> SettingsScreen()
             }
