@@ -10,6 +10,7 @@ import co.edu.unicauca.dopaminah.ui.theme.DopamiNahTheme
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.DashboardScreen
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.StatsScreen
+import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
@@ -29,7 +30,10 @@ enum class AppTab(val route: String, val title: String) {
 }
 
 @Composable
-fun DopamiNahApp(dashboardViewModel: DashboardViewModel? = null) {
+fun DopamiNahApp(
+    dashboardViewModel: DashboardViewModel? = null,
+    statsViewModel: StatsViewModel? = null
+) {
     val permissionState = LocalPermissionState.current
 
     DopamiNahTheme {
@@ -42,13 +46,19 @@ fun DopamiNahApp(dashboardViewModel: DashboardViewModel? = null) {
                 onRequestNotificationPermission = permissionState.onRequestNotificationPermission
             )
         } else {
-            MainContent(dashboardViewModel = dashboardViewModel)
+            MainContent(
+                dashboardViewModel = dashboardViewModel,
+                statsViewModel = statsViewModel
+            )
         }
     }
 }
 
 @Composable
-private fun MainContent(dashboardViewModel: DashboardViewModel? = null) {
+private fun MainContent(
+    dashboardViewModel: DashboardViewModel? = null,
+    statsViewModel: StatsViewModel? = null
+) {
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
     Scaffold(
         bottomBar = {
@@ -89,7 +99,7 @@ private fun MainContent(dashboardViewModel: DashboardViewModel? = null) {
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             when (selectedTab) {
                 AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
-                AppTab.STATS -> StatsScreen()
+                AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
                 AppTab.GOALS -> GoalsScreen()
                 AppTab.ACHIEVEMENTS -> AchievementsScreen()
                 AppTab.SETTINGS -> SettingsScreen()

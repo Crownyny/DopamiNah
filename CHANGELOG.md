@@ -3,6 +3,9 @@
 ## [Unreleased] — dev-kmp
 
 ### Added
+- Full statistics page (`StatsScreen`) ported from `dev` branch: tab selector (semanal/mensual), summary cards (daily avg, unlocks, trend), 3‑chart carousel (usage trend line chart, top apps bar chart, peak hours bar chart), daily detail card with day navigation and date picker sheet.
+- `DateUtils.kt` — KMP‑safe day‑of‑week label calculation from epoch time (no `java.util.Calendar` dependency).
+- `StatsViewModel` loads real data from `DeviceUsageRepository` — wired through `App` → `DopamiNahApp` → `MainContent` → `StatsScreen(viewModel)`. Created in `MainActivity` with the same `DeviceUsageRepositoryImpl` instance used by the dashboard. (daily usage history, per‑app averages, hourly distribution, daily details) when repository is provided; falls back to demo data.
 - Daily streak ("racha") feature: `GamificationRepositoryImpl` in `commonMain` uses `DevicePreferences` + `currentTimeMillis()` for streak persistence. Tracks streak count, total points, and best streak using days-since-epoch logic. Reactive via `MutableStateFlow`.
 - `expect fun currentTimeMillis(): Long` in `commonMain/Platform.kt` with actual implementations for all 6 targets: Android/JVM (`System.currentTimeMillis()`), iOS (`NSDate`), JS (`Date.now()` via `js()`), WasmJS (`Date.now()` via `js()` with `@OptIn(ExperimentalWasmJsInterop)`).
 - `UserGamificationStats` now includes `streak`, `bestStreak`, and `totalPoints` fields.
@@ -21,7 +24,11 @@
 - Android launcher now uses the custom `dopaminah_icon` instead of generic `ic_launcher`.
 
 ### Changed
-- `DeviceUsageRepositoryImpl.getDailyUsageStats()` now loads each app's icon as PNG bytes and filters out background system services.
+- ### Fixed
+- `DeviceUsageRepositoryImpl.getDailyDetails()` no longer returns hardcoded `"--"` / `0` values for `firstUseTime`, `avgSessionMinutes`, and `unlocks` — now computes real data from `UsageStatsManager.queryEvents()`: first `ACTIVITY_RESUMED` timestamp for `firstUseTime`, tracked resumed→paused pairs for average session duration, and 5‑minute‑gap unlock counting.
+
+### Changed
+`DeviceUsageRepositoryImpl.getDailyUsageStats()` now loads each app's icon as PNG bytes and filters out background system services.
 - `AppUsageItem` updated to use `AppIconImage` for displaying app icons.
 - `AndroidManifest.xml`: icon/roundIcon references updated to `@mipmap/dopaminah_icon`.
 - `AppIcon` refactored from inline composable to `expect`/`actual` pattern across all 6 KMP targets.

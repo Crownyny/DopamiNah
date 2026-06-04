@@ -14,7 +14,10 @@ import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class DeviceUsageRepositoryImpl(
     private val context: Context
@@ -198,9 +201,8 @@ class DeviceUsageRepositoryImpl(
         cal.set(Calendar.MILLISECOND, 0)
         val startTime = cal.timeInMillis
 
-        val dateFormat = java.text.SimpleDateFormat("EEEE, d 'de' MMMM", java.util.Locale("es"))
-        val dateLabel = dateFormat.format(cal.time)
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+        val dateLabel = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es")).format(cal.time)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
         if (!hasUsageStatsPermission()) {
             return@withContext DailyDetailStats(
@@ -226,10 +228,50 @@ class DeviceUsageRepositoryImpl(
         val mostUsedM = ((mostUsedMillis % 3_600_000) / 60_000).toInt()
         val mostUsedTimeStr = if (mostUsedH > 0) "${mostUsedH}h ${mostUsedM}m" else "${mostUsedM}m"
 
+        var firstUseMillis = -1L
+        var sessionCount = 0
+        var totalSessionMillis = 0L
+        var resumedTime = -1L
+        var unlockCount = 0
+        var lastEventTime = 0L
+
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = android.app.usage.UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            when (event.eventType) {
+                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    if (firstUseMillis == -1L) firstUseMillis = event.timeStamp
+                    resumedTime = event.timeStamp
+                    if (event.timeStamp - lastEventTime > 5 * 60 * 1000) unlockCount++
+                    lastEventTime = event.timeStamp
+                }
+                android.app.usage.UsageEvents.Event.ACTIVITY_PAUSED,
+                android.app.usage.UsageEvents.Event.ACTIVITY_STOPPED -> {
+                    if (resumedTime != -1L) {
+                        val duration = event.timeStamp - resumedTime
+                        if (duration > 0) {
+                            totalSessionMillis += duration
+                            sessionCount++
+                        }
+                        resumedTime = -1L
+                    }
+                }
+            }
+        }
+
+        val firstUseTime = if (firstUseMillis != -1L) {
+            SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(firstUseMillis))
+                .lowercase().replace("am", "AM").replace("pm", "PM")
+        } else "--"
+
+        val avgMinutes = if (sessionCount > 0) (totalSessionMillis / sessionCount / 60_000).toInt() else 0
+
         DailyDetailStats(
-            dateLabel = dateLabel, firstUseTime = "--", avgSessionMinutes = 0,
+            dateLabel = dateLabel, firstUseTime = firstUseTime,
+            avgSessionMinutes = avgMinutes,
             mostUsedAppName = mostUsedName, mostUsedAppTime = mostUsedTimeStr,
-            unlocks = 0, totalTimeMillis = totalTime
+            unlocks = unlockCount, totalTimeMillis = totalTime
         )
     }
 

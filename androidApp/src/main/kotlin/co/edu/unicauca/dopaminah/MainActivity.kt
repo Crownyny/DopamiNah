@@ -18,6 +18,7 @@ import co.edu.unicauca.dopaminah.data.repository.GamificationRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
 import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -82,9 +83,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val statsViewModel = remember(permissionGranted) {
+                if (permissionGranted) {
+                    StatsViewModel(repository = deviceRepo)
+                } else {
+                    StatsViewModel()
+                }
+            }
+
             App(
                 permissionState = permissionState,
-                dashboardViewModel = dashboardViewModel
+                dashboardViewModel = dashboardViewModel,
+                statsViewModel = statsViewModel
             )
         }
     }
