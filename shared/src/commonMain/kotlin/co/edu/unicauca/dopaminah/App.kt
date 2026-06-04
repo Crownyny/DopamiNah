@@ -26,7 +26,8 @@ fun App(
     goalsViewModel: GoalsViewModel? = null,
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
-    hiddenTabs: Set<AppTab> = emptySet()
+    hiddenTabs: Set<AppTab> = emptySet(),
+    useWebGoals: Boolean = false
 ) {
     var internalDarkMode by remember { mutableStateOf(darkMode) }
     val actualDarkMode = if (onDarkModeChange != null) darkMode else internalDarkMode
@@ -42,7 +43,8 @@ fun App(
             goalsViewModel = goalsViewModel,
             achievementsViewModel = achievementsViewModel,
             navRepository = repository,
-            hiddenTabs = hiddenTabs
+            hiddenTabs = hiddenTabs,
+            useWebGoals = useWebGoals
         )
     }
 }

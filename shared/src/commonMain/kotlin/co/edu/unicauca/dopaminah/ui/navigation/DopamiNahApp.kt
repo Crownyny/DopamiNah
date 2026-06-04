@@ -13,6 +13,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.StatsScreen
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebNavigationRepository
@@ -45,7 +46,8 @@ fun DopamiNahApp(
     goalsViewModel: GoalsViewModel? = null,
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
-    hiddenTabs: Set<AppTab> = emptySet()
+    hiddenTabs: Set<AppTab> = emptySet(),
+    useWebGoals: Boolean = false
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -67,7 +69,8 @@ fun DopamiNahApp(
                 goalsViewModel = goalsViewModel,
                 achievementsViewModel = achievementsViewModel,
                 navRepository = navRepository,
-                hiddenTabs = hiddenTabs
+                hiddenTabs = hiddenTabs,
+                useWebGoals = useWebGoals
             )
         }
     }
@@ -82,7 +85,8 @@ private fun MainContent(
     goalsViewModel: GoalsViewModel? = null,
     achievementsViewModel: AchievementsViewModel? = null,
     navRepository: WebNavigationRepository? = null,
-    hiddenTabs: Set<AppTab> = emptySet()
+    hiddenTabs: Set<AppTab> = emptySet(),
+    useWebGoals: Boolean = false
 ) {
     val visibleTabs = AppTab.entries.filter { it !in hiddenTabs }
     val firstVisibleTab = visibleTabs.firstOrNull() ?: AppTab.SETTINGS
@@ -152,7 +156,13 @@ private fun MainContent(
                 when (selectedTab) {
                     AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
                     AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
-                    AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
+                    AppTab.GOALS -> {
+                        if (useWebGoals) {
+                            WebGoalsScreen()
+                        } else {
+                            GoalsScreen(viewModel = goalsViewModel)
+                        }
+                    }
                     AppTab.WEB -> WebStatsScreen(navRepository = navRepository)
                     AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
                     AppTab.SETTINGS -> SettingsScreen(

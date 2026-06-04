@@ -19,7 +19,8 @@ fun main() {
     ComposeViewport {
         App(
             permissionState = PermissionState(hasUsagePermission = true),
-            hiddenTabs = setOf(AppTab.DASHBOARD, AppTab.STATS)
+            hiddenTabs = setOf(AppTab.DASHBOARD, AppTab.STATS),
+            useWebGoals = true
         )
     }
 }
