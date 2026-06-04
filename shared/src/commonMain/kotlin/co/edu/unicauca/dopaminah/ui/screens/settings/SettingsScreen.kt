@@ -20,10 +20,15 @@ import co.edu.unicauca.dopaminah.ui.screens.settings.viewmodel.SettingsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
+private const val URL_PRIVACY_POLICY = "https://dopaminah.app/privacy"
+private const val URL_HELP_CENTER = "https://dopaminah.app/help"
+private const val URL_CONTACT_SUPPORT = "https://dopaminah.app/support"
+
 @Composable
 fun SettingsScreen(
     darkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},
+    onOpenUrl: (String) -> Unit = {},
     viewModel: SettingsViewModel? = null
 ) {
     val vm = viewModel ?: remember { SettingsViewModel() }
@@ -97,6 +102,7 @@ fun SettingsScreen(
                     SettingsNavigationItem(
                         icon = LucideShield,
                         title = "Pol\u00edtica de Privacidad",
+                        onClick = { onOpenUrl(URL_PRIVACY_POLICY) }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -105,6 +111,7 @@ fun SettingsScreen(
                     SettingsNavigationItem(
                         icon = LucideInfo,
                         title = "Permisos de la App",
+                        onClick = { onOpenUrl(URL_PRIVACY_POLICY) }
                     )
                 }
             }
@@ -114,6 +121,7 @@ fun SettingsScreen(
                     SettingsNavigationItem(
                         icon = LucideHelpCircle,
                         title = "Centro de Ayuda",
+                        onClick = { onOpenUrl(URL_HELP_CENTER) }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -122,6 +130,7 @@ fun SettingsScreen(
                     SettingsNavigationItem(
                         icon = LucideMail,
                         title = "Contactar Soporte",
+                        onClick = { onOpenUrl(URL_CONTACT_SUPPORT) }
                     )
                 }
             }

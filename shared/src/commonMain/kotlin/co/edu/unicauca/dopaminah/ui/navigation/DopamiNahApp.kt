@@ -17,6 +17,7 @@ import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.OnboardingPermissionScreen
+import co.edu.unicauca.dopaminah.ui.screens.webview.WebViewScreen
 import co.edu.unicauca.dopaminah.ui.icons.LucideHouse
 import co.edu.unicauca.dopaminah.ui.icons.LucideChartColumn
 import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
@@ -74,53 +75,65 @@ private fun MainContent(
     achievementsViewModel: AchievementsViewModel? = null
 ) {
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    icon = { Icon(LucideHouse, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = selectedTab == AppTab.DASHBOARD,
-                    onClick = { selectedTab = AppTab.DASHBOARD }
-                )
-                NavigationBarItem(
-                    icon = { Icon(LucideChartColumn, contentDescription = "Stats") },
-                    label = { Text("Stats") },
-                    selected = selectedTab == AppTab.STATS,
-                    onClick = { selectedTab = AppTab.STATS }
-                )
-                NavigationBarItem(
-                    icon = { Icon(LucideTarget, contentDescription = "Metas") },
-                    label = { Text("Metas") },
-                    selected = selectedTab == AppTab.GOALS,
-                    onClick = { selectedTab = AppTab.GOALS }
-                )
-                NavigationBarItem(
-                    icon = { Icon(LucideAward, contentDescription = "Logros") },
-                    label = { Text("Logros") },
-                    selected = selectedTab == AppTab.ACHIEVEMENTS,
-                    onClick = { selectedTab = AppTab.ACHIEVEMENTS }
-                )
-                NavigationBarItem(
-                    icon = { Icon(LucideSettingsIcon, contentDescription = "Ajustes") },
-                    label = { Text("Ajustes") },
-                    selected = selectedTab == AppTab.SETTINGS,
-                    onClick = { selectedTab = AppTab.SETTINGS }
-                )
+    var pendingUrl by remember { mutableStateOf<String?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            bottomBar = {
+                NavigationBar {
+                    NavigationBarItem(
+                        icon = { Icon(LucideHouse, contentDescription = "Inicio") },
+                        label = { Text("Inicio") },
+                        selected = selectedTab == AppTab.DASHBOARD,
+                        onClick = { selectedTab = AppTab.DASHBOARD }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(LucideChartColumn, contentDescription = "Stats") },
+                        label = { Text("Stats") },
+                        selected = selectedTab == AppTab.STATS,
+                        onClick = { selectedTab = AppTab.STATS }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(LucideTarget, contentDescription = "Metas") },
+                        label = { Text("Metas") },
+                        selected = selectedTab == AppTab.GOALS,
+                        onClick = { selectedTab = AppTab.GOALS }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(LucideAward, contentDescription = "Logros") },
+                        label = { Text("Logros") },
+                        selected = selectedTab == AppTab.ACHIEVEMENTS,
+                        onClick = { selectedTab = AppTab.ACHIEVEMENTS }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(LucideSettingsIcon, contentDescription = "Ajustes") },
+                        label = { Text("Ajustes") },
+                        selected = selectedTab == AppTab.SETTINGS,
+                        onClick = { selectedTab = AppTab.SETTINGS }
+                    )
+                }
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                when (selectedTab) {
+                    AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
+                    AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
+                    AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
+                    AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
+                    AppTab.SETTINGS -> SettingsScreen(
+                        darkMode = darkMode,
+                        onDarkModeChange = onDarkModeChange,
+                        onOpenUrl = { pendingUrl = it }
+                    )
+                }
             }
         }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            when (selectedTab) {
-                AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
-                AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
-                AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
-                AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
-                AppTab.SETTINGS -> SettingsScreen(
-                    darkMode = darkMode,
-                    onDarkModeChange = onDarkModeChange
-                )
-            }
+
+        pendingUrl?.let { url ->
+            WebViewScreen(
+                url = url,
+                onClose = { pendingUrl = null }
+            )
         }
     }
 }

@@ -3,6 +3,12 @@
 ## [Unreleased] — dev-kmp
 
 ### Added
+- WebViewScreen: full-screen in-app browser with purple toolbar, close button, back/forward navigation, page title, and loading indicator. Opens via `PlatformWebView` expect/actual composable.
+- `PlatformWebView` expect/actual: Android uses `AndroidView` + `android.webkit.WebView` with JavaScript enabled; iOS opens URL in Safari; JVM opens in desktop browser; JS/Wasm shows URL as text.
+- `WebViewState`: shared state holder with `pageTitle`, `isLoading`, `canGoBack`, `canGoForward`, and navigation callbacks wired to platform WebView.
+- Settings navigation items (Política de Privacidad, Permisos de la App, Centro de Ayuda, Contactar Soporte) now open their respective URLs in the in-app WebView via `onOpenUrl` callback wired through `MainContent`.
+- `MainContent` now manages `pendingUrl` state and overlays `WebViewScreen` when a URL is opened; closes with the X button.
+- `onOpenUrl` callback added to `SettingsScreen` signature for opening in-app browser from any settings item.
 - Full Settings screen ported from `dev` branch: gradient header with `AppIcon`, premium upsell card (`PremiumCard`) with starred perks list, premium confirmation card (`PremiumActiveCard`), appearance & notifications section (dark mode, notifications, pájaro verde mode toggles with Lucide icons), privacy & security section, support section, and about section with app info.
 - `AboutSection` — app info card with `AppIcon`, name, version, and tagline.
 - `PremiumActiveCard` — "Eres Premium" confirmation card with star icon.
