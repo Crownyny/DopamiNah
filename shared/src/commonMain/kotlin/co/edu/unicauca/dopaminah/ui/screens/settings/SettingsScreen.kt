@@ -21,10 +21,13 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel? = null) {
+fun SettingsScreen(
+    darkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {},
+    viewModel: SettingsViewModel? = null
+) {
     val vm = viewModel ?: remember { SettingsViewModel() }
 
-    val isDarkMode by vm.darkMode.collectAsState()
     val notificationsEnabled by vm.notificationsEnabled.collectAsState()
     val pajaroVerdeMode by vm.pajaroVerdeMode.collectAsState()
     val isPremium by vm.isPremium.collectAsState()
@@ -57,11 +60,11 @@ fun SettingsScreen(viewModel: SettingsViewModel? = null) {
             item {
                 SettingsSection(title = "Apariencia y Notificaciones") {
                     SettingsToggleItem(
-                        icon = if (isDarkMode) LucideMoon else LucideSun,
+                        icon = if (darkMode) LucideMoon else LucideSun,
                         title = "Modo Oscuro",
                         subtitle = "Reduce la fatiga visual",
-                        checked = isDarkMode,
-                        onCheckedChange = { vm.toggleDarkMode(it) },
+                        checked = darkMode,
+                        onCheckedChange = onDarkModeChange,
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp),

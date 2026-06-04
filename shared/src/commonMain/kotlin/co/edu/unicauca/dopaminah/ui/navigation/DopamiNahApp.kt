@@ -33,6 +33,8 @@ enum class AppTab(val route: String, val title: String) {
 
 @Composable
 fun DopamiNahApp(
+    darkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {},
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
     goalsViewModel: GoalsViewModel? = null,
@@ -40,7 +42,7 @@ fun DopamiNahApp(
 ) {
     val permissionState = LocalPermissionState.current
 
-    DopamiNahTheme {
+    DopamiNahTheme(darkTheme = darkMode) {
         if (!permissionState.hasUsagePermission) {
             OnboardingPermissionScreen(
                 onPermissionGranted = {
@@ -51,6 +53,8 @@ fun DopamiNahApp(
             )
         } else {
             MainContent(
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange,
                 dashboardViewModel = dashboardViewModel,
                 statsViewModel = statsViewModel,
                 goalsViewModel = goalsViewModel,
@@ -62,6 +66,8 @@ fun DopamiNahApp(
 
 @Composable
 private fun MainContent(
+    darkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {},
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
     goalsViewModel: GoalsViewModel? = null,
@@ -110,7 +116,10 @@ private fun MainContent(
                 AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
                 AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
                 AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
-                AppTab.SETTINGS -> SettingsScreen()
+                AppTab.SETTINGS -> SettingsScreen(
+                    darkMode = darkMode,
+                    onDarkModeChange = onDarkModeChange
+                )
             }
         }
     }

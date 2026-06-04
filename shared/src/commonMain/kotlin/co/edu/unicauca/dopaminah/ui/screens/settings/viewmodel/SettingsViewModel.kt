@@ -5,9 +5,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class SettingsViewModel {
-    private val _darkMode = MutableStateFlow(false)
-    val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
-
     private val _notificationsEnabled = MutableStateFlow(true)
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
@@ -16,10 +13,6 @@ class SettingsViewModel {
 
     private val _isPremium = MutableStateFlow(false)
     val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
-
-    fun toggleDarkMode(enabled: Boolean) {
-        _darkMode.value = enabled
-    }
 
     fun toggleNotifications(enabled: Boolean) {
         _notificationsEnabled.value = enabled
