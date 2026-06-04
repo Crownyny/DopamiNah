@@ -14,6 +14,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
+import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.OnboardingPermissionScreen
 import co.edu.unicauca.dopaminah.ui.icons.LucideHouse
@@ -34,7 +35,8 @@ enum class AppTab(val route: String, val title: String) {
 fun DopamiNahApp(
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
-    goalsViewModel: GoalsViewModel? = null
+    goalsViewModel: GoalsViewModel? = null,
+    achievementsViewModel: AchievementsViewModel? = null
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -51,7 +53,8 @@ fun DopamiNahApp(
             MainContent(
                 dashboardViewModel = dashboardViewModel,
                 statsViewModel = statsViewModel,
-                goalsViewModel = goalsViewModel
+                goalsViewModel = goalsViewModel,
+                achievementsViewModel = achievementsViewModel
             )
         }
     }
@@ -61,7 +64,8 @@ fun DopamiNahApp(
 private fun MainContent(
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
-    goalsViewModel: GoalsViewModel? = null
+    goalsViewModel: GoalsViewModel? = null,
+    achievementsViewModel: AchievementsViewModel? = null
 ) {
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
     Scaffold(
@@ -105,7 +109,7 @@ private fun MainContent(
                 AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
                 AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
                 AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
-                AppTab.ACHIEVEMENTS -> AchievementsScreen()
+                AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
                 AppTab.SETTINGS -> SettingsScreen()
             }
         }

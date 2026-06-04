@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel
 
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
+import co.edu.unicauca.dopaminah.domain.utils.Badge
 import co.edu.unicauca.dopaminah.domain.utils.BadgeDefinitions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,26 +12,83 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+data class BadgeUi(
+    val emoji: String,
+    val title: String,
+    val description: String,
+    val unlockDate: String?,
+    val isUnlocked: Boolean = unlockDate != null
+)
+
+data class AchievementsState(
+    val streakDays: Int = 0,
+    val level: Int = 1,
+    val badges: List<BadgeUi> = emptyList(),
+    val nextBadgeEmoji: String = "🎯",
+    val nextBadgeTitle: String = "Primer Paso",
+    val nextBadgeDescription: String = "Completa tu primera meta diaria",
+    val unlockedCount: Int = 0,
+    val totalCount: Int = 0,
+    val bestStreak: Int = 0
+)
+
 class AchievementsViewModel(
     gamificationRepository: GamificationRepository? = null
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    val badges = BadgeDefinitions.allBadges
-
-    private val _stats = MutableStateFlow(UserGamificationStats())
-    val stats: StateFlow<UserGamificationStats> = _stats.asStateFlow()
-
-    val currentLevel: Int get() = _stats.value.level
-    val currentStreak: Int get() = _stats.value.streak
+    private val _state = MutableStateFlow(AchievementsState())
+    val state: StateFlow<AchievementsState> = _state.asStateFlow()
 
     init {
         if (gamificationRepository != null) {
             scope.launch {
-                gamificationRepository.getGamificationStats().collect { s ->
-                    _stats.value = s
+                gamificationRepository.getGamificationStats().collect { stats ->
+                    _state.value = computeState(stats)
                 }
             }
+        } else {
+            _state.value = computeState(UserGamificationStats())
+        }
+    }
+
+    private fun computeState(stats: UserGamificationStats): AchievementsState {
+        val badges = BadgeDefinitions.allBadges.map { badge ->
+            val isUnlocked = isBadgeUnlocked(badge, stats)
+            BadgeUi(
+                emoji = badge.emoji,
+                title = badge.title,
+                description = badge.description,
+                unlockDate = if (isUnlocked) "Desbloqueada" else null
+            )
+        }
+        val unlockedCount = badges.count { it.isUnlocked }
+        val nextBadge = badges.firstOrNull { !it.isUnlocked }
+
+        return AchievementsState(
+            streakDays = stats.streak,
+            level = stats.level,
+            badges = badges,
+            nextBadgeEmoji = nextBadge?.emoji ?: "🎉",
+            nextBadgeTitle = nextBadge?.title ?: "Todas completadas",
+            nextBadgeDescription = nextBadge?.description ?: "",
+            unlockedCount = unlockedCount,
+            totalCount = badges.size,
+            bestStreak = stats.bestStreak
+        )
+    }
+
+    private fun isBadgeUnlocked(badge: Badge, stats: UserGamificationStats): Boolean {
+        return when (badge.requirement) {
+            "streak_3" -> stats.bestStreak >= 3
+            "streak_7" -> stats.bestStreak >= 7
+            "streak_14" -> stats.bestStreak >= 14
+            "streak_30" -> stats.bestStreak >= 30
+            "daily_goal_1" -> stats.totalPoints >= 10
+            "focus_hours_10" -> stats.totalPoints >= 100
+            "reduction_50" -> stats.totalPoints >= 50
+            "under_1h_3days" -> stats.bestStreak >= 3
+            else -> false
         }
     }
 }

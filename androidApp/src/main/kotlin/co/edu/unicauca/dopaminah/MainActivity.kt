@@ -20,6 +20,7 @@ import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
 import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
+import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
@@ -104,11 +105,16 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
+            val achievementsViewModel = remember(gamificationRepo) {
+                AchievementsViewModel(gamificationRepository = gamificationRepo)
+            }
+
             App(
                 permissionState = permissionState,
                 dashboardViewModel = dashboardViewModel,
                 statsViewModel = statsViewModel,
-                goalsViewModel = goalsViewModel
+                goalsViewModel = goalsViewModel,
+                achievementsViewModel = achievementsViewModel
             )
         }
     }

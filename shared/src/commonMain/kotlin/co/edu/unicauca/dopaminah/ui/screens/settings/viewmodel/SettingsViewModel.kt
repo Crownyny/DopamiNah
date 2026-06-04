@@ -8,14 +8,28 @@ class SettingsViewModel {
     private val _darkMode = MutableStateFlow(false)
     val darkMode: StateFlow<Boolean> = _darkMode.asStateFlow()
 
-    private val _notifications = MutableStateFlow(true)
-    val notifications: StateFlow<Boolean> = _notifications.asStateFlow()
+    private val _notificationsEnabled = MutableStateFlow(true)
+    val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
-    fun toggleDarkMode() {
-        _darkMode.value = !_darkMode.value
+    private val _pajaroVerdeMode = MutableStateFlow(false)
+    val pajaroVerdeMode: StateFlow<Boolean> = _pajaroVerdeMode.asStateFlow()
+
+    private val _isPremium = MutableStateFlow(false)
+    val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
+
+    fun toggleDarkMode(enabled: Boolean) {
+        _darkMode.value = enabled
     }
 
-    fun toggleNotifications() {
-        _notifications.value = !_notifications.value
+    fun toggleNotifications(enabled: Boolean) {
+        _notificationsEnabled.value = enabled
+    }
+
+    fun togglePajaroVerdeMode(enabled: Boolean) {
+        _pajaroVerdeMode.value = enabled
+    }
+
+    fun setPremium(enabled: Boolean) {
+        _isPremium.value = enabled
     }
 }

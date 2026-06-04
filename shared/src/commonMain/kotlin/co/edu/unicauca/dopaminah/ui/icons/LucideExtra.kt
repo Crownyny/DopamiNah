@@ -137,3 +137,29 @@ val LucideShieldAlert: ImageVector by lazy {
         }
     }.build()
 }
+
+val LucideSun: ImageVector by lazy {
+    ImageVector.Builder(name = "Sun", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(12f, 2f); verticalLineTo(4f)
+            moveTo(12f, 20f); verticalLineTo(22f)
+            moveTo(4.93f, 4.93f); lineTo(6.34f, 6.34f)
+            moveTo(17.66f, 17.66f); lineTo(19.07f, 19.07f)
+            moveTo(2f, 12f); horizontalLineTo(4f)
+            moveTo(20f, 12f); horizontalLineTo(22f)
+            moveTo(6.34f, 17.66f); lineTo(4.93f, 19.07f)
+            moveTo(19.07f, 4.93f); lineTo(17.66f, 6.34f)
+        }
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(12f, 17f); arcTo(5f, 5f, 0f, true, false, 12f, 7f); arcTo(5f, 5f, 0f, false, false, 12f, 17f); close()
+        }
+    }.build()
+}
+
+val LucideZap: ImageVector by lazy {
+    ImageVector.Builder(name = "Zap", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(13f, 2f); lineTo(4f, 14f); horizontalLineTo(12f); lineTo(11f, 22f); lineTo(20f, 10f); horizontalLineTo(12f); close()
+        }
+    }.build()
+}
