@@ -2,7 +2,6 @@ package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,20 +30,11 @@ fun AppUsageItem(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    usageSummary.appName.take(2).uppercase(),
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface,
-                    fontSize = 16.sp
-                )
-            }
+            AppIconImage(
+                iconBytes = usageSummary.iconBytes,
+                appName = usageSummary.appName,
+                size = 50.dp
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(usageSummary.appName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colorScheme.onSurface, maxLines = 1)

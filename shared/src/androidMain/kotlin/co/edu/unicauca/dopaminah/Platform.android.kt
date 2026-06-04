@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 actual fun getPlatformName(): String = "Android ${android.os.Build.VERSION.SDK_INT}"
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()
 
 actual class DevicePreferences(private val context: Context) {
     private val prefs: SharedPreferences =

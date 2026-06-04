@@ -13,7 +13,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
@@ -36,26 +35,20 @@ class DashboardViewModel(
     private val _totalDailyUsageMs = MutableStateFlow(0L)
     val totalDailyUsageMs: StateFlow<Long> = _totalDailyUsageMs.asStateFlow()
 
-    private val _dailyUsageStats = MutableStateFlow<List<AppUsageSummary>>(listOf(
-        AppUsageSummary("com.instagram.android", "Instagram", 3600000L, 10, 0L),
-        AppUsageSummary("com.whatsapp", "WhatsApp", 1800000L, 25, 0L),
-        AppUsageSummary("com.youtube", "YouTube", 1200000L, 5, 0L),
-        AppUsageSummary("com.tiktok", "TikTok", 900000L, 8, 0L),
-        AppUsageSummary("com.twitter", "Twitter", 600000L, 12, 0L),
-    ))
+    private val _dailyUsageStats = MutableStateFlow<List<AppUsageSummary>>(emptyList())
     val dailyUsageStats: StateFlow<List<AppUsageSummary>> = _dailyUsageStats.asStateFlow()
 
-    private val _hasUsagePermission = MutableStateFlow(true)
+    private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
-    private val _appLimitCards = MutableStateFlow<List<AppLimitCardInfo>>(listOf(
-        AppLimitCardInfo("com.instagram.android", "Instagram", 1800000L, 3600000L),
-        AppLimitCardInfo("com.youtube", "YouTube", 1200000L, 2400000L),
-    ))
+    private val _appLimitCards = MutableStateFlow<List<AppLimitCardInfo>>(emptyList())
     val appLimitCards: StateFlow<List<AppLimitCardInfo>> = _appLimitCards.asStateFlow()
 
     init {
-        if (gamificationRepository != null) loadGamificationStats()
+        if (gamificationRepository != null) {
+            loadGamificationStats()
+            checkAndIncrementStreak()
+        }
         if (deviceUsageRepository != null) loadUnlockStats()
         if (getDashboardDataUseCase != null) observeAppLimits()
     }
@@ -92,7 +85,7 @@ class DashboardViewModel(
         }
     }
 
-    fun checkAndIncrementStreak() {
+    private fun checkAndIncrementStreak() {
         scope.launch { updateStreakUseCase?.execute() }
     }
 

@@ -3,6 +3,7 @@ package co.edu.unicauca.dopaminah
 import java.util.prefs.Preferences
 
 actual fun getPlatformName(): String = "Java ${System.getProperty("java.version")}"
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()
 
 actual class DevicePreferences {
     private val prefs: Preferences = Preferences.userNodeForPackage(DevicePreferences::class.java)

@@ -6,6 +6,6 @@ class UpdateStreakUseCase(
     private val gamificationRepository: GamificationRepository
 ) {
     suspend fun execute() {
-        gamificationRepository.incrementStreakAndPoints()
+        gamificationRepository.checkAndIncrementStreak()
     }
 }

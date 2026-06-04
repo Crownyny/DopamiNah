@@ -2,6 +2,8 @@ package co.edu.unicauca.dopaminah
 
 import web.navigator.navigator
 
+actual fun currentTimeMillis(): Long = js("Date.now()").unsafeCast<Long>()
+
 actual fun getPlatformName(): String {
     val userAgent = navigator.userAgent
     val browserList = listOf("Chrome", "Firefox", "Safari", "Edge")

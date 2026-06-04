@@ -1,8 +1,10 @@
 package co.edu.unicauca.dopaminah
 
+import platform.Foundation.NSDate
 import platform.Foundation.NSUserDefaults
 
 actual fun getPlatformName(): String = "iOS ${platform.UIKit.UIDevice.currentDevice.systemVersion}"
+actual fun currentTimeMillis(): Long = (NSDate().timeIntervalSince1970 * 1000).toLong()
 
 actual class DevicePreferences {
     private val defaults = NSUserDefaults(suiteName = "group.com.dopaminah") ?: NSUserDefaults.standardUserDefaults

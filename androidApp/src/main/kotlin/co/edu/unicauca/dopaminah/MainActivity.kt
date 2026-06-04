@@ -1,25 +1,102 @@
 package co.edu.unicauca.dopaminah
 
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
+import co.edu.unicauca.dopaminah.data.repository.GamificationRepositoryImpl
+import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
+import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        val deviceRepo = DeviceUsageRepositoryImpl(applicationContext)
+        val gamificationRepo = GamificationRepositoryImpl(DevicePreferences(applicationContext))
+        val updateStreakUseCase = UpdateStreakUseCase(gamificationRepo)
+
         setContent {
-            App()
+            var permissionGranted by remember {
+                mutableStateOf(hasUsageStatsPermission(this@MainActivity))
+            }
+
+            DisposableEffect(this@MainActivity) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        permissionGranted = hasUsageStatsPermission(this@MainActivity)
+                    }
+                }
+                lifecycle.addObserver(observer)
+                onDispose { lifecycle.removeObserver(observer) }
+            }
+
+            val permissionState = remember(permissionGranted) {
+                PermissionState(
+                    hasUsagePermission = permissionGranted,
+                    onRequestUsagePermission = {
+                        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        startActivity(intent)
+                    },
+                    onRequestNotificationPermission = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermissionLauncher.launch(
+                                android.Manifest.permission.POST_NOTIFICATIONS
+                            )
+                        }
+                    },
+                    onPermissionGranted = {
+                        permissionGranted = true
+                    }
+                )
+            }
+
+            val dashboardViewModel = remember(permissionGranted) {
+                if (permissionGranted) {
+                    DashboardViewModel(
+                        gamificationRepository = gamificationRepo,
+                        deviceUsageRepository = deviceRepo,
+                        updateStreakUseCase = updateStreakUseCase
+                    )
+                } else {
+                    DashboardViewModel.createEmpty()
+                }
+            }
+
+            App(
+                permissionState = permissionState,
+                dashboardViewModel = dashboardViewModel
+            )
         }
     }
-}
 
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
+    private fun hasUsageStatsPermission(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE)
+                as android.app.AppOpsManager
+        val mode = appOps.unsafeCheckOpNoThrow(
+            android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+            Process.myUid(),
+            context.packageName
+        )
+        return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
 }

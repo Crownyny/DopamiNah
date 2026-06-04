@@ -5,5 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface GamificationRepository {
     fun getGamificationStats(): Flow<UserGamificationStats>
-    suspend fun incrementStreakAndPoints()
+    suspend fun checkAndIncrementStreak()
+    suspend fun getStreak(): Int
+    suspend fun getBestStreak(): Int
+    suspend fun getTotalPoints(): Int
 }

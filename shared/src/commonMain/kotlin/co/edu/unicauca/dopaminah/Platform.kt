@@ -1,6 +1,7 @@
 package co.edu.unicauca.dopaminah
 
 expect fun getPlatformName(): String
+expect fun currentTimeMillis(): Long
 
 expect class DevicePreferences {
     fun getInt(key: String, default: Int): Int

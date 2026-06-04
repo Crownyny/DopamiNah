@@ -1,5 +1,10 @@
 package co.edu.unicauca.dopaminah
 
+@OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+internal val currentTimeMillisJs: Double = js("Date.now()")
+
+actual fun currentTimeMillis(): Long = currentTimeMillisJs.toLong()
+
 actual fun getPlatformName(): String = "Web with Kotlin/Wasm"
 
 actual class DevicePreferences {
