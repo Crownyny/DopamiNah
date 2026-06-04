@@ -6,12 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -49,8 +50,8 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleLight
 
-private val MIN_CARD_WIDTH = 220.dp
-private val GRID_GAP = 14.dp
+private val MIN_CARD_WIDTH = 240.dp
+private val GRID_GAP = 12.dp
 
 @Composable
 fun WebGoalsScreen(viewModel: WebGoalsViewModel? = null) {
@@ -104,7 +105,7 @@ fun WebGoalsScreen(viewModel: WebGoalsViewModel? = null) {
                     }
 
                     else -> {
-                        BoxWithConstraints(modifier = Modifier.widthIn(max = 960.dp)) {
+                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                             val isDesktop = maxWidth >= 768.dp
                             Column(
                                 modifier = Modifier
@@ -162,11 +163,16 @@ private fun GoalGrid(
             Column(verticalArrangement = Arrangement.spacedBy(GRID_GAP)) {
                 rows.forEach { chunk ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
                     ) {
                         chunk.forEach { item ->
-                            Box(modifier = Modifier.weight(1f)) {
+                            Box(modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                            ) {
                                 if (item == null) {
                                     AddGoalGridCard(onClick = onAddClick)
                                 } else {
@@ -244,18 +250,17 @@ private fun TipCard() {
 @Composable
 private fun AddGoalGridCard(onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 180.dp)
-                .clip(RoundedCornerShape(18.dp))
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
                 .background(DopaminahPurpleLight.copy(alpha = 0.12f))
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
@@ -263,8 +268,8 @@ private fun AddGoalGridCard(onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(DopaminahPurple.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -272,19 +277,19 @@ private fun AddGoalGridCard(onClick: () -> Unit) {
                         imageVector = LucidePlus,
                         contentDescription = "Agregar limite",
                         tint = DopaminahPurple,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = "Agregar limite",
-                    fontSize = 15.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = DopaminahPurple
                 )
                 Text(
                     text = "Nuevo sitio web",
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     color = DopaminahPurple.copy(alpha = 0.5f)
                 )
             }

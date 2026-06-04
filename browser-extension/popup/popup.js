@@ -1,16 +1,15 @@
 let selectedMinutes = 0;
+const MAX_RETRIES = 3;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadGoals();
+  await loadGoalsWithRetry();
 
   document.getElementById('add-goal-btn').addEventListener('click', () => {
     document.getElementById('add-goal-form').classList.remove('hidden');
     document.getElementById('goals-section').classList.add('hidden');
   });
 
-  document.getElementById('cancel-goal-btn').addEventListener('click', () => {
-    hideForm();
-  });
+  document.getElementById('cancel-goal-btn').addEventListener('click', hideForm);
 
   document.getElementById('save-goal-btn').addEventListener('click', saveGoal);
 
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  document.getElementById('custom-minutes').addEventListener('input', function() {
+  document.getElementById('custom-minutes').addEventListener('input', function () {
     if (this.value) {
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       selectedMinutes = parseInt(this.value);
@@ -32,9 +31,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('sync-btn').addEventListener('click', syncWithWebApp);
 });
 
+async function sendMessageWithRetry(msg, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await chrome.runtime.sendMessage(msg);
+    } catch (e) {
+      if (i === retries - 1) throw e;
+      await new Promise(r => setTimeout(r, 300 * (i + 1)));
+    }
+  }
+}
+
+async function loadGoalsWithRetry() {
+  try {
+    await loadGoals();
+  } catch {
+    setTimeout(loadGoalsWithRetry, 500);
+  }
+}
+
 async function loadGoals() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_GOALS' });
-  const timeResponse = await chrome.runtime.sendMessage({ type: 'GET_DOMAIN_TIME' });
+  const response = await sendMessageWithRetry({ type: 'GET_GOALS' });
+  const timeResponse = await sendMessageWithRetry({ type: 'GET_DOMAIN_TIME' });
   const goals = response.goals || [];
   const domainTime = timeResponse.domainTime || {};
   const today = new Date().toISOString().split('T')[0];
@@ -72,8 +90,8 @@ async function loadGoals() {
       </div>
       <div class="goal-time">
         ${goal.timeLimitMinutes === 0
-          ? 'Sin limite de tiempo (bloqueo inmediato)'
-          : `${spentMinutes} min / ${goal.timeLimitMinutes} min (${remaining} min restantes)`}
+          ? 'Bloqueo inmediato — sin tiempo permitido'
+          : `${spentMinutes} min de ${goal.timeLimitMinutes} min (${remaining} min restantes)`}
       </div>
       <div class="progress-bar">
         <div class="progress-fill ${progressClass}" style="width: ${Math.min(progress * 100, 100)}%"></div>
@@ -89,15 +107,15 @@ async function loadGoals() {
 
   document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await chrome.runtime.sendMessage({ type: 'TOGGLE_GOAL', id: btn.dataset.id });
-      await loadGoals();
+      await sendMessageWithRetry({ type: 'TOGGLE_GOAL', id: btn.dataset.id });
+      await loadGoalsWithRetry();
     });
   });
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await chrome.runtime.sendMessage({ type: 'DELETE_GOAL', id: btn.dataset.id });
-      await loadGoals();
+      await sendMessageWithRetry({ type: 'DELETE_GOAL', id: btn.dataset.id });
+      await loadGoalsWithRetry();
     });
   });
 }
@@ -110,7 +128,7 @@ async function saveGoal() {
     return;
   }
 
-  const response = await chrome.runtime.sendMessage({
+  const response = await sendMessageWithRetry({
     type: 'ADD_GOAL',
     goal: { url, timeLimitMinutes: selectedMinutes }
   });
@@ -121,7 +139,7 @@ async function saveGoal() {
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('[data-minutes="0"]').classList.add('active');
     hideForm();
-    await loadGoals();
+    await loadGoalsWithRetry();
   } else {
     alert(response.error || 'Error al crear la meta');
   }
@@ -133,7 +151,7 @@ function hideForm() {
 }
 
 async function syncWithWebApp() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_GOALS' });
+  const response = await sendMessageWithRetry({ type: 'GET_GOALS' });
   const goals = response.goals || [];
 
   if (goals.length === 0) {
@@ -159,9 +177,9 @@ async function syncWithWebApp() {
       });
       alert('Metas sincronizadas con DopamiNah web');
     } else {
-      alert('No se encontro la pestana de DopamiNah web. Abrela e intenta de nuevo.');
+      alert('No se encontró la pestaña de DopamiNah web. Ábrela e intenta de nuevo.');
     }
   } catch {
-    alert('Error al sincronizar. Asegurate de tener DopamiNah abierto.');
+    alert('Error al sincronizar. Asegúrate de tener DopamiNah abierto.');
   }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.currentTimeMillis
 import co.edu.unicauca.dopaminah.ui.icons.*
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalUiModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsState
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
@@ -29,6 +30,8 @@ fun WebStatsScreen(
 ) {
     val repo = navRepository ?: remember { WebNavigationRepository() }
     val goalsState by goalsViewModel?.state?.collectAsState() ?: remember { mutableStateOf(null) }
+    val goals = goalsState?.webGoals ?: emptyList()
+    val totalTodayMinutes = goals.sumOf { it.todaySpentMinutes }
     var now by remember { mutableStateOf(currentTimeMillis()) }
 
     LaunchedEffect(Unit) {
@@ -56,7 +59,7 @@ fun WebStatsScreen(
                     .padding(top = 16.dp, start = 24.dp, end = 24.dp)
             ) {
                 Text(
-                    text = "Navegaci\u00f3n Web",
+                    text = "Navegaci\u00f3n",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -77,14 +80,15 @@ fun WebStatsScreen(
             contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp)
         ) {
             item {
-                SessionCard(
-                    repo = repo,
+                TodayCard(
+                    totalMinutes = totalTodayMinutes,
+                    goalCount = goals.size,
                     now = now
                 )
             }
 
             item {
-                TopDomainsCard(repo = repo)
+                TopDomainsCard(goals = goals)
             }
 
             item {
@@ -95,18 +99,13 @@ fun WebStatsScreen(
 }
 
 @Composable
-private fun SessionCard(
-    repo: WebNavigationRepository,
-    now: Long
-) {
-    val durationMs = if (repo.sessionStartTime > 0L) now - repo.sessionStartTime else 0L
-    val seconds = (durationMs / 1000) % 60
-    val minutes = (durationMs / 60000) % 60
-    val hours = durationMs / 3600000
+private fun TodayCard(totalMinutes: Int, goalCount: Int, now: Long) {
+    val hours = totalMinutes / 60
+    val mins = totalMinutes % 60
     val durationText = when {
-        hours > 0 -> "${hours}h ${minutes}m ${seconds}s"
-        minutes > 0 -> "${minutes}m ${seconds}s"
-        else -> "${seconds}s"
+        hours > 0 -> "${hours}h ${mins}m"
+        mins > 0 -> "${mins}m"
+        else -> "0m"
     }
 
     Card(
@@ -123,7 +122,7 @@ private fun SessionCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Sesi\u00f3n actual",
+                    "Tiempo hoy",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
@@ -146,13 +145,9 @@ private fun SessionCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem(LucideChevronRight, "${repo.sessionPages}", "P\u00e1ginas")
-                StatItem(LucideGlobe, "${repo.totalVisits}", "Total visitas")
-                StatItem(
-                    if (repo.isFocusMode) LucideShieldAlert else LucideShield,
-                    if (repo.isFocusMode) "Activo" else "Inactivo",
-                    "Modo Enfoque"
-                )
+                StatItem(LucideTarget, "${goalCount}", "Sitios")
+                StatItem(LucideGlobe, "${totalMinutes}", "Minutos")
+                StatItem(LucideChevronRight, if (totalMinutes > 0) "Activo" else "Inactivo", "Seguimiento")
             }
         }
     }
@@ -169,8 +164,8 @@ private fun StatItem(icon: ImageVector, value: String, label: String) {
 }
 
 @Composable
-private fun TopDomainsCard(repo: WebNavigationRepository) {
-    val sorted = repo.domainStats.sortedByDescending { it.visitCount }
+private fun TopDomainsCard(goals: List<WebGoalUiModel>) {
+    val sorted = goals.sortedByDescending { it.todaySpentMinutes }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -186,7 +181,7 @@ private fun TopDomainsCard(repo: WebNavigationRepository) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Sitios m\u00e1s visitados",
+                    "Sitios con seguimiento",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
@@ -196,13 +191,13 @@ private fun TopDomainsCard(repo: WebNavigationRepository) {
 
             if (sorted.isEmpty()) {
                 Text(
-                    "A\u00fan no has visitado ning\u00fan sitio.",
+                    "A\u00fan no has agregado sitios para controlar.",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
             } else {
-                sorted.take(10).forEachIndexed { idx, stat ->
+                sorted.take(10).forEachIndexed { idx, goal ->
                     if (idx > 0) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 4.dp),
@@ -225,13 +220,13 @@ private fun TopDomainsCard(repo: WebNavigationRepository) {
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            stat.host,
+                            goal.domain,
                             fontSize = 14.sp,
                             modifier = Modifier.weight(1f),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "${stat.visitCount}",
+                            formatMinutes(goal.todaySpentMinutes),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -241,6 +236,13 @@ private fun TopDomainsCard(repo: WebNavigationRepository) {
             }
         }
     }
+}
+
+private fun formatMinutes(minutes: Int): String {
+    if (minutes < 60) return "${minutes}m"
+    val h = minutes / 60
+    val r = minutes % 60
+    return if (r > 0) "${h}h ${r}m" else "${h}h"
 }
 
 @Composable

@@ -1,6 +1,7 @@
 const ALARM_PERIOD_MINUTES = 0.25;
 const STORAGE_KEY_GOALS = 'goals';
 const STORAGE_KEY_DOMAIN_TIME = 'domainTime';
+const STORAGE_KEY_STATE = 'swState';
 const BLOCKED_URL = chrome.runtime.getURL('blocked/blocked.html');
 
 let state = {
@@ -8,25 +9,44 @@ let state = {
   sessionStartTime: null,
 };
 
+// ── Lifecycle ───────────────────────────────────────────
+
 chrome.runtime.onInstalled.addListener(async () => {
-  await initialize();
+  await restoreState();
+  await checkDailyReset();
+  await updateBlockRules();
   chrome.alarms.create('timeTick', { periodInMinutes: ALARM_PERIOD_MINUTES });
   chrome.alarms.create('dailyReset', { periodInMinutes: 60 });
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  await initialize();
+  await restoreState();
+  await checkDailyReset();
+  await updateBlockRules();
   chrome.alarms.create('timeTick', { periodInMinutes: ALARM_PERIOD_MINUTES });
   chrome.alarms.create('dailyReset', { periodInMinutes: 60 });
 });
 
-async function initialize() {
-  const stored = await chrome.storage.session.get(['currentDomain', 'sessionStartTime']);
-  if (stored.currentDomain) state.currentDomain = stored.currentDomain;
-  if (stored.sessionStartTime) state.sessionStartTime = stored.sessionStartTime;
-  await checkDailyReset();
-  await updateBlockRules();
+// ── State persistence (survives SW restart) ────────────
+
+async function restoreState() {
+  const stored = await chrome.storage.local.get(STORAGE_KEY_STATE);
+  if (stored[STORAGE_KEY_STATE]) {
+    state.currentDomain = stored[STORAGE_KEY_STATE].currentDomain || null;
+    state.sessionStartTime = stored[STORAGE_KEY_STATE].sessionStartTime || null;
+  }
 }
+
+async function persistState() {
+  await chrome.storage.local.set({
+    [STORAGE_KEY_STATE]: {
+      currentDomain: state.currentDomain,
+      sessionStartTime: state.sessionStartTime,
+    }
+  });
+}
+
+// ── Web navigation tracking ────────────────────────────
 
 chrome.webNavigation.onCommitted.addListener(async (details) => {
   if (details.frameId !== 0) return;
@@ -36,11 +56,10 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
   await accumulateTime();
   state.currentDomain = domain;
   state.sessionStartTime = Date.now();
-  await chrome.storage.session.set({
-    currentDomain: domain,
-    sessionStartTime: state.sessionStartTime
-  });
+  await persistState();
 });
+
+// ── Alarms ─────────────────────────────────────────────
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'timeTick') {
@@ -50,6 +69,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await checkDailyReset();
   }
 });
+
+// ── Time accumulation ──────────────────────────────────
 
 async function accumulateTime() {
   if (!state.currentDomain || !state.sessionStartTime) return;
@@ -72,9 +93,12 @@ async function accumulateTime() {
   domainTime[domain].todayMinutes += elapsedMinutes;
   state.sessionStartTime = now;
 
-  await chrome.storage.session.set({ sessionStartTime: now });
+  await persistState();
   await chrome.storage.local.set({ [STORAGE_KEY_DOMAIN_TIME]: domainTime });
+  broadcastState();
 }
+
+// ── DNR rules ──────────────────────────────────────────
 
 async function updateBlockRules() {
   const data = await chrome.storage.local.get([STORAGE_KEY_GOALS, STORAGE_KEY_DOMAIN_TIME]);
@@ -82,13 +106,15 @@ async function updateBlockRules() {
   const domainTime = data[STORAGE_KEY_DOMAIN_TIME] || {};
   const today = getTodayDate();
 
-  const blockedDomains = [];
+  const blockedEntries = [];
   for (const goal of goals) {
     if (!goal.isActive) continue;
     const dt = domainTime[goal.domain];
     const spentMinutes = dt && dt.date === today ? dt.todayMinutes : 0;
-    if (goal.timeLimitMinutes === 0 || spentMinutes >= goal.timeLimitMinutes) {
-      blockedDomains.push(goal.domain);
+    if (goal.timeLimitMinutes === 0) {
+      blockedEntries.push({ domain: goal.domain, reason: 'immediate' });
+    } else if (spentMinutes >= goal.timeLimitMinutes) {
+      blockedEntries.push({ domain: goal.domain, reason: 'timeout' });
     }
   }
 
@@ -98,17 +124,17 @@ async function updateBlockRules() {
     await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: existingIds });
   }
 
-  if (blockedDomains.length === 0) return;
+  if (blockedEntries.length === 0) return;
 
-  const newRules = blockedDomains.map((domain, index) => ({
+  const newRules = blockedEntries.map((entry, index) => ({
     id: index + 1,
     priority: 1,
     action: {
       type: 'redirect',
-      redirect: { url: `${BLOCKED_URL}?domain=${encodeURIComponent(domain)}` }
+      redirect: { url: `${BLOCKED_URL}?domain=${encodeURIComponent(entry.domain)}&reason=${entry.reason}` }
     },
     condition: {
-      urlFilter: `||${domain}`,
+      urlFilter: `||${entry.domain}`,
       resourceTypes: ['main_frame']
     }
   }));
@@ -132,7 +158,10 @@ async function unblockDomain(domain) {
     goal.isActive = false;
     await chrome.storage.local.set({ [STORAGE_KEY_GOALS]: goals });
   }
+  broadcastState();
 }
+
+// ── Message handlers ───────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
@@ -185,6 +214,7 @@ async function handleAddGoal(goalData, sendResponse) {
   goals.push(newGoal);
   await chrome.storage.local.set({ [STORAGE_KEY_GOALS]: goals });
   await updateBlockRules();
+  broadcastState();
   sendResponse({ success: true, goal: newGoal });
 }
 
@@ -193,6 +223,7 @@ async function handleDeleteGoal(id, sendResponse) {
   const goals = (data[STORAGE_KEY_GOALS] || []).filter(g => g.id !== id);
   await chrome.storage.local.set({ [STORAGE_KEY_GOALS]: goals });
   await updateBlockRules();
+  broadcastState();
   sendResponse({ success: true });
 }
 
@@ -205,6 +236,7 @@ async function handleToggleGoal(id, sendResponse) {
     await chrome.storage.local.set({ [STORAGE_KEY_GOALS]: goals });
     await updateBlockRules();
   }
+  broadcastState();
   sendResponse({ success: true });
 }
 
@@ -228,8 +260,27 @@ async function handleSyncGoals(externalGoals, sendResponse) {
   }
   await chrome.storage.local.set({ [STORAGE_KEY_GOALS]: Array.from(goalMap.values()) });
   await updateBlockRules();
+  broadcastState();
   sendResponse({ success: true });
 }
+
+// ── Push notifications (observer pattern) ─────────────
+
+async function broadcastState() {
+  const data = await chrome.storage.local.get([STORAGE_KEY_GOALS, STORAGE_KEY_DOMAIN_TIME]);
+  const tabs = await chrome.tabs.query({ url: '*://*/*' });
+  for (const tab of tabs) {
+    try {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'SYNC_FROM_EXTENSION',
+        goals: data[STORAGE_KEY_GOALS] || [],
+        domainTime: data[STORAGE_KEY_DOMAIN_TIME] || {}
+      });
+    } catch (_) { /* tab may not have content script */ }
+  }
+}
+
+// ── Daily reset ────────────────────────────────────────
 
 async function checkDailyReset() {
   const today = getTodayDate();
@@ -246,6 +297,8 @@ async function checkDailyReset() {
     await chrome.storage.local.set({ [STORAGE_KEY_DOMAIN_TIME]: domainTime });
   }
 }
+
+// ── Helpers ────────────────────────────────────────────
 
 function extractDomain(url) {
   try {

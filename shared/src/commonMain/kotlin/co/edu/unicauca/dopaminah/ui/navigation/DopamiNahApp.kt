@@ -34,7 +34,7 @@ enum class AppTab(val route: String, val title: String) {
     DASHBOARD("dashboard", "Inicio"),
     STATS("stats", "Stats"),
     GOALS("goals", "Metas"),
-    WEB("web", "Web"),
+    WEB("navegacion", "Navegación"),
     ACHIEVEMENTS("achievements", "Logros"),
     SETTINGS("settings", "Ajustes")
 }
@@ -105,6 +105,9 @@ private fun MainContent(
                         vm.addGoal(domain, minutes)
                     }
                 }
+                SyncBridge.onDomainTimeSync = { domain, spentMinutes ->
+                    vm.setAccumulatedMinutes(domain, spentMinutes)
+                }
                 vm.onSyncOut = { uiModels ->
                     val json = buildString {
                         append("[")
@@ -158,8 +161,8 @@ private fun MainContent(
                     }
                     if (AppTab.WEB !in hiddenTabs) {
                         NavigationBarItem(
-                            icon = { Icon(LucideGlobe, contentDescription = "Web") },
-                            label = { Text("Web") },
+                            icon = { Icon(LucideGlobe, contentDescription = "Navegación") },
+                            label = { Text("Navegación") },
                             selected = selectedTab == AppTab.WEB,
                             onClick = { selectedTab = AppTab.WEB }
                         )

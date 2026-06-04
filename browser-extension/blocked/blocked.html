@@ -3,100 +3,590 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sitio bloqueado - DopamiNah</title>
+  <title>DopamiNah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #e0e0e0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      overflow: hidden;
     }
-    .container {
+
+    /* ── Immediate block card ── */
+
+    body.mode-immediate {
+      background: #0f0a0a;
+    }
+
+    body.mode-immediate::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 30% 20%, rgba(220, 38, 38, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 500px 500px at 70% 80%, rgba(185, 28, 28, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card-immediate {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      background: linear-gradient(160deg, rgba(220, 38, 38, 0.08), rgba(127, 29, 29, 0.05));
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(220, 38, 38, 0.15);
+      border-radius: 28px;
+      padding: 48px 36px 36px;
       text-align: center;
-      max-width: 480px;
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow:
+        0 0 0 1px rgba(220, 38, 38, 0.08),
+        0 32px 80px -8px rgba(0,0,0,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.04);
     }
-    .icon {
+
+    .card-immediate .icon-block {
       width: 80px;
       height: 80px;
-      background: #7c3aed;
-      border-radius: 50%;
+      margin: 0 auto 20px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(185, 28, 28, 0.08));
+      border: 1px solid rgba(220, 38, 38, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 24px;
-      font-size: 40px;
+      position: relative;
     }
-    h1 {
-      font-size: 28px;
+
+    .card-immediate .icon-block::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 27px;
+      background: conic-gradient(from 0deg, transparent, rgba(220,38,38,0.25), transparent, rgba(220,38,38,0.15), transparent);
+      opacity: 0.6;
+      z-index: -1;
+      animation: spin 5s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .card-immediate .icon-block svg {
+      width: 38px;
+      height: 38px;
+      fill: none;
+      stroke: #ef4444;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .card-immediate .badge-imm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px 5px 10px;
+      border-radius: 100px;
+      background: rgba(220, 38, 38, 0.10);
+      border: 1px solid rgba(220, 38, 38, 0.12);
+      font-size: 11px;
       font-weight: 700;
-      margin-bottom: 8px;
-      color: #f0f0f0;
-    }
-    .domain {
-      font-size: 18px;
-      color: #fca5a5;
-      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #f87171;
       margin-bottom: 16px;
     }
-    p {
-      font-size: 14px;
-      color: #9ca3af;
-      line-height: 1.6;
-      margin-bottom: 32px;
+
+    .card-immediate .badge-imm .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulseDot 1.2s ease-in-out infinite;
     }
-    .btn {
-      display: inline-block;
-      padding: 12px 32px;
-      border-radius: 8px;
-      border: none;
+
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+    .card-immediate h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #fef2f2;
+      margin-bottom: 4px;
+    }
+
+    .card-immediate .domain-imm {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+      padding: 6px 16px;
+      border-radius: 10px;
+      background: rgba(220, 38, 38, 0.06);
+      border: 1px solid rgba(220, 38, 38, 0.10);
       font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      margin: 0 8px;
+      font-weight: 600;
+      color: #fca5a5;
     }
-    .btn-primary {
-      background: #7c3aed;
+
+    .card-immediate .domain-imm svg {
+      width: 14px; height: 14px;
+      fill: none; stroke: #f87171;
+      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .card-immediate .desc-imm {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #a0a0b8;
+      margin: 12px 0 28px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .card-immediate .desc-imm strong { color: #e4e4f0; }
+
+    .card-immediate .actions-imm { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Timeout card (existing design refined) ── */
+
+    body.mode-timeout {
+      background: #07070e;
+    }
+
+    body.mode-timeout::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 700px 500px at 15% 20%, rgba(124, 58, 237, 0.10) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 600px at 85% 80%, rgba(248, 113, 113, 0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body.mode-timeout::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-timeout {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 24px;
+      padding: 0;
+      text-align: center;
+      animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(124, 58, 237, 0.06),
+        0 32px 80px -8px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .card-timeout .header {
+      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(248,113,113,0.08));
+      padding: 40px 40px 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-timeout .header::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      background: radial-gradient(ellipse at 30% 40%, rgba(124,58,237,0.08), transparent 60%);
+      pointer-events: none;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 104px; height: 104px;
+      margin: 0 auto 20px;
+    }
+    .ring-container svg {
+      transform: rotate(-90deg);
+      width: 104px; height: 104px;
+      filter: drop-shadow(0 0 20px rgba(248, 113, 113, 0.15));
+    }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
+    .ring-fg {
+      fill: none; stroke: url(#ringGradient); stroke-width: 5;
+      stroke-linecap: round; stroke-dasharray: 282.7; stroke-dashoffset: 282.7;
+      animation: fillRing 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fillRing {
+      from { stroke-dashoffset: 282.7; }
+      to { stroke-dashoffset: var(--offset-to, 0); }
+    }
+    .ring-center {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ring-center svg {
+      width: 28px; height: 28px;
+      stroke: #f87171; fill: none; stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      animation: iconPop 0.5s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes iconPop {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .badge-to {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px 5px 10px;
+      border-radius: 100px;
+      background: rgba(248, 113, 113, 0.10);
+      border: 1px solid rgba(248, 113, 113, 0.12);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #f87171;
+      position: relative;
+      z-index: 1;
+    }
+    .badge-to .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #f87171;
+      animation: pulseDot 1.2s ease-in-out infinite;
+    }
+
+    .card-timeout .body { padding: 28px 40px 36px; }
+
+    .card-timeout h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #f1f1f7 40%, #c7c7e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .domain-to {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 10px 0;
+      padding: 5px 14px;
+      border-radius: 8px;
+      background: rgba(248, 113, 113, 0.06);
+      border: 1px solid rgba(248, 113, 113, 0.10);
+      font-size: 14px;
+      font-weight: 600;
+      color: #fca5a5;
+    }
+    .domain-to svg {
+      width: 12px; height: 12px;
+      fill: none; stroke: #f87171;
+      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .desc-to {
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #9898b0;
+      margin: 10px 0 24px;
+      max-width: 320px;
+      margin-left: auto; margin-right: auto;
+    }
+    .desc-to strong { color: #e4e4f0; font-weight: 600; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .stat {
+      padding: 14px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1px;
+    }
+    .stat-value.exceeded { color: #f87171; }
+    .stat-value.ok { color: #6ee7b7; }
+    .stat-label {
+      font-size: 10px;
+      color: #6b6b85;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    /* ── Shared buttons ── */
+
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-red {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
       color: white;
+      box-shadow: 0 4px 24px rgba(220, 38, 38, 0.2);
+    }
+    .btn-red:hover {
+      box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+      transform: translateY(-1px);
+    }
+    .btn-red:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      box-shadow: 0 4px 24px rgba(124, 58, 237, 0.2);
     }
     .btn-primary:hover {
-      background: #6d28d9;
+      box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+      transform: translateY(-1px);
     }
-    .btn-secondary {
-      background: transparent;
-      color: #9ca3af;
-      border: 1px solid #4b5563;
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: #9898b0;
+      border: 1px solid rgba(255,255,255,0.06);
     }
-    .btn-secondary:hover {
-      background: #374151;
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.07);
+      color: #e4e4f0;
     }
-    .actions {
+    .btn-ghost-red {
+      background: rgba(220, 38, 38, 0.06);
+      color: #fca5a5;
+      border: 1px solid rgba(220, 38, 38, 0.10);
+    }
+    .btn-ghost-red:hover {
+      background: rgba(220, 38, 38, 0.10);
+      color: #fef2f2;
+    }
+
+    .btn-icon {
+      width: 16px; height: 16px;
+      fill: none; stroke: currentColor;
+      stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      padding: 14px 24px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.10);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      font-size: 14px; font-weight: 500;
+      opacity: 0;
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 100;
       display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.toast-red {
+      background: rgba(220, 38, 38, 0.10);
+      border-color: rgba(220, 38, 38, 0.15);
+      color: #fca5a5;
+    }
+    .toast-icon {
+      width: 18px; height: 18px;
+      fill: none; stroke: currentColor;
+      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    @media (max-width: 480px) {
+      .card-immediate { padding: 36px 24px 28px; }
+      .card-timeout .header { padding: 32px 24px 24px; }
+      .card-timeout .body { padding: 24px 24px 28px; }
+      .ring-container { width: 88px; height: 88px; }
+      .ring-container svg { width: 88px; height: 88px; }
+      .card-immediate h1 { font-size: 22px; }
+      .card-timeout h1 { font-size: 19px; }
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">&#128274;</div>
-    <h1>Sitio bloqueado</h1>
-    <div class="domain" id="domain-name">cargando...</div>
-    <p>
-      Has alcanzado el limite de tiempo para este sitio.<br>
-      DopamiNah ha bloqueado el acceso para ayudarte a mantener el enfoque.
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f87171"/>
+        <stop offset="50%" stop-color="#fb923c"/>
+        <stop offset="100%" stop-color="#f87171"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Immediate block card -->
+  <div class="card-immediate" id="card-immediate">
+    <div class="icon-block">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        <circle cx="12" cy="16.5" r="1.2"/>
+        <line x1="12" y1="14" x2="12" y2="13"/>
+      </svg>
+    </div>
+
+    <div class="badge-imm">
+      <span class="dot"></span>
+      Sitio restringido
+    </div>
+
+    <h1>Acceso bloqueado</h1>
+
+    <div class="domain-imm">
+      <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+      <span id="domain-text-imm">cargando…</span>
+    </div>
+
+    <p class="desc-imm">
+      Este sitio está restringido en tus metas de <strong>DopamiNah</strong>.
+      No tiene tiempo permitido.
     </p>
-    <div class="actions">
-      <button class="btn btn-secondary" onclick="history.back()">Volver atras</button>
-      <button class="btn btn-primary" id="unblock-btn">Desbloquear por hoy</button>
+
+    <div class="actions-imm">
+      <button class="btn btn-red" id="unblock-btn-imm">
+        <svg class="btn-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+        Desbloquear por hoy
+      </button>
+      <button class="btn btn-ghost-red" onclick="history.back()">
+        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Volver atrás
+      </button>
     </div>
   </div>
+
+  <!-- Timeout card -->
+  <div class="card-timeout hidden" id="card-timeout">
+    <div class="header">
+      <div class="ring-container">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" cx="50" cy="50" r="45" id="progress-ring"/>
+        </svg>
+        <div class="ring-center">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge-to">
+        <span class="dot"></span>
+        Tiempo agotado
+      </div>
+    </div>
+
+    <div class="body">
+      <h1>Se acabó el tiempo</h1>
+
+      <div class="domain-to">
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+        <span id="domain-text-to">cargando…</span>
+      </div>
+
+      <p class="desc-to">
+        Llegaste al límite de <strong id="limit-text">tiempo</strong> para este sitio.<br>
+        DopamiNah bloqueó el acceso para mantener tu enfoque.
+      </p>
+
+      <div class="stats" id="stats-container" style="display:none">
+        <div class="stat">
+          <div class="stat-value exceeded" id="time-spent">--</div>
+          <div class="stat-label">Tiempo hoy</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value ok" id="time-limit">--</div>
+          <div class="stat-label">Límite</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="unblock-btn-to">
+          <svg class="btn-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+          Desbloquear por hoy
+        </button>
+        <button class="btn btn-ghost" onclick="history.back()">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver atrás
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <svg class="toast-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+    <span id="toast-message"></span>
+  </div>
+
   <script src="blocked.js"></script>
 </body>
 </html>

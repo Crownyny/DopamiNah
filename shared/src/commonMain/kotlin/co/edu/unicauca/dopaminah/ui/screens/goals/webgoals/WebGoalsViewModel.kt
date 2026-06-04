@@ -30,16 +30,21 @@ class WebGoalsViewModel {
         startTimer()
     }
 
-    fun addGoal(url: String, timeLimitMinutes: Int) {
+    fun addGoal(url: String, timeLimitMinutes: Int, spentMinutes: Int = 0) {
         val domain = extractDomain(url)
         val id = "wg_${goals.size}_${currentTimeMillis()}"
         goals.add(WebGoal(id, domain, url, timeLimitMinutes, true))
-        domainAccumulatedMinutes[domain] = 0
+        domainAccumulatedMinutes[domain] = spentMinutes.coerceAtLeast(0)
         if (domain == currentDomain) {
             domainActiveStartTime[domain] = currentTimeMillis()
         }
         rebuildState()
         notifyOutboundSync()
+    }
+
+    fun setAccumulatedMinutes(domain: String, minutes: Int) {
+        domainAccumulatedMinutes[domain] = minutes.coerceAtLeast(0)
+        rebuildState()
     }
 
     fun deleteGoal(id: String) {

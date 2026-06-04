@@ -1,17 +1,12 @@
 package co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.components
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,25 +20,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.icons.LucidePencil
-import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
 import co.edu.unicauca.dopaminah.ui.icons.LucideTrash
+import co.edu.unicauca.dopaminah.ui.icons.LucideZap
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.BrandAvatar
 import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.WebGoalUiModel
+import co.edu.unicauca.dopaminah.ui.screens.goals.webgoals.brandColor
 import co.edu.unicauca.dopaminah.ui.theme.DangerRed
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
-import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.SuccessGreen
 import co.edu.unicauca.dopaminah.ui.theme.WarningYellow
 
@@ -54,226 +47,313 @@ fun WebGoalCard(
     onEdit: () -> Unit = {},
     onToggle: () -> Unit = {}
 ) {
-    val isDanger = goal.progressFraction > 0.85f && !goal.isBlocked
-    val isWarning = goal.progressFraction in 0.6f..0.85f && !goal.isBlocked
+    val accentColor = brandColor(goal.domain)
+    val isBlocked = goal.isBlocked
+    val isImmediate = goal.dailyTimeLimitMinutes == 0
+    val isDanger = goal.progressFraction > 0.85f && !isBlocked && !isImmediate
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = when {
-                goal.isBlocked -> DangerRed.copy(alpha = 0.04f)
-                !goal.isActive -> MaterialTheme.colorScheme.surface
-                else -> MaterialTheme.colorScheme.surface
-            }
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            containerColor = if (isBlocked) DangerRed.copy(alpha = 0.03f)
+            else MaterialTheme.colorScheme.surface
+        )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BrandAvatar(
-                    domain = goal.domain,
-                    isBlocked = goal.isBlocked,
-                    size = 44.dp,
-                    fontSize = 18.sp
-                )
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = goal.domain,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = when {
-                            goal.isBlocked -> Color.Black.copy(alpha = 0.85f)
-                            !goal.isActive -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                            else -> MaterialTheme.colorScheme.onSurface
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        letterSpacing = 0.2.sp
-                    )
-                    Text(
-                        text = goal.displayUrl,
-                        fontSize = 12.sp,
-                        color = when {
-                            goal.isBlocked -> DangerRed.copy(alpha = 0.6f)
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                if (goal.isBlocked) {
-                    Text(
-                        text = "Bloqueado",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DangerRed,
-                        letterSpacing = 0.3.sp
-                    )
-                } else if (goal.isActive) {
-                    Text(
-                        text = "Activo",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = SuccessGreen,
-                        letterSpacing = 0.3.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = LucideTimer,
-                        contentDescription = null,
-                        tint = when {
-                            goal.isBlocked -> DangerRed
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .background(
+                        when {
+                            isBlocked -> DangerRed
                             isDanger -> WarningYellow
-                            else -> DopaminahPurple
-                        },
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "${goal.todaySpentMinutes} min",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = when {
-                            goal.isBlocked -> DangerRed
-                            isDanger -> WarningYellow
-                            !goal.isActive -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                            else -> MaterialTheme.colorScheme.onSurface
+                            isImmediate -> DangerRed
+                            else -> accentColor
                         }
                     )
-                }
-
-                Text(
-                    text = if (goal.dailyTimeLimitMinutes == 0) "bloqueo inmediato" else "de ${goal.dailyTimeLimitMinutes} min",
-                    fontSize = 13.sp,
-                    color = if (!goal.isActive)
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            GradientProgressBar(
-                fraction = goal.progressFraction,
-                isBlocked = goal.isBlocked,
-                isWarning = isWarning,
-                isDanger = isDanger
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = when {
-                        goal.isBlocked -> if (goal.dailyTimeLimitMinutes == 0) "Bloqueado inmediatamente" else "Limite alcanzado — bloqueado hasta mañana"
-                        goal.remainingMinutes <= 5 -> "Quedan solo ${goal.remainingMinutes} min"
-                        else -> "${goal.remainingMinutes} min restantes"
-                    },
-                    fontSize = 12.sp,
-                    color = when {
-                        goal.isBlocked -> DangerRed
-                        isDanger -> WarningYellow
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    fontWeight = if (goal.isBlocked || isDanger) FontWeight.Medium else FontWeight.Normal,
-                    modifier = Modifier.weight(1f)
+            if (isImmediate) {
+                ImmediateContent(goal = goal, onEdit = onEdit, onDelete = onDelete)
+            } else {
+                TimedContent(
+                    goal = goal,
+                    accentColor = if (isBlocked) DangerRed else if (isDanger) WarningYellow else accentColor,
+                    isBlocked = isBlocked,
+                    isDanger = isDanger,
+                    onEdit = onEdit,
+                    onDelete = onDelete
                 )
-
-                Row {
-                    if (!goal.isBlocked) {
-                        IconButton(onClick = onEdit, modifier = Modifier.size(30.dp)) {
-                            Icon(
-                                imageVector = LucidePencil,
-                                contentDescription = "Editar",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(2.dp))
-                    }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(30.dp)) {
-                        Icon(
-                            imageVector = LucideTrash,
-                            contentDescription = "Eliminar",
-                            tint = if (goal.isBlocked) DangerRed.copy(alpha = 0.5f)
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.size(15.dp)
-                        )
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-private fun GradientProgressBar(
-    fraction: Float,
-    isBlocked: Boolean,
-    isWarning: Boolean,
-    isDanger: Boolean
+private fun ImmediateContent(
+    goal: WebGoalUiModel,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    val transition = rememberInfiniteTransition(label = "pulse")
-    val pulseAlpha by transition.animateFloat(
-        initialValue = 0.55f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseAlpha"
-    )
-
-    val gradientColors = when {
-        isBlocked -> listOf(DangerRed, DangerRed.copy(alpha = 0.6f))
-        isDanger -> listOf(WarningYellow, WarningYellow.copy(alpha = pulseAlpha))
-        isWarning -> listOf(DopaminahOrange, DopaminahPurple)
-        else -> listOf(DopaminahPurple, DopaminahPurpleDark)
-    }
-
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant
-
-    Canvas(
-        modifier = Modifier.fillMaxWidth().height(10.dp)
+    Column(
+        modifier = Modifier.fillMaxSize().padding(12.dp)
     ) {
-        val barWidth = size.width * fraction.coerceIn(0f, 1f)
-        val r = 5.dp.toPx()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            BrandAvatar(
+                domain = goal.domain,
+                isBlocked = false,
+                size = 28.dp,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = goal.domain,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = goal.displayUrl,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Row {
+                IconButton(onClick = onEdit, modifier = Modifier.size(26.dp)) {
+                    Icon(
+                        imageVector = LucidePencil,
+                        contentDescription = "Editar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(26.dp)) {
+                    Icon(
+                        imageVector = LucideTrash,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+        }
 
-        drawRoundRect(color = trackColor, size = size, cornerRadius = CornerRadius(r))
-        if (barWidth > 0f) {
-            drawRoundRect(
-                brush = Brush.horizontalGradient(gradientColors),
-                size = size.copy(width = barWidth),
-                cornerRadius = CornerRadius(r)
+        Spacer(Modifier.weight(1f))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(DangerRed.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = LucideZap,
+                    contentDescription = null,
+                    tint = DangerRed,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = "Sin límite",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = DangerRed
+                )
+                Text(
+                    text = "Se bloquea al visitar el sitio",
+                    fontSize = 11.sp,
+                    color = DangerRed.copy(alpha = 0.55f)
+                )
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TimedContent(
+    goal: WebGoalUiModel,
+    accentColor: Color,
+    isBlocked: Boolean,
+    isDanger: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            BrandAvatar(
+                domain = goal.domain,
+                isBlocked = isBlocked,
+                size = 28.dp,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = goal.domain,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = when {
+                        isBlocked -> DangerRed
+                        !goal.isActive -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                        else -> MaterialTheme.colorScheme.onSurface
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = goal.displayUrl,
+                    fontSize = 10.sp,
+                    color = if (isBlocked) DangerRed.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Row {
+                IconButton(onClick = onEdit, modifier = Modifier.size(26.dp)) {
+                    Icon(
+                        imageVector = LucidePencil,
+                        contentDescription = "Editar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(26.dp)) {
+                    Icon(
+                        imageVector = LucideTrash,
+                        contentDescription = "Eliminar",
+                        tint = if (isBlocked) DangerRed.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            val timeColor = when {
+                isBlocked -> DangerRed
+                isDanger -> WarningYellow
+                !goal.isActive -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                else -> MaterialTheme.colorScheme.onSurface
+            }
+
+            Text(
+                text = formatTimeShort(goal.todaySpentMinutes),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = timeColor,
+                letterSpacing = -0.5.sp
+            )
+            Spacer(Modifier.width(5.dp))
+            Text(
+                text = "/ ${formatTimeShort(goal.dailyTimeLimitMinutes)}",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 1.dp)
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+                .clip(RoundedCornerShape(1.5.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction = goal.progressFraction.coerceIn(0f, 1f))
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(1.5.dp))
+                    .background(
+                        if (goal.isActive) accentColor
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                    )
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val dotColor = when {
+                isBlocked -> DangerRed
+                isDanger -> WarningYellow
+                goal.remainingMinutes <= 10 -> DopaminahOrange
+                goal.remainingMinutes <= 30 -> WarningYellow
+                else -> SuccessGreen
+            }
+            val statusText = when {
+                isBlocked -> "Agotado"
+                isDanger -> "Al límite"
+                goal.remainingMinutes <= 3 -> "¡${goal.remainingMinutes} min!"
+                else -> "${goal.remainingMinutes} min"
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(5.dp)
+                    .clip(RoundedCornerShape(2.5.dp))
+                    .background(dotColor)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = statusText,
+                fontSize = 11.sp,
+                color = when {
+                    isBlocked -> DangerRed
+                    isDanger -> WarningYellow
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Text(
+                text = "${(goal.progressFraction * 100).toInt()}%",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = when {
+                    isBlocked -> DangerRed.copy(alpha = 0.5f)
+                    !goal.isActive -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                    else -> accentColor.copy(alpha = 0.7f)
+                }
             )
         }
     }
+}
+
+private fun formatTimeShort(minutes: Int): String {
+    if (minutes < 60) return "${minutes}m"
+    val h = minutes / 60
+    val r = minutes % 60
+    return if (r > 0) "${h}h ${r}m" else "${h}h"
 }
