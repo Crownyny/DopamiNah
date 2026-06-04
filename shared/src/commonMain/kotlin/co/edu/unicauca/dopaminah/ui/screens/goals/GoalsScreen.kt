@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -32,7 +33,7 @@ import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 
 @Composable
 fun GoalsScreen(viewModel: GoalsViewModel? = null) {
-    val vm = viewModel ?: return
+    val vm = viewModel ?: remember { GoalsViewModel() }
     val state by vm.state.collectAsState()
 
     Column(

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.components.AppIcon
 import co.edu.unicauca.dopaminah.ui.icons.*
+import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebNavigationRepository
 import co.edu.unicauca.dopaminah.ui.screens.settings.components.*
 import co.edu.unicauca.dopaminah.ui.screens.settings.viewmodel.SettingsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
@@ -29,7 +30,8 @@ fun SettingsScreen(
     darkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},
     onOpenUrl: (String) -> Unit = {},
-    viewModel: SettingsViewModel? = null
+    viewModel: SettingsViewModel? = null,
+    navRepository: WebNavigationRepository? = null
 ) {
     val vm = viewModel ?: remember { SettingsViewModel() }
 
@@ -113,6 +115,53 @@ fun SettingsScreen(
                         title = "Permisos de la App",
                         onClick = { onOpenUrl(URL_PRIVACY_POLICY) }
                     )
+                }
+            }
+
+            item {
+                SettingsSection(title = "Enfoque") {
+                    SettingsToggleItem(
+                        icon = LucideShieldAlert,
+                        title = "Modo Enfoque",
+                        subtitle = "Bloquea sitios distractores al navegar",
+                        checked = navRepository?.isFocusMode ?: false,
+                        onCheckedChange = { checked -> navRepository?.isFocusMode = checked }
+                    )
+
+                    if (navRepository != null && navRepository.isFocusMode) {
+                        navRepository.rules.forEach { rule ->
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = rule.label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Switch(
+                                    checked = rule.isActive,
+                                    onCheckedChange = { navRepository.toggleRule(rule.id) }
+                                )
+                            }
+                        }
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        SettingsNavigationItem(
+                            icon = LucideInfo,
+                            title = "Restaurar lista predeterminada",
+                            onClick = { navRepository.resetDefaults() }
+                        )
+                    }
                 }
             }
 

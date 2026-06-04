@@ -15,12 +15,15 @@ import co.edu.unicauca.dopaminah.ui.screens.goals.GoalsScreen
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.achievements.AchievementsScreen
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
+import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebNavigationRepository
+import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebStatsScreen
 import co.edu.unicauca.dopaminah.ui.screens.settings.SettingsScreen
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.OnboardingPermissionScreen
 import co.edu.unicauca.dopaminah.ui.screens.webview.WebViewScreen
 import co.edu.unicauca.dopaminah.ui.icons.LucideHouse
 import co.edu.unicauca.dopaminah.ui.icons.LucideChartColumn
 import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
+import co.edu.unicauca.dopaminah.ui.icons.LucideGlobe
 import co.edu.unicauca.dopaminah.ui.icons.LucideAward
 import co.edu.unicauca.dopaminah.ui.icons.LucideSettings as LucideSettingsIcon
 
@@ -28,6 +31,7 @@ enum class AppTab(val route: String, val title: String) {
     DASHBOARD("dashboard", "Inicio"),
     STATS("stats", "Stats"),
     GOALS("goals", "Metas"),
+    WEB("web", "Web"),
     ACHIEVEMENTS("achievements", "Logros"),
     SETTINGS("settings", "Ajustes")
 }
@@ -39,7 +43,9 @@ fun DopamiNahApp(
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
     goalsViewModel: GoalsViewModel? = null,
-    achievementsViewModel: AchievementsViewModel? = null
+    achievementsViewModel: AchievementsViewModel? = null,
+    navRepository: WebNavigationRepository? = null,
+    hiddenTabs: Set<AppTab> = emptySet()
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -59,7 +65,9 @@ fun DopamiNahApp(
                 dashboardViewModel = dashboardViewModel,
                 statsViewModel = statsViewModel,
                 goalsViewModel = goalsViewModel,
-                achievementsViewModel = achievementsViewModel
+                achievementsViewModel = achievementsViewModel,
+                navRepository = navRepository,
+                hiddenTabs = hiddenTabs
             )
         }
     }
@@ -72,39 +80,65 @@ private fun MainContent(
     dashboardViewModel: DashboardViewModel? = null,
     statsViewModel: StatsViewModel? = null,
     goalsViewModel: GoalsViewModel? = null,
-    achievementsViewModel: AchievementsViewModel? = null
+    achievementsViewModel: AchievementsViewModel? = null,
+    navRepository: WebNavigationRepository? = null,
+    hiddenTabs: Set<AppTab> = emptySet()
 ) {
-    var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
+    val visibleTabs = AppTab.entries.filter { it !in hiddenTabs }
+    val firstVisibleTab = visibleTabs.firstOrNull() ?: AppTab.SETTINGS
+    var selectedTab by remember { mutableStateOf(firstVisibleTab) }
     var pendingUrl by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(selectedTab, hiddenTabs) {
+        if (selectedTab in hiddenTabs) {
+            selectedTab = firstVisibleTab
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             bottomBar = {
                 NavigationBar {
-                    NavigationBarItem(
-                        icon = { Icon(LucideHouse, contentDescription = "Inicio") },
-                        label = { Text("Inicio") },
-                        selected = selectedTab == AppTab.DASHBOARD,
-                        onClick = { selectedTab = AppTab.DASHBOARD }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(LucideChartColumn, contentDescription = "Stats") },
-                        label = { Text("Stats") },
-                        selected = selectedTab == AppTab.STATS,
-                        onClick = { selectedTab = AppTab.STATS }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(LucideTarget, contentDescription = "Metas") },
-                        label = { Text("Metas") },
-                        selected = selectedTab == AppTab.GOALS,
-                        onClick = { selectedTab = AppTab.GOALS }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(LucideAward, contentDescription = "Logros") },
-                        label = { Text("Logros") },
-                        selected = selectedTab == AppTab.ACHIEVEMENTS,
-                        onClick = { selectedTab = AppTab.ACHIEVEMENTS }
-                    )
+                    if (AppTab.DASHBOARD !in hiddenTabs) {
+                        NavigationBarItem(
+                            icon = { Icon(LucideHouse, contentDescription = "Inicio") },
+                            label = { Text("Inicio") },
+                            selected = selectedTab == AppTab.DASHBOARD,
+                            onClick = { selectedTab = AppTab.DASHBOARD }
+                        )
+                    }
+                    if (AppTab.STATS !in hiddenTabs) {
+                        NavigationBarItem(
+                            icon = { Icon(LucideChartColumn, contentDescription = "Stats") },
+                            label = { Text("Stats") },
+                            selected = selectedTab == AppTab.STATS,
+                            onClick = { selectedTab = AppTab.STATS }
+                        )
+                    }
+                    if (AppTab.GOALS !in hiddenTabs) {
+                        NavigationBarItem(
+                            icon = { Icon(LucideTarget, contentDescription = "Metas") },
+                            label = { Text("Metas") },
+                            selected = selectedTab == AppTab.GOALS,
+                            onClick = { selectedTab = AppTab.GOALS }
+                        )
+                    }
+                    if (AppTab.WEB !in hiddenTabs) {
+                        NavigationBarItem(
+                            icon = { Icon(LucideGlobe, contentDescription = "Web") },
+                            label = { Text("Web") },
+                            selected = selectedTab == AppTab.WEB,
+                            onClick = { selectedTab = AppTab.WEB }
+                        )
+                    }
+                    if (AppTab.ACHIEVEMENTS !in hiddenTabs) {
+                        NavigationBarItem(
+                            icon = { Icon(LucideAward, contentDescription = "Logros") },
+                            label = { Text("Logros") },
+                            selected = selectedTab == AppTab.ACHIEVEMENTS,
+                            onClick = { selectedTab = AppTab.ACHIEVEMENTS }
+                        )
+                    }
                     NavigationBarItem(
                         icon = { Icon(LucideSettingsIcon, contentDescription = "Ajustes") },
                         label = { Text("Ajustes") },
@@ -119,11 +153,13 @@ private fun MainContent(
                     AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
                     AppTab.STATS -> StatsScreen(viewModel = statsViewModel)
                     AppTab.GOALS -> GoalsScreen(viewModel = goalsViewModel)
+                    AppTab.WEB -> WebStatsScreen(navRepository = navRepository)
                     AppTab.ACHIEVEMENTS -> AchievementsScreen(viewModel = achievementsViewModel)
                     AppTab.SETTINGS -> SettingsScreen(
                         darkMode = darkMode,
                         onDarkModeChange = onDarkModeChange,
-                        onOpenUrl = { pendingUrl = it }
+                        onOpenUrl = { pendingUrl = it },
+                        navRepository = navRepository
                     )
                 }
             }
@@ -132,8 +168,29 @@ private fun MainContent(
         pendingUrl?.let { url ->
             WebViewScreen(
                 url = url,
-                onClose = { pendingUrl = null }
+                onClose = {
+                    navRepository?.endSession()
+                    pendingUrl = null
+                },
+                shouldCheckBlock = navRepository?.let { repo ->
+                    { urlToCheck ->
+                        val blocked = repo.isUrlBlocked(urlToCheck)
+                        if (blocked) {
+                            repo.incrementBlockedAttempts()
+                        } else {
+                            repo.recordVisit(urlToCheck)
+                        }
+                        blocked
+                    }
+                }
             )
+        }
+
+        LaunchedEffect(pendingUrl) {
+            if (pendingUrl != null) {
+                navRepository?.startSession()
+                navRepository?.recordVisit(pendingUrl!!)
+            }
         }
     }
 }

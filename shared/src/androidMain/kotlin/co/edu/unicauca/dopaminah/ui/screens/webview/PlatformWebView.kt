@@ -48,6 +48,14 @@ actual fun PlatformWebView(
                     view: WebView?,
                     request: WebResourceRequest?
                 ): Boolean {
+                    val url = request?.url?.toString() ?: return false
+                    if (state.shouldCheckBlock?.invoke(url) == true) {
+                        state.isBlocked = true
+                        state.blockedUrl = url
+                        state.canGoBack = view?.canGoBack() ?: false
+                        state.canGoForward = view?.canGoForward() ?: false
+                        return true
+                    }
                     return false
                 }
             }

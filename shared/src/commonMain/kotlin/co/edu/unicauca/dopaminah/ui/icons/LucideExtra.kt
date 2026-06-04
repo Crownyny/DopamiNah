@@ -163,3 +163,13 @@ val LucideZap: ImageVector by lazy {
         }
     }.build()
 }
+
+val LucideGlobe: ImageVector by lazy {
+    ImageVector.Builder(name = "Globe", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(12f, 2f); curveTo(6.48f, 2f, 2f, 6.48f, 2f, 12f); curveTo(2f, 17.52f, 6.48f, 22f, 12f, 22f); curveTo(17.52f, 22f, 22f, 17.52f, 22f, 12f); curveTo(22f, 6.48f, 17.52f, 2f, 12f, 2f); close()
+            moveTo(2f, 12f); horizontalLineTo(22f)
+            moveTo(12f, 2f); curveTo(14.5f, 4.92f, 16f, 8.32f, 16f, 12f); curveTo(16f, 15.68f, 14.5f, 19.08f, 12f, 22f); curveTo(9.5f, 19.08f, 8f, 15.68f, 8f, 12f); curveTo(8f, 8.32f, 9.5f, 4.92f, 12f, 2f); close()
+        }
+    }.build()
+}

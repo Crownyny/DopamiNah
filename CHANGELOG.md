@@ -66,3 +66,27 @@
 - `AchievementStatsCard` — summary stats: unlocked/total badges, current level, best streak.
 - `AchievementsViewModel` rewritten with `AchievementsState`/`BadgeUi` data classes, computes badge unlock status from real `UserGamificationStats` (streak, total points, best streak) via `GamificationRepository`, and identifies the next locked badge.
 - Wiring: `AchievementsViewModel` created in `MainActivity` with `gamificationRepo`, passed through `App` → `DopamiNahApp` → `MainContent` → `AchievementsScreen(viewModel)`.
+
+### Added (PWA Phase 1 — Infrastructure)
+- `favicon.svg` replaced with the app's own brain iconography (converted from `full_icon.xml` vector drawable) on a purple gradient background for consistent branding across PWA, favicon, and apple-touch-icon.
+- `manifest.json` — standalone PWA manifest with SVG icon (`sizes: "any"`), purple theme color (`#6D28D9`), and dark background (`#1C1B1F`).
+- `sw.js` — service worker with cache-first strategy for core assets (`index.html`, `webApp.js`, `styles.css`, `favicon.svg`, `manifest.json`) and network-first fallback with cache update.
+- `main.kt` — service worker registration via `window.navigator.serviceWorker.register("/sw.js")` with `@OptIn(ExperimentalWasmJsInterop)` for WasmJS target.
+- `index.html` — PWA meta tags (theme-color, apple-mobile-web-app-capable, viewport), manifest link, apple-touch-icon link, apple-mobile-web-app-status-bar-style.
+
+### Added (Phase 2 — Focus Browser)
+- `BlockRule` data model: domain blocking rules with wildcard (`*.example.com`) support, individual active/inactive toggle, and URL matching logic.
+- `WebNavigationRepository`: state holder for blocked domain rules (pre-populated with YouTube, Reddit, Twitter/X, Instagram, Facebook, TikTok, Netflix, Twitch, Discord), `isFocusMode` flag, `isUrlBlocked()` check, `recordVisit()` for navigation history, and `DomainStats` tracking per host.
+- `BlockedSiteScreen`: full-screen alert composable with shield-off icon, "Sitio Bloqueado" message, blocked URL display, and "Volver atrás" button.
+- `WebViewState` extended with `isBlocked`, `blockedUrl`, and `shouldCheckBlock` for navigation interception.
+- Android `PlatformWebView` — `shouldOverrideUrlLoading` now checks `state.shouldCheckBlock` and cancels navigation + sets `isBlocked` state when a domain matches a block rule.
+- `WebViewScreen` — accepts optional `shouldCheckBlock` callback; shows `BlockedSiteScreen` overlay when `state.isBlocked` is true.
+- Settings Screen: new "Enfoque" section with "Modo Enfoque" toggle and expandable list of blocked domains with individual on/off switches, plus "Restaurar lista predeterminada" action.
+- `WebNavigationRepository` created at `App` level and passed through `DopamiNahApp` → `MainContent` → `SettingsScreen` / `WebViewScreen` via optional parameter.
+
+### Added (Phase 3 — Web Dashboard)
+- `WebNavigationRepository` extended with session tracking: `sessionStartTime`, `sessionPages`, `blockedAttempts`, `totalVisits`, `startSession()`, `endSession()`, `incrementBlockedAttempts()`, and `currentTimeMillis()` for real timestamps.
+- `WebStatsScreen` — new "Navegación Web" tab with gradient header, live session timer (hours/minutes/seconds updating every second), pages visited counter, total visits counter, focus mode status indicator, top 10 most visited domains ranking card, and blocked attempts card (blocked count, active rules, focus mode status).
+- `LucideGlobe` icon added to `LucideExtra.kt` for the new Web tab.
+- New `AppTab.WEB` navigation tab added between "Metas" and "Logros" in the bottom `NavigationBar`.
+- `MainContent` now calls `navRepository.startSession()` and `recordVisit()` when a WebView opens, calls `endSession()` when it closes, and `incrementBlockedAttempts()` when a navigation is blocked by focus rules.

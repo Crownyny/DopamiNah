@@ -11,9 +11,12 @@ class WebViewState {
     var isLoading by mutableStateOf(false)
     var canGoBack by mutableStateOf(false)
     var canGoForward by mutableStateOf(false)
+    var isBlocked by mutableStateOf(false)
+    var blockedUrl by mutableStateOf("")
     var onGoBack: () -> Unit = {}
     var onGoForward: () -> Unit = {}
     var onReload: () -> Unit = {}
+    var shouldCheckBlock: ((String) -> Boolean)? = null
 }
 
 @Composable
