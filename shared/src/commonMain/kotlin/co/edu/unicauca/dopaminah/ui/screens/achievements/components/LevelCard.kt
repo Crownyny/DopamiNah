@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.ui.icons.LucideAward
+import co.edu.unicauca.dopaminah.ui.icons.LucideZap
+import co.edu.unicauca.dopaminah.ui.icons.LucideSunrise
 import co.edu.unicauca.dopaminah.domain.utils.BadgeDefinitions
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrangeDark
@@ -82,7 +86,13 @@ fun LevelCard(level: Int, streakDays: Int) {
                     .border(3.dp, Color.White.copy(alpha = 0.6f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = if (level >= 5) "🧘" else if (level >= 3) "💪" else "🌱", fontSize = 28.sp)
+                val icon = if (level >= 5) LucideAward else if (level >= 3) LucideZap else LucideSunrise
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     }

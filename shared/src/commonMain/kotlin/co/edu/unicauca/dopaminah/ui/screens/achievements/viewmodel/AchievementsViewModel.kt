@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class BadgeUi(
+    val id: String,
     val emoji: String,
     val title: String,
     val description: String,
@@ -24,6 +25,7 @@ data class AchievementsState(
     val streakDays: Int = 0,
     val level: Int = 1,
     val badges: List<BadgeUi> = emptyList(),
+    val nextBadgeId: String? = null,
     val nextBadgeEmoji: String = "🎯",
     val nextBadgeTitle: String = "Primer Paso",
     val nextBadgeDescription: String = "Completa tu primera meta diaria",
@@ -56,6 +58,7 @@ class AchievementsViewModel(
         val badges = BadgeDefinitions.allBadges.map { badge ->
             val isUnlocked = isBadgeUnlocked(badge, stats)
             BadgeUi(
+                id = badge.id,
                 emoji = badge.emoji,
                 title = badge.title,
                 description = badge.description,
@@ -63,15 +66,16 @@ class AchievementsViewModel(
             )
         }
         val unlockedCount = badges.count { it.isUnlocked }
-        val nextBadge = badges.firstOrNull { !it.isUnlocked }
+        val nextBadgeObj = BadgeDefinitions.allBadges.firstOrNull { !isBadgeUnlocked(it, stats) }
 
         return AchievementsState(
             streakDays = stats.streak,
             level = stats.level,
             badges = badges,
-            nextBadgeEmoji = nextBadge?.emoji ?: "🎉",
-            nextBadgeTitle = nextBadge?.title ?: "Todas completadas",
-            nextBadgeDescription = nextBadge?.description ?: "",
+            nextBadgeId = nextBadgeObj?.id,
+            nextBadgeEmoji = nextBadgeObj?.emoji ?: "🎉",
+            nextBadgeTitle = nextBadgeObj?.title ?: "Todas completadas",
+            nextBadgeDescription = nextBadgeObj?.description ?: "",
             unlockedCount = unlockedCount,
             totalCount = badges.size,
             bestStreak = stats.bestStreak

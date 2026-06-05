@@ -60,6 +60,7 @@ fun AchievementsScreen(viewModel: AchievementsViewModel? = null) {
             BadgesGrid(badges = state.badges)
 
             NextAchievementCard(
+                badgeId = state.nextBadgeId,
                 emoji = state.nextBadgeEmoji,
                 title = state.nextBadgeTitle,
                 description = state.nextBadgeDescription

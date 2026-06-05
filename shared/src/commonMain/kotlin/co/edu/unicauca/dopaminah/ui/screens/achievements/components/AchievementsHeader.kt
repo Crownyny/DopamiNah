@@ -30,28 +30,30 @@ fun AchievementsHeader() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .statusBarsPadding()
-            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 32.dp)
+            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+            .background(co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark)
+            .padding(bottom = 20.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(
                     text = "Logros",
-                    fontSize = 28.sp,
+                    fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Tus conquistas y progreso en DopamiNah",
-                    fontSize = 15.sp,
-                    color = Color.White.copy(alpha = 0.9f)
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
             Icon(

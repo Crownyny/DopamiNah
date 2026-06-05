@@ -27,6 +27,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.icons.LucideStar
+import co.edu.unicauca.dopaminah.ui.icons.LucideZap
+import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
+import co.edu.unicauca.dopaminah.ui.icons.LucideChartColumn
+import co.edu.unicauca.dopaminah.ui.icons.LucideCalendarClock
+import co.edu.unicauca.dopaminah.ui.icons.LucideLock
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
 @Composable
@@ -68,16 +73,22 @@ fun PremiumCard(onClick: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             val perks = listOf(
-                "\u2728" to "Estad\u00edsticas avanzadas por hora",
-                "\ud83c\udfaf" to "Metas personalizadas ilimitadas",
-                "\ud83d\udcca" to "An\u00e1lisis de comportamiento detallado",
-                "\ud83d\udce4" to "Exportaci\u00f3n de datos",
-                "\ud83d\udeab" to "Sin publicidad"
+                LucideZap to "Estad\u00edsticas avanzadas por hora",
+                LucideTarget to "Metas personalizadas ilimitadas",
+                LucideChartColumn to "An\u00e1lisis de comportamiento detallado",
+                LucideCalendarClock to "Exportaci\u00f3n de datos",
+                LucideLock to "Sin publicidad"
             )
 
-            perks.forEach { (emoji, text) ->
+            perks.forEach { (icon, text) ->
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                    Text(emoji, modifier = Modifier.padding(end = 8.dp))
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text(text, fontSize = 14.sp, color = Color.White)
                 }
             }

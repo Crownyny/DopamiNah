@@ -22,10 +22,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import co.edu.unicauca.dopaminah.ui.icons.*
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleLight
+
+private fun getBadgeIcon(badgeId: String): ImageVector {
+    return when (badgeId) {
+        "primer_paso" -> LucideSunrise
+        "racha_3" -> LucideCalendar
+        "racha_7" -> LucideZap
+        "racha_14" -> LucideAward
+        "racha_30" -> LucideAward
+        "focus" -> LucideTarget
+        "reduction" -> LucideTrendingUp
+        "autodisciplina" -> LucideLock
+        else -> LucideAward
+    }
+}
 
 @Composable
 fun NextAchievementCard(
+    badgeId: String?,
     emoji: String,
     title: String,
     description: String
@@ -54,7 +72,16 @@ fun NextAchievementCard(
                         .background(DopaminahPurpleLight.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = emoji, fontSize = 24.sp)
+                    if (badgeId != null) {
+                        Icon(
+                            imageVector = getBadgeIcon(badgeId),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text(text = emoji, fontSize = 24.sp)
+                    }
                 }
                 Spacer(modifier = Modifier.width(14.dp))
                 Column {

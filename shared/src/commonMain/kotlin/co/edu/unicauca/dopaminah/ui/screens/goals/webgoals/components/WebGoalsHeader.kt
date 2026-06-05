@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,21 +41,16 @@ fun WebGoalsHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(DopaminahPurple, DopaminahPurpleDark)
-                )
-            )
+            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+            .background(DopaminahPurpleDark)
+            .padding(bottom = 20.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = CONTENT_MAX_WIDTH.dp)
-                .align(Alignment.Center)
-                .padding(horizontal = 24.dp)
+                .statusBarsPadding()
+                .padding(top = 16.dp, start = 24.dp, end = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -73,20 +69,20 @@ fun WebGoalsHeader(
                 Spacer(modifier = Modifier.width(14.dp))
                 Column {
                     Text(
-                        text = "Limites Web",
-                        fontSize = 24.sp,
+                        text = "Límites Web",
+                        fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
                         text = "Controla tu tiempo en la web",
                         fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.75f)
+                        color = Color.White.copy(alpha = 0.8f)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -139,8 +135,6 @@ fun WebGoalsHeader(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }

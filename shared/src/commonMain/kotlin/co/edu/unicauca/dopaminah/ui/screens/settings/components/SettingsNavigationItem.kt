@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import co.edu.unicauca.dopaminah.ui.icons.LucideChevronRight
 
 @Composable
 fun SettingsNavigationItem(
@@ -43,6 +44,11 @@ fun SettingsNavigationItem(
             Spacer(Modifier.width(12.dp))
             Text(title, fontWeight = FontWeight.SemiBold, color = colorScheme.onSurface)
         }
-        Text("→", color = colorScheme.onSurfaceVariant)
+        Icon(
+            imageVector = LucideChevronRight,
+            contentDescription = null,
+            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

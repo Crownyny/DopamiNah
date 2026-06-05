@@ -25,9 +25,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.icons.LucideLock
+import co.edu.unicauca.dopaminah.ui.icons.LucideSunrise
+import co.edu.unicauca.dopaminah.ui.icons.LucideCalendar
+import co.edu.unicauca.dopaminah.ui.icons.LucideZap
+import co.edu.unicauca.dopaminah.ui.icons.LucideAward
+import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
+import co.edu.unicauca.dopaminah.ui.icons.LucideTrendingUp
+import androidx.compose.ui.graphics.vector.ImageVector
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.BadgeUi
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
+
+private fun getBadgeIcon(badgeId: String): ImageVector {
+    return when (badgeId) {
+        "primer_paso" -> LucideSunrise
+        "racha_3" -> LucideCalendar
+        "racha_7" -> LucideZap
+        "racha_14" -> LucideAward
+        "racha_30" -> LucideAward
+        "focus" -> LucideTarget
+        "reduction" -> LucideTrendingUp
+        "autodisciplina" -> LucideLock
+        else -> LucideAward
+    }
+}
 
 @Composable
 fun BadgesGrid(badges: List<BadgeUi>) {
@@ -66,7 +87,12 @@ private fun BadgeCard(badge: BadgeUi, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = badge.emoji, fontSize = 36.sp)
+                Icon(
+                    imageVector = getBadgeIcon(badge.id),
+                    contentDescription = badge.title,
+                    tint = Color.White,
+                    modifier = Modifier.size(36.dp)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = badge.title,
