@@ -16,18 +16,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('save-goal-btn').addEventListener('click', saveGoal);
 
+  const customInput = document.getElementById('custom-minutes');
+
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedMinutes = parseInt(btn.dataset.minutes);
+      customInput.value = selectedMinutes > 0 ? selectedMinutes : '';
     });
   });
 
-  document.getElementById('custom-minutes').addEventListener('input', function () {
-    if (this.value) {
-      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-      selectedMinutes = parseInt(this.value);
+  customInput.addEventListener('input', function () {
+    const val = parseInt(this.value);
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    if (!isNaN(val) && val >= 0) {
+      selectedMinutes = val;
+      const matchingPreset = document.querySelector(`.preset-btn[data-minutes="${val}"]`);
+      if (matchingPreset) {
+        matchingPreset.classList.add('active');
+      }
+    } else {
+      selectedMinutes = 0;
+      document.querySelector('.preset-btn[data-minutes="0"]').classList.add('active');
     }
   });
 
