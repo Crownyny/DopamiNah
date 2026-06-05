@@ -5,8 +5,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadGoalsWithRetry();
 
   document.getElementById('add-goal-btn').addEventListener('click', () => {
-    document.getElementById('add-goal-form').classList.remove('hidden');
-    document.getElementById('goals-section').classList.add('hidden');
+    const form = document.getElementById('add-goal-form');
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+      document.getElementById('goal-url').focus();
+    }
   });
 
   document.getElementById('cancel-goal-btn').addEventListener('click', hideForm);
@@ -50,12 +53,86 @@ async function loadGoalsWithRetry() {
   }
 }
 
+function extractDomain(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, '').toLowerCase();
+  } catch {
+    return url.replace(/^www\./, '').toLowerCase();
+  }
+}
+
+async function updateCurrentTabInfo(goals, domainTime) {
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tabs || tabs.length === 0) return;
+    const activeTab = tabs[0];
+    if (!activeTab.url) return;
+
+    const domain = extractDomain(activeTab.url);
+    if (!domain || activeTab.url.startsWith('chrome://') || activeTab.url.startsWith('about:') || activeTab.url.startsWith('chrome-extension://')) {
+      document.getElementById('current-tab-section').classList.add('hidden');
+      return;
+    }
+
+    document.getElementById('current-tab-section').classList.remove('hidden');
+    document.getElementById('current-domain').textContent = domain;
+
+    const today = new Date().toISOString().split('T')[0];
+    const dt = domainTime[domain];
+    const spentMinutes = dt && dt.date === today ? dt.todayMinutes : 0;
+
+    document.getElementById('current-time-spent').textContent = `${spentMinutes} min`;
+
+    const goal = goals.find(g => g.domain === domain);
+    const statusEl = document.getElementById('current-status');
+    const actionBtn = document.getElementById('quick-action-btn');
+
+    // Clean previous listeners by replacing button with clone
+    const newActionBtn = actionBtn.cloneNode(true);
+    actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+
+    if (goal) {
+      const isBlocked = goal.timeLimitMinutes === 0 || (goal.isActive && spentMinutes >= goal.timeLimitMinutes);
+      if (goal.isActive) {
+        statusEl.textContent = isBlocked ? 'Límite excedido' : 'Con límite activo';
+        statusEl.style.color = isBlocked ? 'var(--danger)' : 'var(--success)';
+      } else {
+        statusEl.textContent = 'Límite inactivo';
+        statusEl.style.color = 'var(--text-secondary)';
+      }
+
+      newActionBtn.textContent = goal.isActive ? 'Desactivar Límite' : 'Activar Límite';
+      newActionBtn.className = 'btn btn-secondary btn-small';
+      newActionBtn.addEventListener('click', async () => {
+        await sendMessageWithRetry({ type: 'TOGGLE_GOAL', id: goal.id });
+        await loadGoalsWithRetry();
+      });
+    } else {
+      statusEl.textContent = 'Sin límite';
+      statusEl.style.color = 'var(--text-secondary)';
+      newActionBtn.textContent = 'Añadir Límite';
+      newActionBtn.className = 'btn btn-primary btn-small';
+      newActionBtn.addEventListener('click', () => {
+        document.getElementById('add-goal-form').classList.remove('hidden');
+        document.getElementById('goal-url').value = domain;
+        document.getElementById('goal-url').focus();
+      });
+    }
+  } catch (e) {
+    console.error('Error updating current tab info:', e);
+  }
+}
+
 async function loadGoals() {
   const response = await sendMessageWithRetry({ type: 'GET_GOALS' });
   const timeResponse = await sendMessageWithRetry({ type: 'GET_DOMAIN_TIME' });
   const goals = response.goals || [];
   const domainTime = timeResponse.domainTime || {};
   const today = new Date().toISOString().split('T')[0];
+
+  // Update active tab panel state
+  await updateCurrentTabInfo(goals, domainTime);
 
   const list = document.getElementById('goals-list');
   const empty = document.getElementById('empty-state');
@@ -77,7 +154,7 @@ async function loadGoals() {
     const remaining = goal.timeLimitMinutes > 0 ? Math.max(0, goal.timeLimitMinutes - spentMinutes) : 0;
 
     const card = document.createElement('div');
-    card.className = `goal-card${isBlocked && goal.isActive ? ' blocked' : ''}`;
+    card.className = `goal-card card${isBlocked && goal.isActive ? ' blocked' : ''}`;
 
     const progressClass = isBlocked ? 'danger' : progress > 0.85 ? 'warning' : '';
 
@@ -90,15 +167,15 @@ async function loadGoals() {
       </div>
       <div class="goal-time">
         ${goal.timeLimitMinutes === 0
-          ? 'Bloqueo inmediato — sin tiempo permitido'
+          ? 'Bloqueo inmediato — sin tiempo'
           : `${spentMinutes} min de ${goal.timeLimitMinutes} min (${remaining} min restantes)`}
       </div>
       <div class="progress-bar">
         <div class="progress-fill ${progressClass}" style="width: ${Math.min(progress * 100, 100)}%"></div>
       </div>
       <div class="goal-actions">
-        <button class="toggle-btn" data-id="${goal.id}">${goal.isActive ? 'Desactivar' : 'Activar'}</button>
-        <button class="danger delete-btn" data-id="${goal.id}">Eliminar</button>
+        <button class="btn btn-secondary btn-small toggle-btn" data-id="${goal.id}">${goal.isActive ? 'Desactivar' : 'Activar'}</button>
+        <button class="btn btn-danger-ghost btn-small delete-btn" data-id="${goal.id}">Eliminar</button>
       </div>
     `;
 
@@ -147,7 +224,6 @@ async function saveGoal() {
 
 function hideForm() {
   document.getElementById('add-goal-form').classList.add('hidden');
-  document.getElementById('goals-section').classList.remove('hidden');
 }
 
 async function syncWithWebApp() {

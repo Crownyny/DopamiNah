@@ -4,19 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DopamiNah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div id="app">
     <header>
       <h1>DopamiNah</h1>
-      <span class="subtitle">Control de navegacion</span>
+      <span class="subtitle">Control de navegación</span>
     </header>
 
+    <!-- Current Tab Quick Action Panel -->
+    <section id="current-tab-section" class="card">
+      <h2>Pestaña Actual</h2>
+      <div class="tab-info">
+        <div class="tab-domain-wrapper">
+          <span id="current-domain" class="tab-domain">Cargando...</span>
+          <span id="current-status" class="tab-status">Detectando sitio...</span>
+        </div>
+        <div class="tab-time-container">
+          <div id="current-time-spent" class="tab-time">-- min</div>
+          <div class="tab-time-label">Hoy</div>
+        </div>
+      </div>
+      <div class="tab-actions">
+        <button id="quick-action-btn" class="btn btn-primary btn-small">Configurar Límite</button>
+      </div>
+    </section>
+
+    <!-- Goals Section -->
     <section id="goals-section">
       <div class="section-header">
-        <h2>Metas</h2>
-        <button id="add-goal-btn" class="btn-primary">+ Nueva</button>
+        <h2>Mis Metas</h2>
+        <button id="add-goal-btn" class="btn btn-primary btn-small">+ Nueva</button>
       </div>
       <div id="goals-list"></div>
       <div id="empty-state" class="empty-state">
@@ -24,14 +44,15 @@
       </div>
     </section>
 
-    <section id="add-goal-form" class="hidden">
+    <!-- Add Goal Form (Inline Expandable Card) -->
+    <section id="add-goal-form" class="card hidden">
       <h2>Nueva meta</h2>
       <div class="form-group">
         <label for="goal-url">URL o dominio</label>
         <input type="text" id="goal-url" placeholder="ej. youtube.com">
       </div>
       <div class="form-group">
-        <label>Tiempo limite</label>
+        <label>Tiempo límite</label>
         <div class="presets">
           <button class="preset-btn" data-minutes="15">15 min</button>
           <button class="preset-btn" data-minutes="30">30 min</button>
@@ -45,13 +66,13 @@
         </div>
       </div>
       <div class="form-actions">
-        <button id="cancel-goal-btn" class="btn-secondary">Cancelar</button>
-        <button id="save-goal-btn" class="btn-primary">Guardar</button>
+        <button id="cancel-goal-btn" class="btn btn-secondary btn-small">Cancelar</button>
+        <button id="save-goal-btn" class="btn btn-primary btn-small">Guardar</button>
       </div>
     </section>
 
     <footer>
-      <button id="sync-btn" class="btn-secondary">Sincronizar con DopamiNah web</button>
+      <button id="sync-btn" class="btn btn-secondary">Sincronizar con DopamiNah web</button>
     </footer>
   </div>
   <script src="popup.js"></script>

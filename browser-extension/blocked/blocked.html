@@ -6,469 +6,348 @@
   <title>DopamiNah</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --primary: #8B5CF6;
+      --primary-hover: #7C3AED;
+      --danger: #EF4444;
+      --danger-bg: rgba(239, 68, 68, 0.08);
+      --danger-border: rgba(239, 68, 68, 0.15);
+      --border: #E2E8F0;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1C1B1F;
+        --card-bg: #2B2930;
+        --text-primary: #E6E1E5;
+        --text-secondary: #CAC4D0;
+        --primary: #8B5CF6;
+        --primary-hover: #A78BFA;
+        --danger: #EF4444;
+        --danger-bg: rgba(239, 68, 68, 0.15);
+        --danger-border: rgba(239, 68, 68, 0.3);
+        --border: #3E3D45;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-primary);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
-      overflow: hidden;
+      transition: background-color 0.2s, color 0.2s;
     }
 
-    /* ── Immediate block card ── */
-
-    body.mode-immediate {
-      background: #0f0a0a;
-    }
-
-    body.mode-immediate::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 600px 400px at 30% 20%, rgba(220, 38, 38, 0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 500px 500px at 70% 80%, rgba(185, 28, 28, 0.08) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .card-immediate {
-      position: relative;
-      z-index: 1;
+    /* Card container */
+    .card-immediate, .card-timeout {
       width: 100%;
       max-width: 400px;
-      background: linear-gradient(160deg, rgba(220, 38, 38, 0.08), rgba(127, 29, 29, 0.05));
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(220, 38, 38, 0.15);
-      border-radius: 28px;
-      padding: 48px 36px 36px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 24px;
       text-align: center;
-      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow:
-        0 0 0 1px rgba(220, 38, 38, 0.08),
-        0 32px 80px -8px rgba(0,0,0,0.5),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    }
-
-    .card-immediate .icon-block {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 20px;
-      border-radius: 24px;
-      background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(185, 28, 28, 0.08));
-      border: 1px solid rgba(220, 38, 38, 0.12);
+      box-shadow: var(--card-shadow);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .card-immediate .icon-block::after {
-      content: '';
-      position: absolute;
-      inset: -3px;
-      border-radius: 27px;
-      background: conic-gradient(from 0deg, transparent, rgba(220,38,38,0.25), transparent, rgba(220,38,38,0.15), transparent);
-      opacity: 0.6;
-      z-index: -1;
-      animation: spin 5s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .card-immediate .icon-block svg {
-      width: 38px;
-      height: 38px;
-      fill: none;
-      stroke: #ef4444;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .card-immediate .badge-imm {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 14px 5px 10px;
-      border-radius: 100px;
-      background: rgba(220, 38, 38, 0.10);
-      border: 1px solid rgba(220, 38, 38, 0.12);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #f87171;
-      margin-bottom: 16px;
-    }
-
-    .card-immediate .badge-imm .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #ef4444;
-      animation: pulseDot 1.2s ease-in-out infinite;
-    }
-
-    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
-
-    .card-immediate h1 {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      color: #fef2f2;
-      margin-bottom: 4px;
-    }
-
-    .card-immediate .domain-imm {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 10px 0;
-      padding: 6px 16px;
-      border-radius: 10px;
-      background: rgba(220, 38, 38, 0.06);
-      border: 1px solid rgba(220, 38, 38, 0.10);
-      font-size: 15px;
-      font-weight: 600;
-      color: #fca5a5;
-    }
-
-    .card-immediate .domain-imm svg {
-      width: 14px; height: 14px;
-      fill: none; stroke: #f87171;
-      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
-    }
-
-    .card-immediate .desc-imm {
-      font-size: 14px;
-      line-height: 1.7;
-      color: #a0a0b8;
-      margin: 12px 0 28px;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .card-immediate .desc-imm strong { color: #e4e4f0; }
-
-    .card-immediate .actions-imm { display: flex; flex-direction: column; gap: 10px; }
-
-    /* ── Timeout card (existing design refined) ── */
-
-    body.mode-timeout {
-      background: #07070e;
-    }
-
-    body.mode-timeout::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 700px 500px at 15% 20%, rgba(124, 58, 237, 0.10) 0%, transparent 70%),
-        radial-gradient(ellipse 600px 600px at 85% 80%, rgba(248, 113, 113, 0.07) 0%, transparent 70%),
-        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body.mode-timeout::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
+      gap: 20px;
+      animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(28px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .card-timeout {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 420px;
-      background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-      backdrop-filter: blur(32px);
-      -webkit-backdrop-filter: blur(32px);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 24px;
-      padding: 0;
-      text-align: center;
-      animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-      overflow: hidden;
-      box-shadow:
-        0 0 0 1px rgba(124, 58, 237, 0.06),
-        0 32px 80px -8px rgba(0,0,0,0.6),
-        inset 0 1px 0 rgba(255,255,255,0.06);
+    /* Icon Block */
+    .icon-block {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .card-timeout .header {
-      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(248,113,113,0.08));
-      padding: 40px 40px 32px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      position: relative;
-      overflow: hidden;
+    .icon-block svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: var(--danger);
+      stroke-width: 2px;
     }
 
-    .card-timeout .header::before {
-      content: '';
-      position: absolute;
-      top: -60%;
-      left: -20%;
-      width: 140%;
-      height: 140%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(124,58,237,0.08), transparent 60%);
-      pointer-events: none;
-    }
-
+    /* Ring Clock */
     .ring-container {
       position: relative;
-      width: 104px; height: 104px;
-      margin: 0 auto 20px;
+      width: 80px;
+      height: 80px;
     }
     .ring-container svg {
       transform: rotate(-90deg);
-      width: 104px; height: 104px;
-      filter: drop-shadow(0 0 20px rgba(248, 113, 113, 0.15));
+      width: 80px;
+      height: 80px;
     }
-    .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
+    .ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 6;
+    }
     .ring-fg {
-      fill: none; stroke: url(#ringGradient); stroke-width: 5;
-      stroke-linecap: round; stroke-dasharray: 282.7; stroke-dashoffset: 282.7;
-      animation: fillRing 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      fill: none;
+      stroke: var(--danger);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 251.3;
+      stroke-dashoffset: 251.3;
+      animation: fillRing 1s ease-out forwards;
     }
     @keyframes fillRing {
-      from { stroke-dashoffset: 282.7; }
       to { stroke-dashoffset: var(--offset-to, 0); }
     }
     .ring-center {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .ring-center svg {
-      width: 28px; height: 28px;
-      stroke: #f87171; fill: none; stroke-width: 2.5;
-      stroke-linecap: round; stroke-linejoin: round;
-      animation: iconPop 0.5s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    @keyframes iconPop {
-      from { opacity: 0; transform: scale(0.5); }
-      to { opacity: 1; transform: scale(1); }
+      width: 28px;
+      height: 28px;
+      stroke: var(--danger);
+      fill: none;
+      stroke-width: 2;
     }
 
-    .badge-to {
+    /* Badge */
+    .badge-imm, .badge-to {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 14px 5px 10px;
-      border-radius: 100px;
-      background: rgba(248, 113, 113, 0.10);
-      border: 1px solid rgba(248, 113, 113, 0.12);
-      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #f87171;
-      position: relative;
-      z-index: 1;
-    }
-    .badge-to .dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #f87171;
-      animation: pulseDot 1.2s ease-in-out infinite;
+      letter-spacing: 0.05em;
+      color: var(--danger);
     }
 
-    .card-timeout .body { padding: 28px 40px 36px; }
+    .badge-imm .dot, .badge-to .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--danger);
+    }
 
-    .card-timeout h1 {
-      font-size: 22px;
+    /* Content */
+    h1 {
+      font-size: 20px;
       font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 4px;
-      background: linear-gradient(135deg, #f1f1f7 40%, #c7c7e0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
     }
 
-    .domain-to {
+    .domain-imm, .domain-to {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin: 10px 0;
-      padding: 5px 14px;
-      border-radius: 8px;
-      background: rgba(248, 113, 113, 0.06);
-      border: 1px solid rgba(248, 113, 113, 0.10);
-      font-size: 14px;
-      font-weight: 600;
-      color: #fca5a5;
-    }
-    .domain-to svg {
-      width: 12px; height: 12px;
-      fill: none; stroke: #f87171;
-      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--danger);
+      word-break: break-all;
     }
 
-    .desc-to {
-      font-size: 13.5px;
-      line-height: 1.7;
-      color: #9898b0;
-      margin: 10px 0 24px;
+    .domain-imm svg, .domain-to svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    .desc-imm, .desc-to {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
       max-width: 320px;
-      margin-left: auto; margin-right: auto;
     }
-    .desc-to strong { color: #e4e4f0; font-weight: 600; }
 
+    .desc-imm strong, .desc-to strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Stats container */
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 28px;
+      gap: 12px;
+      width: 100%;
     }
+
     .stat {
-      padding: 14px 12px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.05);
+      padding: 12px;
+      border-radius: 8px;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
+
     .stat-value {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 1px;
+      font-size: 16px;
+      font-weight: 700;
     }
-    .stat-value.exceeded { color: #f87171; }
-    .stat-value.ok { color: #6ee7b7; }
+    .stat-value.exceeded {
+      color: var(--danger);
+    }
+    .stat-value.ok {
+      color: var(--primary);
+    }
+
     .stat-label {
-      font-size: 10px;
-      color: #6b6b85;
+      font-size: 9px;
+      color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       font-weight: 600;
     }
 
-    /* ── Shared buttons ── */
-
-    .actions { display: flex; flex-direction: column; gap: 10px; }
+    /* Buttons */
+    .actions, .actions-imm {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
 
     .btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 14px 24px;
-      border-radius: 12px;
-      border: none;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid transparent;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.15s ease;
+      width: 100%;
     }
-    .btn:active { transform: scale(0.97); }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
 
     .btn-red {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
-      color: white;
-      box-shadow: 0 4px 24px rgba(220, 38, 38, 0.2);
+      background-color: var(--danger);
+      color: #FFFFFF;
     }
     .btn-red:hover {
-      box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
-      transform: translateY(-1px);
+      background-color: #E03E3E;
     }
-    .btn-red:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     .btn-primary {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      color: white;
-      box-shadow: 0 4px 24px rgba(124, 58, 237, 0.2);
+      background-color: var(--primary);
+      color: #FFFFFF;
     }
     .btn-primary:hover {
-      box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
-      transform: translateY(-1px);
+      background-color: var(--primary-hover);
     }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     .btn-ghost {
-      background: rgba(255,255,255,0.04);
-      color: #9898b0;
-      border: 1px solid rgba(255,255,255,0.06);
+      background-color: transparent;
+      color: var(--text-secondary);
+      border-color: var(--border);
     }
     .btn-ghost:hover {
-      background: rgba(255,255,255,0.07);
-      color: #e4e4f0;
+      background-color: var(--bg);
+      color: var(--text-primary);
     }
+
     .btn-ghost-red {
-      background: rgba(220, 38, 38, 0.06);
-      color: #fca5a5;
-      border: 1px solid rgba(220, 38, 38, 0.10);
+      background-color: transparent;
+      color: var(--danger);
+      border-color: var(--danger-border);
     }
     .btn-ghost-red:hover {
-      background: rgba(220, 38, 38, 0.10);
-      color: #fef2f2;
+      background-color: var(--danger-bg);
     }
 
     .btn-icon {
-      width: 16px; height: 16px;
-      fill: none; stroke: currentColor;
-      stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round;
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.25;
     }
 
     .toast {
       position: fixed;
-      bottom: 28px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      padding: 14px 24px;
-      border-radius: 12px;
-      background: rgba(16, 185, 129, 0.10);
-      border: 1px solid rgba(16, 185, 129, 0.15);
-      color: #6ee7b7;
-      font-size: 14px; font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
       opacity: 0;
-      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: none;
       z-index: 100;
       display: flex;
       align-items: center;
-      gap: 10px;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      gap: 8px;
+      box-shadow: var(--card-shadow);
     }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .toast.toast-red {
-      background: rgba(220, 38, 38, 0.10);
-      border-color: rgba(220, 38, 38, 0.15);
-      color: #fca5a5;
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
     .toast-icon {
-      width: 18px; height: 18px;
-      fill: none; stroke: currentColor;
-      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2.5;
     }
 
-    @media (max-width: 480px) {
-      .card-immediate { padding: 36px 24px 28px; }
-      .card-timeout .header { padding: 32px 24px 24px; }
-      .card-timeout .body { padding: 24px 24px 28px; }
-      .ring-container { width: 88px; height: 88px; }
-      .ring-container svg { width: 88px; height: 88px; }
-      .card-immediate h1 { font-size: 22px; }
-      .card-timeout h1 { font-size: 19px; }
+    .hidden {
+      display: none !important;
     }
-
-    .hidden { display: none !important; }
   </style>
 </head>
 <body>
