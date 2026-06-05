@@ -36,7 +36,8 @@ fun StatsScreen(viewModel: StatsViewModel? = null) {
         Spacer(modifier = Modifier.height(24.dp))
         StatsSummaryCards(
             dailyAverageText = uiState.dailyAverageText,
-            unlockAverageText = uiState.unlockAverageText
+            unlockAverageText = uiState.unlockAverageText,
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
         StatsCarousel(state = uiState)
