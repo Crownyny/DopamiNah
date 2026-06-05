@@ -22,11 +22,12 @@ fun StatsScreen(viewModel: StatsViewModel? = null) {
     var showDatePicker by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+         modifier = Modifier
+             .fillMaxSize()
+             .statusBarsPadding()
+             .verticalScroll(rememberScrollState())
+             .background(MaterialTheme.colorScheme.background)
+     ) {
         Spacer(modifier = Modifier.height(16.dp))
         StatsHeader(
             selectedTab = uiState.selectedTab,

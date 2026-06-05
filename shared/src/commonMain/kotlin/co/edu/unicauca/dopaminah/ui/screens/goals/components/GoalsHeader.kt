@@ -10,8 +10,9 @@ import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 
 @Composable
-fun GoalsHeader() {
+fun GoalsHeader(modifier: Modifier = Modifier) {
     Card(
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = DopaminahOrange),
         shape = MaterialTheme.shapes.medium
     ) {

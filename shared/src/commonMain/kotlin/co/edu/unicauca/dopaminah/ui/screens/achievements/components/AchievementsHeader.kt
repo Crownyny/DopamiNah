@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +32,8 @@ fun AchievementsHeader() {
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(start = 24.dp, end = 24.dp, top = 48.dp, bottom = 32.dp)
+            .statusBarsPadding()
+            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 32.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

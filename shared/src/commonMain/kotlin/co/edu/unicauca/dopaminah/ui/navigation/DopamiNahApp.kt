@@ -97,6 +97,10 @@ private fun MainContent(
     val firstVisibleTab = visibleTabs.firstOrNull() ?: AppTab.SETTINGS
     var selectedTab by remember { mutableStateOf(firstVisibleTab) }
     var pendingUrl by remember { mutableStateOf<String?>(null) }
+
+    val darkIcons = !darkMode && selectedTab == AppTab.STATS
+    co.edu.unicauca.dopaminah.PlatformStatusBarEffect(darkIcons = darkIcons)
+
     val webGoalsViewModel = remember {
         if (useWebGoals) {
             WebGoalsViewModel().also { vm ->
@@ -184,7 +188,11 @@ private fun MainContent(
                 }
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = paddingValues.calculateBottomPadding())
+            ) {
                 when (selectedTab) {
                     AppTab.DASHBOARD -> DashboardScreen(viewModel = dashboardViewModel)
                     AppTab.STATS -> StatsScreen(viewModel = statsViewModel)

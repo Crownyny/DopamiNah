@@ -18,6 +18,7 @@ import co.edu.unicauca.dopaminah.data.repository.DeviceUsageRepositoryImpl
 import co.edu.unicauca.dopaminah.data.repository.GamificationRepositoryImpl
 import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
 import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
+import co.edu.unicauca.dopaminah.ui.navigation.AppTab
 import co.edu.unicauca.dopaminah.ui.navigation.PermissionState
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
@@ -114,7 +115,8 @@ class MainActivity : ComponentActivity() {
                 dashboardViewModel = dashboardViewModel,
                 statsViewModel = statsViewModel,
                 goalsViewModel = goalsViewModel,
-                achievementsViewModel = achievementsViewModel
+                achievementsViewModel = achievementsViewModel,
+                hiddenTabs = setOf(AppTab.WEB)
             )
         }
     }

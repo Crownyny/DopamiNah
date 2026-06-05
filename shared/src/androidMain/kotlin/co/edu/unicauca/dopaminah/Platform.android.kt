@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.Composable
 
 actual fun getPlatformName(): String = "Android ${android.os.Build.VERSION.SDK_INT}"
 actual fun currentTimeMillis(): Long = System.currentTimeMillis()
@@ -18,4 +19,18 @@ actual class DevicePreferences(private val context: Context) {
     actual fun putBoolean(key: String, value: Boolean) { prefs.edit().putBoolean(key, value).apply() }
     actual fun getString(key: String, default: String): String = prefs.getString(key, default) ?: default
     actual fun putString(key: String, value: String) { prefs.edit().putString(key, value).apply() }
+}
+
+@Composable
+actual fun PlatformStatusBarEffect(darkIcons: Boolean) {
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val window = (view.context as? android.app.Activity)?.window
+            if (window != null) {
+                val insetsController = androidx.core.view.WindowCompat.getInsetsController(window, view)
+                insetsController.isAppearanceLightStatusBars = darkIcons
+            }
+        }
+    }
 }

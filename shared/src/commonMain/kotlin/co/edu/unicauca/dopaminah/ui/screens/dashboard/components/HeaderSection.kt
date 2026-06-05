@@ -28,7 +28,11 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
             .background(colorScheme.primaryContainer)
             .padding(bottom = 24.dp, start = 20.dp, end = 20.dp)
     ) {
-        Column(modifier = Modifier.padding(top = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .statusBarsPadding()
+                .padding(top = 16.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

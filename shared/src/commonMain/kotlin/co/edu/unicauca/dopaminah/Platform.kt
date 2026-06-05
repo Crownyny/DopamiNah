@@ -1,7 +1,12 @@
 package co.edu.unicauca.dopaminah
 
+import androidx.compose.runtime.Composable
+
 expect fun getPlatformName(): String
 expect fun currentTimeMillis(): Long
+
+@Composable
+expect fun PlatformStatusBarEffect(darkIcons: Boolean)
 
 expect class DevicePreferences {
     fun getInt(key: String, default: Int): Int

@@ -19,3 +19,6 @@ actual class DevicePreferences {
     actual fun getString(key: String, default: String): String = defaults.stringForKey(key) ?: default
     actual fun putString(key: String, value: String) { defaults.setObject(value, key) }
 }
+
+@androidx.compose.runtime.Composable
+actual fun PlatformStatusBarEffect(darkIcons: Boolean) {}

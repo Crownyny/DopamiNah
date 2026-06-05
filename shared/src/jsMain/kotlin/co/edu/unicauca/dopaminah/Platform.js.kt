@@ -24,3 +24,6 @@ actual class DevicePreferences {
     actual fun getString(key: String, default: String): String = map[key] ?: default
     actual fun putString(key: String, value: String) { map[key] = value }
 }
+
+@androidx.compose.runtime.Composable
+actual fun PlatformStatusBarEffect(darkIcons: Boolean) {}
