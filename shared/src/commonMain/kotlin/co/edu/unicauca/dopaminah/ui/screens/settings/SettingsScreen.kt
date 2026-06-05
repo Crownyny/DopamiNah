@@ -20,6 +20,11 @@ import co.edu.unicauca.dopaminah.ui.screens.settings.components.*
 import co.edu.unicauca.dopaminah.ui.screens.settings.viewmodel.SettingsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
+import co.edu.unicauca.dopaminah.hasOverlayPermission
+import co.edu.unicauca.dopaminah.requestOverlayPermission
+import co.edu.unicauca.dopaminah.isMonitoringServiceRunning
+import co.edu.unicauca.dopaminah.startMonitoringService
+import co.edu.unicauca.dopaminah.stopMonitoringService
 
 private const val URL_PRIVACY_POLICY = "https://dopaminah.app/privacy"
 private const val URL_HELP_CENTER = "https://dopaminah.app/help"
@@ -160,6 +165,53 @@ fun SettingsScreen(
                             icon = LucideInfo,
                             title = "Restaurar lista predeterminada",
                             onClick = { navRepository.resetDefaults() }
+                        )
+                    }
+                }
+            }
+
+            item {
+                var isServiceRunning by remember { mutableStateOf(isMonitoringServiceRunning()) }
+                var hasOverlayPerm by remember { mutableStateOf(hasOverlayPermission()) }
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        isServiceRunning = isMonitoringServiceRunning()
+                        hasOverlayPerm = hasOverlayPermission()
+                        kotlinx.coroutines.delay(1000L)
+                    }
+                }
+
+                SettingsSection(title = "Control de Límites (Android)") {
+                    SettingsToggleItem(
+                        icon = LucideLock,
+                        title = "Bloquear Aplicaciones",
+                        subtitle = "Cierra apps al superar el límite diario",
+                        checked = isServiceRunning,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                if (hasOverlayPermission()) {
+                                    startMonitoringService()
+                                    isServiceRunning = true
+                                } else {
+                                    requestOverlayPermission()
+                                }
+                            } else {
+                                stopMonitoringService()
+                                isServiceRunning = false
+                            }
+                        }
+                    )
+                    
+                    if (!hasOverlayPerm) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        SettingsNavigationItem(
+                            icon = LucideShieldAlert,
+                            title = "Permiso: Mostrar sobre otras apps",
+                            onClick = { requestOverlayPermission() }
                         )
                     }
                 }

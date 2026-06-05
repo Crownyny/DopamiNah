@@ -22,3 +22,12 @@ actual class DevicePreferences {
 
 @androidx.compose.runtime.Composable
 actual fun PlatformStatusBarEffect(darkIcons: Boolean) {}
+
+actual fun hasOverlayPermission(): Boolean = true
+actual fun requestOverlayPermission() {}
+actual fun isMonitoringServiceRunning(): Boolean = false
+actual fun startMonitoringService() {}
+actual fun stopMonitoringService() {}
+actual fun addBypassApp(packageName: String) {}
+actual fun isAppBypassed(packageName: String): Boolean = false
+actual fun removeBypassApp(packageName: String) {}

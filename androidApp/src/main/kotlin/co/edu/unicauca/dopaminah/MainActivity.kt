@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        setAppContext(applicationContext)
 
         val deviceRepo = DeviceUsageRepositoryImpl(applicationContext)
         val gamificationRepo = GamificationRepositoryImpl(DevicePreferences(applicationContext))

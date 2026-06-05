@@ -50,6 +50,9 @@ fun GoalCard(
     onDelete: () -> Unit = {},
     onEdit: (newLimitMinutes: Int) -> Unit = {}
 ) {
+    var isBypassed by remember(goal.appPackageName) {
+        mutableStateOf(goal.appPackageName?.let { co.edu.unicauca.dopaminah.isAppBypassed(it) } ?: false)
+    }
     val icon = when (goal.goalType) {
         GoalType.TOTAL_DAILY -> LucideTimer
         GoalType.APP_LIMIT -> LucideSmartphone
@@ -204,6 +207,45 @@ fun GoalCard(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.extendedColors.dangerRed
                     )
+                }
+            }
+
+            if (isBypassed && goal.appPackageName != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = LucideTriangleAlert,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Bloqueo omitido temporalmente",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    TextButton(
+                        onClick = {
+                            co.edu.unicauca.dopaminah.removeBypassApp(goal.appPackageName)
+                            isBypassed = false
+                        },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                        modifier = Modifier.height(28.dp)
+                    ) {
+                        Text(
+                            text = "Re-bloquear",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 
