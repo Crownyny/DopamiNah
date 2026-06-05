@@ -4,6 +4,12 @@ const MAX_RETRIES = 3;
 document.addEventListener('DOMContentLoaded', async () => {
   await loadGoalsWithRetry();
 
+  // Load and display last sync time if it exists
+  const syncData = await chrome.storage.local.get('lastSyncTime');
+  if (syncData.lastSyncTime) {
+    showSyncStatus(syncData.lastSyncTime);
+  }
+
   document.getElementById('add-goal-btn').addEventListener('click', () => {
     const form = document.getElementById('add-goal-form');
     form.classList.toggle('hidden');
@@ -40,6 +46,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       selectedMinutes = 0;
       document.querySelector('.preset-btn[data-minutes="0"]').classList.add('active');
     }
+  });
+
+  document.getElementById('reload-btn').addEventListener('click', async () => {
+    const icon = document.querySelector('#reload-btn svg');
+    icon.style.transition = 'transform 0.5s ease';
+    icon.style.transform = 'rotate(-360deg)';
+    await loadGoalsWithRetry();
+    setTimeout(() => {
+      icon.style.transition = 'none';
+      icon.style.transform = 'none';
+    }, 500);
   });
 
   document.getElementById('sync-btn').addEventListener('click', syncWithWebApp);
@@ -237,7 +254,17 @@ function hideForm() {
   document.getElementById('add-goal-form').classList.add('hidden');
 }
 
+function showSyncStatus(timeStr) {
+  const statusDiv = document.getElementById('sync-status');
+  const textSpan = document.getElementById('sync-time-text');
+  textSpan.textContent = `Sincronizado: ${timeStr}`;
+  statusDiv.classList.remove('hidden');
+}
+
 async function syncWithWebApp() {
+  const syncBtn = document.getElementById('sync-btn');
+  const statusDiv = document.getElementById('sync-status');
+  
   const response = await sendMessageWithRetry({ type: 'GET_GOALS' });
   const goals = response.goals || [];
 
@@ -245,6 +272,12 @@ async function syncWithWebApp() {
     alert('No hay metas para sincronizar. Crea algunas primero.');
     return;
   }
+
+  // Set loading state
+  syncBtn.disabled = true;
+  syncBtn.textContent = 'Sincronizando...';
+  statusDiv.classList.add('hidden');
+  const startTime = Date.now();
 
   try {
     const tabs = await chrome.tabs.query({ url: '*://*/*' });
@@ -262,11 +295,40 @@ async function syncWithWebApp() {
           isActive: g.isActive
         }))
       });
-      alert('Metas sincronizadas con DopamiNah web');
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      await chrome.storage.local.set({ lastSyncTime: timeStr });
+      
+      // Ensure minimum 500ms delay for loading feedback
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 500) {
+        await new Promise(r => setTimeout(r, 500 - elapsed));
+      }
+      
+      showSyncStatus(timeStr);
     } else {
       alert('No se encontró la pestaña de DopamiNah web. Ábrela e intenta de nuevo.');
+      // Restore previous sync time if it exists
+      const syncData = await chrome.storage.local.get('lastSyncTime');
+      if (syncData.lastSyncTime) {
+        showSyncStatus(syncData.lastSyncTime);
+      }
     }
   } catch {
     alert('Error al sincronizar. Asegúrate de tener DopamiNah abierto.');
+    // Restore previous sync time if it exists
+    const syncData = await chrome.storage.local.get('lastSyncTime');
+    if (syncData.lastSyncTime) {
+      showSyncStatus(syncData.lastSyncTime);
+    }
+  } finally {
+    // Ensure minimum 500ms delay even on failure
+    const elapsed = Date.now() - startTime;
+    if (elapsed < 500) {
+      await new Promise(r => setTimeout(r, 500 - elapsed));
+    }
+    // Reset button state
+    syncBtn.disabled = false;
+    syncBtn.textContent = 'Sincronizar con DopamiNah web';
   }
 }
