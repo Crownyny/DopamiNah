@@ -31,6 +31,7 @@ private const val URL_HELP_CENTER = "https://dopaminah.app/help"
 private const val URL_CONTACT_SUPPORT = "https://dopaminah.app/support"
 
 @Composable
+/** Full-screen composable for the settings tab, with toggles for notifications, Pajaro Verde mode, premium, and about sections. */
 fun SettingsScreen(
     darkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},

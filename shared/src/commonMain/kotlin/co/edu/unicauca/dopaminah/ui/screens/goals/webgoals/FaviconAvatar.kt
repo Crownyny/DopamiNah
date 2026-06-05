@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 
+/** Loads a favicon from Google's favicon service for the given domain, with a branded fallback icon on error. */
 @Composable
 fun FaviconAvatar(
     domain: String,

@@ -13,12 +13,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Constants identifying the supported goal types. */
 object GoalType {
     const val TOTAL_DAILY = "TOTAL_DAILY"
     const val APP_LIMIT = "APP_LIMIT"
     const val UNLOCK_LIMIT = "UNLOCK_LIMIT"
 }
 
+/** Display-ready model for a single goal card. */
 data class GoalDisplayModel(
     val id: Int,
     val goalType: String,
@@ -32,6 +34,7 @@ data class GoalDisplayModel(
     val currentLimitMinutes: Int = 0
 )
 
+/** UI state for the goals screen. */
 data class GoalsState(
     val goals: List<GoalDisplayModel> = emptyList(),
     val installedApps: List<String> = emptyList(),
@@ -39,6 +42,7 @@ data class GoalsState(
     val isLoading: Boolean = false
 )
 
+/** ViewModel for the device usage goals screen, managing CRUD of daily-time, app-limit, and unlock-limit goals. */
 class GoalsViewModel(
     private val goalsRepository: GoalsRepository? = null,
     private val deviceUsageRepository: DeviceUsageRepository? = null,

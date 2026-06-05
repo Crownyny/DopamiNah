@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.domain.model
 
+/** Summary of usage for a single app: foreground time, unlock count, and last-used timestamp. */
 data class AppUsageSummary(
     val packageName: String,
     val appName: String,

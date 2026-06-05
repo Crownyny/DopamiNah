@@ -29,6 +29,7 @@ import co.edu.unicauca.dopaminah.ui.screens.achievements.components.StreakCard
 import co.edu.unicauca.dopaminah.ui.screens.achievements.viewmodel.AchievementsViewModel
 
 @Composable
+/** Full-screen composable for the achievements tab, showing level, streak, badges grid, and next-achievement card. */
 fun AchievementsScreen(viewModel: AchievementsViewModel? = null) {
     val vm = viewModel ?: remember { AchievementsViewModel() }
     val state by vm.state.collectAsState()

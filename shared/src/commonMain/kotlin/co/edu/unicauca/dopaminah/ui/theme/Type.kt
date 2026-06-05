@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+/** App-wide typography scale using Material 3 text styles with DopamiNah's brand font weights. */
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,

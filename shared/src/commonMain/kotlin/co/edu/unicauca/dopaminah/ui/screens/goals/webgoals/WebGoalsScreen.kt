@@ -54,6 +54,7 @@ private val MIN_CARD_WIDTH = 240.dp
 private val GRID_GAP = 12.dp
 
 @Composable
+/** Full-screen composable for the web goals tab ("Metas"), with a responsive card grid and create/edit/delete dialogs. */
 fun WebGoalsScreen(viewModel: WebGoalsViewModel? = null) {
     val vm = viewModel ?: remember { WebGoalsViewModel() }
     val state by vm.state.collectAsState()

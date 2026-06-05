@@ -6,6 +6,7 @@ import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
+/** Use case that combines goals and live usage data to produce app-limit card info for the dashboard. */
 class GetDashboardDataUseCase(
     private val deviceUsageRepository: DeviceUsageRepository,
     private val goalsRepository: GoalsRepository

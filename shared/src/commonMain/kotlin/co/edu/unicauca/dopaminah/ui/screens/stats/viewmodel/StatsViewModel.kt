@@ -10,13 +10,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** Time range tab for the stats view. */
 enum class StatsTab { WEEKLY, MONTHLY }
 
+/** Usage summary for a single app, used in stats charts. */
 data class AppUsageEntry(
     val appName: String,
     val averageHours: Float
 )
 
+/** UI state for the stats screen, holding all chart and detail data. */
 data class StatsState(
     val selectedTab: StatsTab = StatsTab.WEEKLY,
     val dailyAverageText: String = "-",
@@ -29,6 +32,7 @@ data class StatsState(
     val isLoading: Boolean = false
 )
 
+/** ViewModel for the usage stats screen, providing weekly/monthly data, app breakdown, and hourly charts. */
 class StatsViewModel(
     private val repository: DeviceUsageRepository? = null
 ) {

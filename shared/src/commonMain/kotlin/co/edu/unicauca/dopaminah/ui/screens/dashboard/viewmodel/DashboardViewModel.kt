@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** ViewModel for the home dashboard, aggregating gamification stats, daily usage, unlocks, and app-limit card info. */
 class DashboardViewModel(
     private val gamificationRepository: GamificationRepository? = null,
     private val deviceUsageRepository: DeviceUsageRepository? = null,

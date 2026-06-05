@@ -11,6 +11,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for web site usage goals.
+ * Tracks active domain visits, accumulates time per domain, computes block state,
+ * and syncs with the browser extension via [SyncBridge].
+ *
+ * Goals are stored in-memory only — no persistence layer.
+ */
 class WebGoalsViewModel {
     var onSyncOut: ((List<WebGoalUiModel>) -> Unit)? = null
 

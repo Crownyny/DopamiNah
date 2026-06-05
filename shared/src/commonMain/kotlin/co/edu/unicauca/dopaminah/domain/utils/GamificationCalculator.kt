@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.domain.utils
 
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 
+/** Pure functions for computing level, points-to-next-level, and gamification stats from raw streak/points. */
 object GamificationCalculator {
 
     fun calculateLevel(points: Int): Int {

@@ -17,6 +17,25 @@ import co.edu.unicauca.dopaminah.ui.screens.focusbrowser.WebNavigationRepository
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
+/**
+ * Root composable entry point for all platforms.
+ *
+ * Wraps [DopamiNahApp] with Coil image loader initialization and dark mode state.
+ * Each platform entry point (Android MainActivity, Desktop main.kt, Web main.kt, iOS ContentView)
+ * calls this composable with the appropriate platform-specific parameters.
+ *
+ * @param permissionState Tracks overlay and notification permission state
+ * @param darkMode Whether dark theme is active (null from parent = managed internally)
+ * @param onDarkModeChange Callback when dark mode toggles (null = managed internally)
+ * @param dashboardViewModel Injected Android ViewModel or null for default
+ * @param statsViewModel Injected Android ViewModel or null for default
+ * @param goalsViewModel Injected Android ViewModel or null for default
+ * @param achievementsViewModel Injected Android ViewModel or null for default
+ * @param navRepository Web navigation state repository
+ * @param hiddenTabs Tabs to hide per-platform (e.g. Android hides WEB, Web hides DASHBOARD+STATS)
+ * @param useWebGoals Whether to show web goals instead of app goals in the GOALS tab
+ * @param onSyncGoalsToExtension Callback to serialize and send goals to browser extension
+ */
 @Composable
 fun App(
     permissionState: PermissionState = PermissionState(),

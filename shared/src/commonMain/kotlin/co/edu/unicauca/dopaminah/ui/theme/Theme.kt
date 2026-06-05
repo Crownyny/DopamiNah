@@ -51,6 +51,7 @@ private val LightColorScheme = lightColorScheme(
     outlineVariant = Color(0xFFF3F4F6),
 )
 
+/** Root theme composable that applies dark/light color schemes, extended colors, and typography from [Type]. */
 @Composable
 fun DopamiNahTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

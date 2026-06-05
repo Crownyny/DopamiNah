@@ -5,6 +5,10 @@ import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
 import co.edu.unicauca.dopaminah.domain.repository.UsageMonitoringRepository
 import kotlinx.coroutines.flow.first
 
+/**
+ * Use case that checks all active goals against current usage and triggers notifications
+ * when screen-time, app-limit, or unlock-limit thresholds are exceeded.
+ */
 class CheckUsageLimitsUseCase(
     private val deviceUsageRepository: DeviceUsageRepository,
     private val goalsRepository: GoalsRepository,

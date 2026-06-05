@@ -7,6 +7,10 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideSettings
 import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
 import androidx.compose.ui.graphics.vector.ImageVector
 
+/**
+ * Sealed class defining all navigable screens and their metadata.
+ * Deprecated in favor of [AppTab] for the bottom navigation; kept for onboarding.
+ */
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object OnboardingPermission : Screen("onboarding_permission", "Permisos", LucideSettings)
     object Dashboard : Screen("dashboard", "Inicio", LucideHouse)

@@ -38,6 +38,7 @@ import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalsViewModel
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 
 @Composable
+/** Full-screen composable for the device usage goals tab, showing goal cards and a create/edit dialog. */
 fun GoalsScreen(viewModel: GoalsViewModel? = null) {
     val vm = viewModel ?: remember { GoalsViewModel() }
     val state by vm.state.collectAsState()

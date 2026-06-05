@@ -16,6 +16,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.components.StatsSummaryCards
 import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
 
 @Composable
+/** Full-screen composable for the usage stats tab, with weekly/monthly charts, app breakdown, and daily details. */
 fun StatsScreen(viewModel: StatsViewModel? = null) {
     val vm = viewModel ?: remember { StatsViewModel() }
     val uiState by vm.uiState.collectAsState()

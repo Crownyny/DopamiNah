@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.ui.screens.focusbrowser
 
+/** A rule that matches URLs to determine if a site should be blocked, supporting exact domain and wildcard matching. */
 data class BlockRule(
     val id: String,
     val domain: String,

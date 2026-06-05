@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.domain.utils
 
+/** A single achievement badge with its unlock requirement key. */
 data class Badge(
     val id: String,
     val emoji: String,
@@ -8,6 +9,7 @@ data class Badge(
     val requirement: String
 )
 
+/** Catalog of all badges and utility functions for level titles and streak motivation messages. */
 object BadgeDefinitions {
 
     val allBadges = listOf(

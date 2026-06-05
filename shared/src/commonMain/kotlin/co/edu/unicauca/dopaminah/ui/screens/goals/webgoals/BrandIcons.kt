@@ -24,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.theme.DangerRed
 
+/** Normalizes a domain string by stripping "www." prefix and lowercasing. */
 fun cleanDomain(domain: String): String {
     return domain.removePrefix("www.").lowercase()
 }
 
+/** Returns a brand color for a known domain (YouTube → red, Twitter → black, etc.) or a deterministic palette color for unknown domains. */
 fun brandColor(domain: String): Color {
     val clean = cleanDomain(domain)
     return when {
@@ -66,6 +68,7 @@ fun brandColor(domain: String): Color {
     }
 }
 
+/** Renders a domain avatar: shows a blocked icon (red circle with line) when [isBlocked], otherwise shows [FaviconAvatar]. */
 @Composable
 fun BrandAvatar(
     domain: String,
@@ -91,6 +94,7 @@ fun BrandAvatar(
     }
 }
 
+/** Fallback composable that draws a branded Canvas icon (YouTube, Reddit, etc.) or the domain's first letter for unknown domains. */
 @Composable
 fun DomainFallbackIcon(
     cleanDomain: String,
@@ -416,11 +420,13 @@ private fun DrawScope.drawBlockedIcon(color: Color) {
     drawLine(Color.White, Offset(cx - r * 0.3f, cy), Offset(cx + r * 0.3f, cy), strokeWidth = size.width * 0.12f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
 }
 
+/** A domain suggestion shown in the "create web goal" picker. */
 data class DomainSuggestion(
     val domain: String,
     val label: String
 )
 
+/** Predefined list of popular domain suggestions for quick goal creation. */
 val domainSuggestions = listOf(
     DomainSuggestion("youtube.com", "YouTube"),
     DomainSuggestion("reddit.com", "Reddit"),

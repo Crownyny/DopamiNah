@@ -4,10 +4,12 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
+/** Brand purple — used as primary color, accent bars, and interactive elements. */
 val DopaminahPurple = Color(0xFF8B5CF6)
 val DopaminahPurpleDark = Color(0xFF6D28D9)
 val DopaminahPurpleLight = Color(0xFFDDD6FE)
 
+/** Brand orange — used for highlights, tips, and secondary accents. */
 val DopaminahOrange = Color(0xFFFA832B)
 val DopaminahOrangeLight = Color(0xFFFA832B)
 val DopaminahOrangeDark = Color(0xFFFA832B)
@@ -15,6 +17,7 @@ val DopaminahOrangeDark = Color(0xFFFA832B)
 val DopaminahRedDark = Color(0xFF451A1A)
 val DopaminahRedText = Color(0xFFEF4444)
 
+/** Semantic colors for state indication. */
 val SuccessGreen = Color(0xFF22C55E)
 val SuccessGreenLight = Color(0xFF4ADE80)
 val SuccessGreenDark = Color(0xFF2D4739)
@@ -23,11 +26,13 @@ val WarningYellowDark = Color(0xFF2E2E2E)
 val WarningYellowAccent = Color(0xFF1E1E1E)
 val DangerRed = Color(0xFFEF4444)
 
+/** Light theme background/surface/text colors. */
 val BackgroundLight = Color(0xFFF8FAFC)
 val SurfaceCard = Color(0xFFFFFFFF)
 val TextPrimary = Color(0xFF0F172A)
 val TextSecondary = Color(0xFF64748B)
 
+/** Dark theme background/surface/text colors. */
 val BackgroundDark = Color(0xFF1C1B1F)
 val SurfaceDark = Color(0xFF2B2930)
 val TextPrimaryDark = Color(0xFFE6E1E5)
@@ -36,6 +41,10 @@ val TextSecondaryDark = Color(0xFFCAC4D0)
 val StatCardDark = Color(0xFF28252C)
 val StatCardPink = Color(0xFFE91E63)
 
+/**
+ * Extended brand colors provided via CompositionLocal.
+ * Accessible as [MaterialTheme.extendedColors] inside [DopamiNahTheme].
+ */
 @Immutable
 data class ExtendedColors(
     val aboutSurface: Color,
@@ -67,8 +76,10 @@ val DarkExtendedColors = ExtendedColors(
     brandOrange = DopaminahOrangeLight,
 )
 
+/** CompositionLocal key for accessing [ExtendedColors] throughout the composable tree. */
 val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
 
+/** Gradient color pairs used for chart lines/bars in stats screens. */
 val AppChartColorsList = listOf(
     listOf(Color(0xFF8B5CF6), Color(0xFFA78BFA)),
     listOf(Color(0xFFF43F5E), Color(0xFFFB7185)),

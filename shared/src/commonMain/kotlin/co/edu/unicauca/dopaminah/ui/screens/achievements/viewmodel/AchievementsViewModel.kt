@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** Display model for a badge in the achievements grid. */
 data class BadgeUi(
     val id: String,
     val emoji: String,
@@ -21,6 +22,7 @@ data class BadgeUi(
     val isUnlocked: Boolean = unlockDate != null
 )
 
+/** UI state for the achievements screen. */
 data class AchievementsState(
     val streakDays: Int = 0,
     val level: Int = 1,
@@ -34,6 +36,7 @@ data class AchievementsState(
     val bestStreak: Int = 0
 )
 
+/** ViewModel for the achievements screen, computing badge unlock status, streak, and level from gamification stats. */
 class AchievementsViewModel(
     gamificationRepository: GamificationRepository? = null
 ) {

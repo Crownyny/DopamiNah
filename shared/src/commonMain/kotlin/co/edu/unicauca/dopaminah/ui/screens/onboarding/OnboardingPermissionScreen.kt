@@ -19,6 +19,7 @@ import co.edu.unicauca.dopaminah.ui.screens.onboarding.components.OnboardingHead
 import co.edu.unicauca.dopaminah.ui.screens.onboarding.components.PermissionPageContent
 import kotlinx.coroutines.launch
 @Composable
+/** Onboarding screen that walks the user through required permissions (usage stats, notifications, overlay) via a horizontal pager. */
 fun OnboardingPermissionScreen(
     onPermissionGranted: () -> Unit = {},
     onRequestUsagePermission: () -> Unit = {},

@@ -24,6 +24,7 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 import kotlinx.coroutines.delay
 
 @Composable
+/** Screen inside the focus browser showing today's web usage stats, active goal cards, and a summary of visited domains. */
 fun WebStatsScreen(
     navRepository: WebNavigationRepository? = null,
     goalsViewModel: WebGoalsViewModel? = null

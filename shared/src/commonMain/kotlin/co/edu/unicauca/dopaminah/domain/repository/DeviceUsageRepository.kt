@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.domain.repository
 
 import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 
+/** Repository interface for querying device usage statistics (daily stats, unlocks, hourly trends, averages). */
 interface DeviceUsageRepository {
     suspend fun getDailyUsageStats(): List<AppUsageSummary>
     suspend fun getDailyDeviceUnlocks(): Int

@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.ui.screens.goals.webgoals
 
+/** Raw domain goal: URL, daily time limit, and active state. */
 data class WebGoal(
     val id: String,
     val domain: String,
@@ -8,6 +9,7 @@ data class WebGoal(
     val isActive: Boolean = true
 )
 
+/** Display-ready web goal with computed spent time, progress, and block state. */
 data class WebGoalUiModel(
     val id: String,
     val domain: String,
@@ -22,6 +24,7 @@ data class WebGoalUiModel(
     val progressFraction: Float get() = progressPercent.coerceIn(0f, 1f)
 }
 
+/** UI state for the web goals screen. */
 data class WebGoalsState(
     val webGoals: List<WebGoalUiModel> = emptyList(),
     val showCreateDialog: Boolean = false,

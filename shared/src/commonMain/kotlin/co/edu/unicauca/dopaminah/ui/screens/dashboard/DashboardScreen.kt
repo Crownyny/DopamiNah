@@ -16,6 +16,7 @@ import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.MostUsedAppsSec
 import co.edu.unicauca.dopaminah.ui.screens.dashboard.viewmodel.DashboardViewModel
 
 @Composable
+/** Home dashboard screen showing gamification stats, usage summary carousel, most-used apps, and app-limit cards. */
 fun DashboardScreen(
     viewModel: DashboardViewModel? = null
 ) {
