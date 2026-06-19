@@ -1,461 +1,287 @@
 # DopamiNah
 
-> *"Recupera tu tiempo"*
-
-**DopamiNah** es una aplicación móvil de bienestar digital desarrollada con **Android Jetpack Compose** como microproyecto para la asignatura de Desarrollo de Aplicaciones Móviles de la Universidad del Cauca.
-
-El nombre es un juego de palabras entre **dopamina** — el neurotransmisor que los algoritmos de redes sociales explotan para mantenernos enganchados — y la expresión **"Nah"**, que simboliza el rechazo a ese ciclo de consumo excesivo. Su objetivo es ayudar a los usuarios a recuperar el control sobre su tiempo de pantalla.
+Digital wellness app built with **Kotlin Multiplatform** + **Compose Multiplatform**.
+Targets Android, iOS, Desktop (JVM), and Web (JS/Wasm).
 
 ---
 
-## ¿Qué problema resuelve?
+## Architecture
 
-En la economía de la atención actual, las aplicaciones móviles están diseñadas para maximizar el tiempo que pasamos frente a la pantalla, aprovechando mecanismos biológicos como la liberación de dopamina para generar hábitos adictivos. DopamiNah actúa como contrapeso: monitorea el comportamiento real del usuario en su dispositivo y lo confronta con datos concretos, combinando tres estrategias:
-
-- **Monitoreo inteligente** — Registra el tiempo total de uso, la frecuencia de desbloqueos y las horas pico de actividad.
-- **Modo "Intenso" (Presión Activa)** — Inspirado en Duolingo, lanza notificaciones insistentes y mensajes persuasivos (ej. *"¿En serio llevas 40 minutos?"*) para interrumpir el uso excesivo en el momento justo.
-- **Gamificación** — Sistema de rachas diarias, niveles de autocontrol e insignias que premian la disciplina digital y hacen que mejorar el hábito sea motivador.
-
----
-
-## Modelo de negocio
-
-La app adopta un modelo **Freemium con pago único**:
-
-| Plan | Incluye |
-|------|---------|
-| **Gratuito** | Monitoreo básico, estadísticas diarias y una meta general de tiempo de pantalla |
-| **Premium** | Funcionalidades avanzadas (metas por app, desbloqueos, notificaciones intensivas) y protección de datos mediante cuenta Google (OAuth) |
-
----
-
-## Equipo
-
-Desarrollado por **Julian David Meneses Daza** y **Fredy Esteban Anaya Salazar**, estudiantes del Departamento de Telemática — Facultad de Ingeniería Electrónica y Telecomunicaciones, Universidad del Cauca. Popayán, 2026.
-
----
-
-## Flujo interno del código
-
-> Las secciones siguientes documentan la arquitectura técnica de la aplicación: cómo arranca, cómo navega, cómo gestiona dependencias y cómo fluye la información desde el sistema Android hasta la interfaz de usuario.
-
----
-
-## Tabla de contenidos
-
-1. [Arranque de la App](#1-arranque-de-la-app)
-2. [Navegación](#2-navegación)
-3. [Inyección de Dependencias (Hilt)](#3-inyección-de-dependencias-hilt)
-4. [Capa de Datos](#4-capa-de-datos)
-5. [ViewModels](#5-viewmodels)
-6. [UI (Jetpack Compose)](#6-ui-jetpack-compose)
-7. [Flujo end-to-end: Primera apertura](#7-flujo-end-to-end-primera-apertura)
-8. [Utilidades](#8-utilidades)
-9. [Permisos del sistema](#9-permisos-del-sistema)
-10. [Diagrama de capas](#10-diagrama-de-capas)
-
----
-
-## 1. Arranque de la App
+### Pattern: MVVM (Model-View-ViewModel)
 
 ```
-Android OS
-  └─► DopaminahApplication  (@HiltAndroidApp)
-        └─► Inicializa el grafo de dependencias de Hilt (DI global)
-              └─► MainActivity  (@AndroidEntryPoint)
+┌──────────┐     ┌──────────────┐     ┌───────────┐     ┌──────────┐
+│  Screen  │────▶│  ViewModel   │────▶│  UseCase  │────▶│Repository│
+│ (Compose)│◀────│ (StateFlow)  │     │           │     │ (iface)  │
+└──────────┘     └──────────────┘     └───────────┘     └────┬─────┘
+                                                             │
+                                                   ┌─────────▼────────┐
+                                                   │  Implementation  │
+                                                   │  (platform-      │
+                                                   │   specific)      │
+                                                   └──────────────────┘
 ```
 
-### `DopaminahApplication.kt`
+- **View**: `@Composable` screen functions observe `StateFlow` from ViewModels via `collectAsState()`
+- **ViewModel**: Plain Kotlin classes (not `androidx.lifecycle.ViewModel`) with `CoroutineScope(SupervisorJob() + Dispatchers.Main)`. Each tab has its own ViewModel.
+- **UseCase**: Thin delegation layer between ViewModel and Repository interfaces
+- **Repository**: Interfaces in `domain/repository/`, platform-specific implementations in `data/repository/`
+- **No DI framework**: Koin is declared as a dependency but not wired. Dependencies are manually constructed per platform entry point.
 
-Sólo una línea relevante: la anotación `@HiltAndroidApp` convierte a esta clase en el punto raíz del contenedor de inyección de dependencias de Hilt. Sin ella, ninguna inyección funcionaría.
+### Navigation
 
-### `MainActivity.kt`
+Tab-based bottom navigation with 6 tabs. Managed by `AppTab` enum + `mutableStateOf` in `DopamiNahApp.kt`:
 
-- **Splash screen** — `installSplashScreen()` conecta la pantalla de carga nativa de Android 12+ antes de que Compose tome el control.
-- **ThemeController** — Se instancia con el `Context` de la aplicación. Expone un `StateFlow<Boolean?>` que indica si el usuario prefirió modo oscuro (guardado en DataStore). Si es `null`, se usa la preferencia del sistema.
-- **`enableEdgeToEdge`** — Hace que el contenido se dibuje bajo las barras de sistema, dando el look borde a borde.
-- **`setContent`** — Arranca el árbol de Compose:
-  - `CompositionLocalProvider(LocalThemeController …)` → inyecta el `ThemeController` en el árbol de Compose para que cualquier pantalla pueda leer/escribir el tema.
-  - `DopamiNahTheme(darkTheme)` → aplica el sistema de colores Material 3.
-  - `DopamiNahApp()` → punto de entrada de la navegación.
+| Tab | Route | Screen | Hidden On |
+|-----|-------|--------|-----------|
+| Inicio | `dashboard` | `DashboardScreen` | Web |
+| Stats | `stats` | `StatsScreen` | Web |
+| Metas | `goals` | `GoalsScreen` or `WebGoalsScreen` | — |
+| Navegación | `navegacion` | `WebStatsScreen` | Android |
+| Logros | `achievements` | `AchievementsScreen` | — |
+| Ajustes | `settings` | `SettingsScreen` | — |
+
+A `WebViewScreen` overlay renders on top when a URL is opened from Settings.
+Permission gating: if `hasUsagePermission == false`, `OnboardingPermissionScreen` is shown instead of `MainContent`.
 
 ---
 
-## 2. Navegación
-
-### `DopamiNahApp.kt`
+## Project Structure
 
 ```
-DopamiNahApp()
-  ├─ Comprueba permiso PACKAGE_USAGE_STATS
-  │    └─ DeviceUsageRepositoryImpl(context).hasUsageStatsPermission()
-  │         → startRoute = "dashboard" | "onboarding_permission"
-  ├─ Scaffold
-  │    └─ DopamiNahBottomBar  (oculta si está en Onboarding)
-  └─ NavHost (Compose Navigation)
-       ├─ onboarding_permission  → OnboardingPermissionScreen
-       ├─ dashboard              → DashboardScreen
-       ├─ stats                  → StatsScreen
-       ├─ goals                  → GoalsScreen
-       ├─ achievements           → AchievementsScreen
-       └─ settings               → SettingsScreen
-```
-
-**Decisión de ruta inicial:** Justo al componer `DopamiNahApp`, se llama `hasUsageStatsPermission()` dentro de un bloque `remember {}`. Si el permiso ya fue concedido, el usuario va directo al Dashboard; si no, se le muestra la pantalla de onboarding.
-
-Cuando el usuario concede el permiso, la pantalla de onboarding ejecuta:
-
-```kotlin
-navController.navigate(Screen.Dashboard.route) {
-    popUpTo(Onboarding) { inclusive = true }
-}
-```
-
-Esto elimina el onboarding del back-stack para que el botón atrás no regrese a él.
-
-### `Screen.kt`
-
-`sealed class` con objetos `object` por cada ruta. Cada uno lleva: `route: String`, `title: String` (para el label del BottomBar) e `icon: ImageVector` (iconos Lucide personalizados).
-
----
-
-## 3. Inyección de Dependencias (Hilt)
-
-Hay dos módulos de DI en `binds/`:
-
-### `DatabaseModule.kt`
-
-Provee la instancia de Room `DopaminahDatabase` como `Singleton` global.
-
-### `RepositoryModule.kt`
-
-| Tipo | Repositorio | Implementación |
-|------|-------------|----------------|
-| `@Binds` (abstract) | `GoalsRepository` | `GoalsRepositoryImpl` |
-| `@Binds` (abstract) | `GamificationRepository` | `GamificationRepositoryImpl` |
-| `@Provides` (object) | `DeviceUsageRepository` | `DeviceUsageRepositoryImpl(context)` |
-| `@Provides` (object) | `ThemeController` | `ThemeController(context)` |
-
-> `DeviceUsageRepository` se provee con `@Provides` en lugar de `@Binds` porque su constructor necesita `Context` explícito y no está anotado con `@Inject`.
-
----
-
-## 4. Capa de Datos
-
-### 4.1 `DeviceUsageRepositoryImpl` — El núcleo de monitoreo
-
-Es la pieza más compleja. Usa `UsageStatsManager`, la API del sistema Android para leer estadísticas de uso.
-
-**Permiso requerido:** `PACKAGE_USAGE_STATS` (permiso protegido que el usuario debe activar manualmente en Ajustes del sistema).
-
-#### Métodos clave
-
-| Método | Qué hace |
-|--------|----------|
-| `getDailyUsageStats()` | Agrega todo el uso del día actual (medianoche → ahora) con `queryAndAggregateUsageStats`. Construye `unlockCounts` contando eventos `ACTIVITY_RESUMED` por paquete. Devuelve lista de `AppUsageSummary` ordenada descendente. |
-| `getDailyDeviceUnlocks()` | Llama a `countDeviceUnlocks(startOfDay, now)`. |
-| `getAverageUsageMillis(days)` | Suma `totalTimeInForeground` de todos los paquetes en los últimos N días, divide entre N. |
-| `getDailyUsageForLastDays(days)` | Itera día por día (un `queryAndAggregateUsageStats` por día) → lista de `Long` (ms por día). |
-| `getAverageUsagePerApp(days, limit)` | Suma uso por app en el rango, divide entre `days`, retorna top `limit` apps. |
-| `getDailyDetails(dayOffset)` | Para un día específico (hoy=0, ayer=1, …): calcula hora del primer uso, sesiones, app más usada, total y desbloqueos. |
-| `getHourlyUsage(days)` | Recorre todos los eventos `RESUMED`/`PAUSED` del rango y distribuye la duración de cada sesión en buckets por hora (0–23). Útil para la gráfica de calor horaria. |
-
-#### `countDeviceUnlocks(startTime, endTime)` — Lógica de desbloqueos
-
-```
-Recorre UsageEvents:
-  eventType == 15 (SCREEN_INTERACTIVE) → count++   ← método primario
-  eventType == 18 (KEYGUARD_HIDDEN)    → ignorado para evitar doble conteo
-  eventType == 1  (ACTIVITY_RESUMED)
-    + gap > 5 min desde último evento  → count++   ← fallback si el dispositivo no emite evento 15
-```
-
-#### `distributeDurationToHours(start, end, buckets[])` — Distribución horaria
-
-Algoritmo que divide una sesión que puede cruzar varias horas en fragmentos por bucket:
-
-```
-current = start
-WHILE current < end:
-    hour = current.HOUR_OF_DAY
-    nextHourBoundary = inicio de (hour + 1)
-    chunkEnd = min(nextHourBoundary, end)
-    buckets[hour] += (chunkEnd - current)
-    current = chunkEnd
+DopamiNah/
+├── shared/                          # KMP shared module (all platforms)
+│   └── src/
+│       ├── commonMain/              # Shared across ALL targets
+│       │   ├── composeResources/    # Vector drawables
+│       │   └── kotlin/co/edu/unicauca/dopaminah/
+│       │       ├── App.kt                       # Root Composable entry point
+│       │       ├── Platform.kt                  # expect declarations (time, prefs, services)
+│       │       ├── SyncBridge.kt                # Singleton bridge for web↔extension sync
+│       │       ├── data/repository/             # Repository implementations
+│       │       │   └── GamificationRepositoryImpl.kt
+│       │       ├── domain/
+│       │       │   ├── model/                   # Data classes (AppLimitGoal, GoalType, etc.)
+│       │       │   ├── repository/              # Repository interfaces
+│       │       │   ├── usecase/                 # Business logic (CheckUsageLimitsUseCase, etc.)
+│       │       │   └── utils/                   # Badge definitions, gamification calculator
+│       │       └── ui/
+│       │           ├── components/              # Shared composables (AppIcon, BrainIcon)
+│       │           ├── icons/                   # Lucide icon set (hand-drawn ImageVectors)
+│       │           ├── navigation/              # Scaffold, bottom nav, permission state
+│       │           ├── screens/                 # Feature screens
+│       │           │   ├── achievements/        # Gamification: level, streak, badges
+│       │           │   ├── dashboard/           # Main dashboard with usage summary
+│       │           │   ├── focusbrowser/        # Web navigation tracking + blocking
+│       │           │   ├── goals/               # App goals + web goals (subsystem)
+│       │           │   ├── onboarding/          # Permission onboarding (3 pages)
+│       │           │   ├── settings/            # Dark mode, premium, toggles
+│       │           │   ├── stats/               # Detailed charts + daily breakdown
+│       │           │   └── webview/             # In-app browser (platform-specific)
+│       │           ├── theme/                   # Material3 colors, typography, dark/light
+│       │           └── utils/                   # Image decoding utility
+│       ├── androidMain/             # Android actuals (SharedPreferences, WebView, UsageStats)
+│       ├── iosMain/                 # iOS actuals (NSUserDefaults, Safari)
+│       ├── jvmMain/                 # Desktop actuals (java.util.prefs)
+│       ├── jsMain/                  # Browser JS actuals (in-memory prefs)
+│       └── wasmJsMain/              # WASM JS actuals (in-memory prefs)
+├── androidApp/                      # Android application
+│   └── src/main/
+│       ├── kotlin/.../
+│       │   ├── MainActivity.kt      # Entry + DI wiring + permission handling
+│       │   └── AppLimitMonitoringService.kt  # Foreground service for overlay blocking
+│       └── res/
+├── desktopApp/                      # Desktop application
+│   └── src/main/kotlin/.../main.kt  # Window { App() }
+├── webApp/                          # Web application
+│   └── src/webMain/
+│       ├── kotlin/.../main.kt       # ComposeViewport + JS interop with extension
+│       └── resources/               # extension-bridge.js, sw.js, index.html
+├── iosApp/                          # iOS Xcode project
+│   └── iosApp/
+│       ├── iOSApp.swift             # SwiftUI entry
+│       └── ContentView.swift        # Bridges to shared MainViewController
+├── browser-extension/               # Chrome/Edge extension (Manifest V3)
+│   ├── manifest.json, background.js, content.js
+│   ├── popup/ (popup.html, popup.js, popup.css)
+│   └── blocked/ (blocked.html, blocked.js)
+└── docs/
 ```
 
 ---
 
-### 4.2 `GamificationRepositoryImpl` — Racha y puntos
+## Data Persistence
 
-Persiste tres valores en DataStore (clave-valor asíncrono, reemplazo moderno de SharedPreferences):
+### Platform-Native Key-Value Storage
 
-| Clave | Tipo | Descripción |
-|-------|------|-------------|
-| `streak` | `Int` | Días consecutivos de apertura |
-| `total_points` | `Int` | Puntos acumulados totales |
-| `last_opened_timestamp` | `Long` | Timestamp del último lanzamiento (ms) |
+All persistent state uses **platform-native key-value stores** via `expect/actual DevicePreferences`:
 
-#### `incrementStreakAndPoints()` — Lógica de racha diaria
+| Platform | Backend | Class |
+|----------|---------|-------|
+| Android | `SharedPreferences` (`dopaminah_prefs`) | `Platform.android.kt` |
+| iOS | `NSUserDefaults` | `Platform.ios.kt` |
+| Desktop (JVM) | `java.util.prefs.Preferences` | `Platform.jvm.kt` |
+| JS/WasmJS | In-memory `MutableMap<String, String>` | `Platform.js.kt` / `Platform.wasmJs.kt` |
 
-```
-diffDays = (hoyMedioNoche - ayerMedioNoche) / 86_400_000
+### What Gets Stored
 
-diffDays > 1  → resetear streak a 1, +10 pts  (volvió después de romper racha)
-diffDays == 1 → streak++,            +50 pts  (día consecutivo)
-diffDays == 0 → no hacer nada                 (ya se abrió hoy)
-```
+| Data | Keys | How |
+|------|------|-----|
+| Gamification (streak, points, level) | `streak`, `totalPoints`, `bestStreak`, `lastOpenedDay` | `GamificationRepositoryImpl` → `DevicePreferences` |
+| App limit goals | `goal_count`, `goal_N_id`, `goal_N_type`, etc. | `GoalsRepositoryImpl` (Android) → `SharedPreferences` |
+| Dark mode | `dark_mode` | `SettingsScreen` toggle |
+| Notifications toggle | `notifications_enabled` | `SettingsScreen` toggle |
+| Web goals | `web_goal_count`, `web_goal_N_*`, `web_min_N_*` | `WebGoalsRepositoryImpl` → `DevicePreferences` (all platforms) |
 
-#### `calculateLevel(points)` — Progresión de nivel
+**No SQLite / Room / SQLDelight database is used.** All persistence is flat key-value.
 
-Nivel `n` requiere `(n * 100)` pts, con umbral creciente en `+50` por nivel:
+### Android-Only Storage
 
-```
-Lvl 1:   0 pts
-Lvl 2: 100 pts
-Lvl 3: 250 pts
-Lvl 4: 450 pts
-…
-```
-
-#### `getGamificationStats()` — Flow reactivo
-
-Expone un `Flow<UserGamificationStats>` que emite automáticamente cada vez que DataStore cambia. El ViewModel lo colecta y actualiza la UI.
-
-> **Nota:** Actualmente `currentPoints` en el modelo `UserGamificationStats` transporta el valor de `streak` (comentario en el código: *"Refactor: UI expects currentPoints as current progress, streak could be handled separately"*).
+- `UsageStatsManager` — system API for per-app usage stats (read-only)
+- `AppLimitMonitoringService` — foreground service running every 1.5s to enforce app limits via overlay
 
 ---
 
-### 4.3 `GoalsRepositoryImpl` — Metas de uso (Room)
+## Multiplatform Strategy
 
-Delega totalmente al DAO de Room.
+### expect/actual Pattern
 
-#### Entidad Room: `AppLimitGoal`
+Platform-specific functionality is declared as `expect` in `commonMain` and implemented as `actual` per source set:
 
-| Campo | Uso |
-|-------|-----|
-| `goalType` | `"TOTAL_DAILY"` \| `"APP_LIMIT"` \| `"UNLOCK_LIMIT"` |
-| `packageName` | Solo para `APP_LIMIT` |
-| `maxTimeMillis` | Límite de tiempo |
-| `maxUnlocks` | Límite de desbloqueos |
-| `currentStreak` | Días que se cumplió la meta |
+| Feature | expect | Android actual | iOS actual | JVM actual | JS/Wasm actual |
+|---------|--------|----------------|------------|------------|----------------|
+| Platform name | `getPlatformName()` | `"Android ${SDK}"` | `"iOS ${version}"` | `"Java ${j.version}"` | User agent |
+| Current time | `currentTimeMillis()` | `System.cCT` | `NSDate()` | `System.cCT` | `Date.now()` |
+| Preferences | `DevicePreferences` | `SharedPreferences` | `NSUserDefaults` | `java.util.prefs` | In-memory map |
+| Status bar | `PlatformStatusBarEffect` | Window insets | No-op | No-op | No-op |
+| Overlay perm. | `hasOverlayPermission()` | `Settings.canDrawOverlays` | `true` | `true` | `true` |
+| Monitoring svc | `start/stopMonitoringService()` | Foreground service | No-op | No-op | No-op |
+| WebView | `PlatformWebView` | Android `WebView` | Opens Safari | Stub | Stub |
+| App icon | `AppIcon` | `painterResource` | `BrainIcon` | `BrainIcon` | `BrainIcon` |
+| Image decode | `ByteArray.decodeToImageBitmap()` | `BitmapFactory` | Skia | Skia | `null` |
 
-#### `GoalsDao` provee
+Compiler flag: `-Xexpect-actual-classes` enables separate compilation of expect/actual classes.
 
-- `getAllGoals()` → `Flow<List<AppLimitGoal>>` (reactivo, Room notifica cambios automáticamente)
-- `insertGoal(goal)` — con `OnConflictStrategy.REPLACE`
-- `deleteGoal(id)`
+### Platform Source Sets
+
+```
+commonMain → androidMain | iosMain | jvmMain | jsMain | wasmJsMain
+```
+
+Each platform source set has its own `Platform.*.kt`, `AppIcon.kt`, `PlatformWebView.kt`, and `ImageUtils.kt`.
+
+### Shared vs. Platform-Specific Code
+
+- **Shared (commonMain)**: All UI (Compose screens), domain models, repository interfaces, use cases, theming, icons
+- **Platform-specific**: Storage backend, system service integration (UsageStats, foreground service), WebView, image decoding
 
 ---
 
-## 5. ViewModels
+## Theme
 
-### `DashboardViewModel`
+### Material 3 with Custom Colors
 
-**Inyecciones:** `GamificationRepository`, `DeviceUsageRepository`, `GoalsRepository`, `@ApplicationContext`
+**Color.kt** — Full palette:
+- **Brand**: `DopaminahPurple` (#8B5CF6), `DopaminahOrange` (#FA832B)
+- **Semantic**: `SuccessGreen` (#22C55E), `WarningYellow` (#EAB308), `DangerRed` (#EF4444)
+- **Surface**: Light (`BackgroundLight` #F8FAFC, `SurfaceCard` #FFFFFF), Dark (`BackgroundDark` #1C1B1F)
+- **ExtendedColors**: `brandPurple`, `brandOrange`, semantic colors — provided via `CompositionLocal`
 
-#### StateFlows expuestos a la UI
+**Theme.kt** — `DopamiNahTheme` wraps `MaterialTheme` with `DarkColorScheme` / `LightColorScheme` + `ExtendedColors` via `LocalExtendedColors`. Accessible as `MaterialTheme.extendedColors`.
 
-| StateFlow | Tipo | Fuente |
-|-----------|------|--------|
-| `gamificationState` | `UserGamificationStats` | `GamificationRepository.getGamificationStats()` |
-| `dailyUnlocks` | `Int` | `DeviceUsageRepository.getDailyDeviceUnlocks()` |
-| `yesterdayUnlocks` | `Int` | `DeviceUsageRepository.getYesterdayDeviceUnlocks()` |
-| `totalDailyUsageMs` | `Long` | Suma de `getDailyUsageStats()` |
-| `dailyUsageStats` | `List<AppUsageSummary>` | `getDailyUsageStats()` (sin la propia app) |
-| `appLimitCards` | `List<AppLimitCarouselInfo>` | `combine(goals, usageStats)` |
-| `hasUsagePermission` | `Boolean` | `hasUsageStatsPermission()` |
-
-#### `observeAppLimits()` — Reactividad combinada
-
-```kotlin
-combine(goalsRepository.getAllGoals(), _dailyUsageStats) { goals, stats ->
-    goals.filter { it.goalType == "APP_LIMIT" }
-         .map { goal ->
-             val usedMs = stats.find { it.packageName == goal.packageName }
-                               ?.totalTimeForegroundMillis ?: 0L
-             AppLimitCarouselInfo(...)
-         }
-}.collect { _appLimitCards.value = it }
-```
-
-El carrusel de límites se actualiza automáticamente si cambian las metas **o** si cambian las estadísticas de uso.
-
-#### Refresh en `ON_RESUME`
-
-`DashboardScreen` usa `DisposableEffect(lifecycleOwner)` para registrar un observer de ciclo de vida:
-
-```kotlin
-if (event == Lifecycle.Event.ON_RESUME) {
-    viewModel.checkAndIncrementStreak()
-    viewModel.refreshStats()  // → loadUnlockStats()
-}
-```
-
-Esto garantiza que al volver a la pantalla (p.ej., después de conceder un permiso), las estadísticas se refrescan.
+**Type.kt** — Full Material3 `Typography` with custom sizes for all 13 levels (`displayLarge` → `labelSmall`). Font: system sans-serif.
 
 ---
 
-### `StatsViewModel`
+## Key Flows
 
-**Inyección:** sólo `DeviceUsageRepository`
+### Web Goals (WebGoalsViewModel)
 
-Maneja un único `StateFlow<StatsState>`:
+Self-contained ViewModel managing domain-level time limits with real-time tracking and persistence:
 
-```kotlin
-data class StatsState(
-    selectedTab: StatsTab,       // WEEKLY | MONTHLY
-    dailyAverageText: String,
-    unlockAverageText: String,
-    lastWeekUsage: List<Float>,  // Horas por día (últimos 7 días)
-    appUsageData: List<AppUsageEntry>, // Top apps en el período
-    hourlyUsage: List<Float>,    // 24 buckets, minutos promedio por hora
-    selectedDayOffset: Int,      // 0=hoy, 1=ayer, …
-    dailyDetails: DailyDetailStats?,
-    isLoading: Boolean
-)
+1. **Timer**: `startTimer()` runs a coroutine that calls `rebuildState()` every second and persists accumulated minutes every 30 seconds
+2. **Domain tracking**: When user visits a URL via in-app browser, `notifyVisit()` records the domain and starts accumulating time
+3. **Persistence**: Goals and accumulated domain time survive app restarts via `WebGoalsRepositoryImpl` → `DevicePreferences` (key-value store)
+4. **Blocking**: When `spentMinutes >= dailyTimeLimitMinutes`, the goal's `isBlocked` becomes `true`. For goals with `timeLimitMinutes == 0`, block is immediate.
+5. **Sync with browser extension**: Goals are exported via `onSyncOut` callback → serialized JSON → `window.__dopaminahPostGoals()`. Incoming sync from extension arrives via `SyncBridge.onIncomingSync`.
+
+### Browser Extension ↔ Web App Sync
+
+```
+Browser Extension (Chrome)           Web App (Wasm/JS)
+┌─────────────────┐                 ┌─────────────────────┐
+│ background.js    │──postMessage──▶│ extension-bridge.js  │
+│ popup.js         │◀───────────────│ (window event)       │
+│ content.js       │   JSON goals   │                      │
+└─────────────────┘                 │ __dopaminahPollSync()│
+                                    │ __dopaminahPostGoals()│
+                                    └──────────┬──────────┘
+                                               │
+                                    ┌──────────▼──────────┐
+                                    │ main.kt (Kotlin)    │
+                                    │ → SyncBridge        │
+                                    │ → WebGoalsViewModel │
+                                    └─────────────────────┘
 ```
 
-El método `loadData()` ejecuta 6 llamadas dentro de una sola corrutina:
+### App Limit Monitoring (Android Only)
 
-1. `getAverageUsageMillis(days)` → texto `"2h 15m/día"`
-2. `getAverageUnlocks(days)` → texto `"38/día"`
-3. `getDailyUsageForLastDays(7)` → barra de los últimos 7 días
-4. `getHourlyUsage(days)` → heatmap horario
-5. `getAverageUsagePerApp(days)` → gráfico por app
-6. `getDailyDetails(selectedDayOffset)` → tarjeta de detalle del día
+`AppLimitMonitoringService` runs as a foreground service:
+- Polls every 1.5s using `UsageStatsManager.queryUsageStats()`
+- Checks current foreground app against saved goals
+- If limit exceeded and app is not bypassed: shows full-screen overlay via `WindowManager` + `ComposeView`
+- User can "Exit app" (launch home) or "Continue anyway" (add bypass for session)
 
 ---
 
-## 6. UI (Jetpack Compose)
+## Build & Run
 
-### Jerarquía de pantallas
+```bash
+# Android
+./gradlew :androidApp:assembleDebug
 
-```
-DopamiNahApp
-  └─ Scaffold
-       ├─ DopamiNahBottomBar  (NavigationBar con 5 ítems)
-       └─ NavHost
-            ├─ Dashboard
-            │    ├─ HeaderSection          (nivel, racha, puntos)
-            │    ├─ UsageSummaryCarousel   (tiempo total, desbloqueos, límites por app)
-            │    └─ MostUsedAppsSection    (lista de apps más usadas hoy)
-            ├─ Stats
-            │    ├─ Tab selector (Semanal / Mensual)
-            │    ├─ StatsSummaryCards      (promedio diario, desbloqueos)
-            │    ├─ AppUsageChartCard      (gráfico top apps)
-            │    └─ DailyDetailsCard       (detalle de un día específico)
-            ├─ Goals
-            ├─ Achievements
-            │    └─ AchievementsHeader
-            └─ Settings
+# Desktop (with hot reload)
+./gradlew :desktopApp:hotRun --auto
+./gradlew :desktopApp:run
+
+# Web (Wasm — faster, modern browsers)
+./gradlew :webApp:wasmJsBrowserDevelopmentRun
+
+# Web (JS — older browsers)
+./gradlew :webApp:jsBrowserDevelopmentRun
+
+# iOS — open iosApp/ in Xcode
 ```
 
-### Patrón de estado Unidireccional (UDF)
+### Tests
 
-```
-Repository (fuente de verdad)
-    │  Flow / suspend fun
-    ▼
-ViewModel
-    │  StateFlow (inmutable)
-    ▼
-Screen composable
-    │  collectAsState()
-    ▼
-Content composable (stateless, sólo recibe parámetros)
+```bash
+./gradlew :shared:jvmTest                    # Desktop
+./gradlew :shared:wasmJsTest                 # Web Wasm
+./gradlew :shared:jsTest                     # Web JS
+./gradlew :shared:iosSimulatorArm64Test      # iOS
+./gradlew :shared:testAndroidHostTest        # Android host
 ```
 
-- El **Screen composable** obtiene el ViewModel con `hiltViewModel()` y los estados con `collectAsState()`.
-- Llama a un **Content composable** (ej. `DashboardContent`) stateless — facilita el `@Preview` de Compose.
-- Los componentes (`HeaderSection`, `UsageSummaryCarousel`, etc.) son funciones `@Composable` puras que reciben datos y lambdas.
+### Dependencies
+
+| Library | Purpose |
+|---------|---------|
+| Compose Multiplatform 1.11.0 | UI framework |
+| Material3 | Design system |
+| Kotlinx Coroutines | Async |
+| Coil3 | Image loading (favicons) |
+| Multiplatform Settings | Platform-native key-value storage |
+| Koin (declared, unused) | Dependency injection |
+| Voyager (declared, unused) | Navigation |
+| JNA (desktop) | Native OS integration |
 
 ---
 
-## 7. Flujo end-to-end: Primera apertura
+## Key Design Decisions
 
-```
-1.  Android inicia DopaminahApplication → Hilt inicializa el grafo DI
-2.  Android lanza MainActivity
-3.  installSplashScreen() → muestra splash mientras Compose carga
-4.  ThemeController lee DataStore → emite null (sin preferencia guardada)
-5.  darkTheme = isSystemInDarkTheme()
-6.  DopamiNahApp() compone:
-    - hasUsageStatsPermission() == false → startRoute = "onboarding_permission"
-7.  OnboardingPermissionScreen se muestra
-8.  Usuario toca "Conceder permiso" → Settings del sistema
-9.  Regresa a la app → onPermissionGranted() →
-    navController.navigate("dashboard") { popUpTo("onboarding") { inclusive=true } }
-10. DashboardScreen compone → hiltViewModel() crea DashboardViewModel
-11. DashboardViewModel.init():
-    a. loadGamificationStats() → GamificationRepository.getGamificationStats() (Flow)
-       → lee DataStore → streak=0, points=0, level=1
-    b. checkAndIncrementStreak() → last_opened=0 → streak=1, +10 pts, guarda timestamp
-    c. loadUnlockStats():
-       - hasUsageStatsPermission() == true
-       - getDailyUsageStats() → UsageStatsManager.queryAndAggregateUsageStats(...)
-       - getDailyDeviceUnlocks() → countDeviceUnlocks(...)
-       - _dailyUsageStats, _totalDailyUsageMs, etc. actualizados
-    d. observeAppLimits():
-       - GoalsDao.getAllGoals() → Flow vacío (no hay metas aún)
-       - _appLimitCards = []
-12. StateFlows emiten nuevo estado → DashboardScreen re-compone
-13. UI muestra: nivel 1, racha 1, uso del día, apps más usadas
-```
-
----
-
-## 8. Utilidades
-
-### `UsageTimeUtils`
-
-Objeto singleton con 3 funciones puras:
-
-| Función | Descripción |
-|---------|-------------|
-| `calculateDiffText(today, yesterday)` | `"↗ +5 vs ayer"` / `"↘ -3 vs ayer"` |
-| `calculateTimeDiff(today, yesterday)` | `"↗ +1h 15m vs ayer"` |
-| `formatUsageTime(millis)` | `7260000ms → "2h 1m"` |
-
----
-
-## 9. Permisos del sistema
-
-| Permiso | Para qué |
-|---------|----------|
-| `PACKAGE_USAGE_STATS` | Leer estadísticas de uso de apps. Permiso protegido: el usuario debe activarlo en Ajustes del sistema (no es `requestPermissions` normal). |
-| `POST_NOTIFICATIONS` | Notificaciones push (Android 13+). |
-| `QUERY_ALL_PACKAGES` | Resolver nombres de apps de cualquier paquete instalado. |
-
----
-
-## 10. Diagrama de capas
-
-```
-┌─────────────────────────────────────────────┐
-│                   UI Layer                  │
-│  Screens (Compose)  ←→  ViewModels (Hilt)   │
-└──────────────────────┬──────────────────────┘
-                       │ interfaces del dominio
-┌──────────────────────▼──────────────────────┐
-│                 Domain Layer                │
-│   DeviceUsageRepository   (interface)       │
-│   GamificationRepository  (interface)       │
-│   GoalsRepository         (interface)       │
-│   Models: AppUsageSummary, AppLimitGoal,    │
-│           UserGamificationStats             │
-└──────────────────────┬──────────────────────┘
-                       │ implementaciones
-┌──────────────────────▼──────────────────────┐
-│                  Data Layer                 │
-│  DeviceUsageRepositoryImpl                  │
-│    └─ UsageStatsManager  (Android API)      │
-│  GamificationRepositoryImpl                 │
-│    └─ DataStore          (Preferences)      │
-│  GoalsRepositoryImpl                        │
-│    └─ Room DB → GoalsDao → AppLimitGoal     │
-└─────────────────────────────────────────────┘
-            ▲               ▲
-         Hilt DI        Hilt DI
-    (RepositoryModule) (DatabaseModule)
-```
+- **No DI framework** — Dependencies are manually constructed per platform entry point in `MainActivity.kt` or via `remember { }` in Compose (simpler for a single-dev project)
+- **No database** — Flat key-value storage via platform preferences is sufficient for the current data model (gamification stats, flat goal list). SQLDelight/Room would be added if relational queries or offline-first sync were needed.
+- **Web goals are ephemeral** — `WebGoalsViewModel` stores goals in-memory only. Persistence comes from syncing with the browser extension (which stores in `chrome.storage`).
+- **Card-based grid layout** — The web goals grid uses `BoxWithConstraints` + `IntrinsicSize.Min` for responsive columns with equal-height cards at any screen width.
+- **`materialIconsExtended` pinned** — The dependency is deprecated but pinned by the Compose plugin. Replacing it would require rewriting onboarding screens with minimal benefit.

@@ -1,0 +1,111 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("DopamiNahDb") {
+            packageName.set("co.edu.unicauca.dopaminah.data.db")
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+    }
+    
+    jvm()
+    
+    js {
+        browser()
+    }
+    
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+    
+    androidLibrary {
+       namespace = "co.edu.unicauca.dopaminah.shared"
+       compileSdk = libs.versions.android.compileSdk.get().toInt()
+       minSdk = libs.versions.android.minSdk.get().toInt()
+    
+       compilerOptions {
+           jvmTarget = JvmTarget.JVM_11
+       }
+       androidResources {
+           enable = true
+       }
+       withHostTest {
+           isIncludeAndroidResources = true
+       }
+    }
+    
+    sourceSets {
+        androidMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.koin.android)
+            implementation(libs.sqldelight.android)
+        }
+        commonMain.dependencies {
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(compose.materialIconsExtended)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.androidx.lifecycle.viewmodelCompose)
+            implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.koin.core)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.tabNavigator)
+            implementation(libs.voyager.transitions)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native)
+        }
+        jvmMain.dependencies {
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
+            implementation(libs.sqldelight.jdbc)
+            implementation(libs.sqlite.jdbc)
+        }
+        jsMain.dependencies {
+            implementation(libs.wrappers.browser)
+        }
+        wasmJsMain.dependencies {
+        }
+    }
+}
+
+dependencies {
+    androidRuntimeClasspath(libs.compose.uiTooling)
+}

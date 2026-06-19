@@ -1,0 +1,109 @@
+package co.edu.unicauca.dopaminah.ui.screens.settings.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import co.edu.unicauca.dopaminah.ui.icons.LucideStar
+import co.edu.unicauca.dopaminah.ui.icons.LucideZap
+import co.edu.unicauca.dopaminah.ui.icons.LucideTarget
+import co.edu.unicauca.dopaminah.ui.icons.LucideChartColumn
+import co.edu.unicauca.dopaminah.ui.icons.LucideCalendarClock
+import co.edu.unicauca.dopaminah.ui.icons.LucideLock
+import co.edu.unicauca.dopaminah.ui.theme.extendedColors
+
+@Composable
+fun PremiumCard(onClick: () -> Unit) {
+    val extended = MaterialTheme.extendedColors
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = extended.brandOrange),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            LucideStar,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Premium", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Text("Desbloquea todas las funciones", fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f))
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("$9.99", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Pago \u00fanico", fontSize = 12.sp, color = Color.White.copy(alpha = 0.9f))
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            val perks = listOf(
+                LucideZap to "Estad\u00edsticas avanzadas por hora",
+                LucideTarget to "Metas personalizadas ilimitadas",
+                LucideChartColumn to "An\u00e1lisis de comportamiento detallado",
+                LucideCalendarClock to "Exportaci\u00f3n de datos",
+                LucideLock to "Sin publicidad"
+            )
+
+            perks.forEach { (icon, text) ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(text, fontSize = 14.sp, color = Color.White)
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = extended.brandOrange),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Text("Desbloquear Ahora", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}

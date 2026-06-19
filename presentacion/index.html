@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DopamiNah — Elevator Pitch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --purple: #8B5CF6;
+      --purple-dark: #6D28D9;
+      --purple-light: #DDD6FE;
+      --orange: #FA832B;
+      --green: #22C55E;
+      --red: #EF4444;
+      --bg: #0A0A0F;
+      --bg-card: rgba(255,255,255,0.03);
+      --border: rgba(139,92,246,0.12);
+      --text: #E6E1E5;
+      --text-dim: #7C7A80;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    .track { display: flex; transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1); height: 100vh; will-change: transform; }
+    .slide { min-width: 100vw; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4rem 6vw; position: relative; }
+    .inner { width: 100%; max-width: 1100px; }
+
+    /* --- Navigation --- */
+    .controls { position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 1.2rem; z-index: 100; background: rgba(10,10,15,0.8); backdrop-filter: blur(12px); padding: 0.6rem 1.2rem; border-radius: 999px; border: 1px solid var(--border); }
+    .controls button { background: transparent; border: none; color: var(--text-dim); font-size: 1rem; padding: 0.4rem 0.8rem; cursor: pointer; transition: all 0.2s; border-radius: 999px; font-family: inherit; font-weight: 500; }
+    .controls button:hover { color: var(--text); background: rgba(139,92,246,0.1); }
+    .controls button:disabled { opacity: 0.25; cursor: default; }
+    .counter { font-size: 0.75rem; color: var(--text-dim); font-weight: 500; letter-spacing: 0.05em; min-width: 3rem; text-align: center; }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); opacity: 0.3; transition: all 0.4s; cursor: pointer; }
+    .dot.active { opacity: 1; background: var(--purple); width: 24px; border-radius: 3px; }
+
+    /* --- Logo Brain SVG --- */
+    .brain-logo { width: 48px; height: 48px; flex-shrink: 0; }
+    .brain-logo-lg { width: 120px; height: 120px; }
+    .brain-logo-sm { width: 32px; height: 32px; }
+
+    /* --- Typography --- */
+    h1 { font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; }
+    h2 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.75rem; }
+    h3 { font-size: 1.1rem; font-weight: 600; color: var(--purple-light); letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 1.2rem; color: var(--text-dim); font-weight: 400; line-height: 1.5; max-width: 640px; }
+    .subtitle-lg { font-size: 1.4rem; color: var(--text-dim); font-weight: 300; line-height: 1.6; max-width: 680px; }
+
+    .gradient-text { background: linear-gradient(135deg, var(--purple-light) 0%, var(--orange) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* --- Grid & Cards --- */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: transform 0.25s ease, border-color 0.25s; }
+    .card:hover { transform: translateY(-3px); border-color: rgba(139,92,246,0.25); }
+    .card-icon { font-size: 1.8rem; margin-bottom: 0.6rem; display: block; }
+    .card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.3rem; color: #fff; }
+    .card p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.5; font-weight: 400; }
+    .card strong { color: var(--text); }
+
+    /* --- Pill / Tag --- */
+    .pill { display: inline-block; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.15); color: var(--purple-light); padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.02em; margin: 0.15rem; }
+
+    /* --- Stat Number --- */
+    .stat-num { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .stat-num.purple { color: var(--purple-light); }
+    .stat-num.orange { color: var(--orange); }
+    .stat-num.green { color: var(--green); }
+    .stat-label { font-size: 0.8rem; color: var(--text-dim); font-weight: 400; margin-top: 0.2rem; }
+
+    /* --- Platform badges --- */
+    .platform-strip { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .plat { display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 500; }
+    .plat .icon { font-size: 1.1rem; }
+
+    /* --- Feature list --- */
+    .feature-list { list-style: none; }
+    .feature-list li { padding: 0.5rem 0; padding-left: 1.8rem; position: relative; font-size: 0.95rem; color: var(--text-dim); line-height: 1.4; }
+    .feature-list li::before { content: "→"; position: absolute; left: 0; color: var(--purple-light); font-weight: 600; }
+    .feature-list li strong { color: var(--text); }
+
+    /* --- Table --- */
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid rgba(139,92,246,0.12); color: var(--purple-light); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    td { padding: 0.5rem 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-dim); }
+    td:first-child { color: var(--text); font-weight: 500; }
+    tr:hover td { background: rgba(139,92,246,0.03); }
+
+    /* --- Code --- */
+    code, .code { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 0.78rem; background: rgba(0,0,0,0.3); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--purple-light); }
+    pre { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 1rem 1.2rem; font-size: 0.76rem; line-height: 1.5; overflow-x: auto; color: #cac4d0; font-family: 'JetBrains Mono', monospace; }
+
+    /* --- Hero specific --- */
+    .hero { text-align: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.15); padding: 0.3rem 1rem; border-radius: 999px; font-size: 0.8rem; color: var(--purple-light); margin-bottom: 2rem; }
+    .hero-meta { display: flex; gap: 2rem; justify-content: center; margin-top: 2.5rem; flex-wrap: wrap; }
+
+    /* --- Quote / Highlight --- */
+    .highlight-box { background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(250,131,43,0.04)); border: 1px solid rgba(139,92,246,0.12); border-radius: var(--radius); padding: 2rem; margin-top: 2rem; }
+    .highlight-box p { font-size: 1.05rem; font-style: italic; color: var(--text-dim); line-height: 1.6; }
+    .highlight-box .author { font-style: normal; color: var(--purple-light); font-weight: 600; margin-top: 0.5rem; font-size: 0.9rem; }
+
+    /* --- Architecture flow --- */
+    .flow { display: flex; align-items: center; justify-content: center; gap: 0.6rem; flex-wrap: wrap; margin: 1.5rem 0; }
+    .flow-box { background: rgba(139,92,246,0.06); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1.2rem; text-align: center; font-size: 0.78rem; font-weight: 600; }
+    .flow-arr { color: var(--text-dim); font-size: 1.1rem; font-weight: 300; }
+    .flow-box.last { border-color: rgba(250,131,43,0.2); background: rgba(250,131,43,0.06); }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .slide { padding: 3rem 5vw; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      h1 { font-size: 2.5rem; }
+      h2 { font-size: 1.8rem; }
+      .hero-meta { gap: 1rem; }
+      .stat-num { font-size: 2rem; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Section accent line */
+    .accent-line { width: 48px; height: 3px; background: linear-gradient(90deg, var(--purple), var(--orange)); border-radius: 2px; margin-bottom: 1.5rem; }
+
+    /* Split layout */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    @media (max-width: 768px) { .split { grid-template-columns: 1fr; gap: 1.5rem; } }
+    .visual { display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<div class="stage">
+<div class="track" id="track">
+
+  <!-- ═══ SLIDE 1 — HERO / ELEVATOR PITCH ═══ -->
+  <div class="slide" style="background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(139,92,246,0.06), transparent);">
+    <div class="inner hero">
+      <div class="hero-badge">
+        <svg class="brain-logo-sm" viewBox="0 0 140 140" fill="none"><use href="#brain-path"/></svg>
+        v2.0 · KMP · Open Source
+      </div>
+      <h1><span class="gradient-text">DopamiNah</span></h1>
+      <p class="subtitle-lg" style="margin: 1rem auto 0;">
+        Tu atención no tiene precio.<br>
+        Recupera el control de tu tiempo digital.
+      </p>
+      <div class="hero-meta">
+        <div><div class="stat-num purple">5</div><div class="stat-label">plataformas</div></div>
+        <div><div class="stat-num orange">6</div><div class="stat-label">pantallas</div></div>
+        <div><div class="stat-num green">1</div><div class="stat-label">base de código</div></div>
+      </div>
+      <div class="platform-strip" style="justify-content: center; margin-top: 2rem;">
+        <span class="plat"><span class="icon">📱</span> Android</span>
+        <span class="plat"><span class="icon">🍎</span> iOS</span>
+        <span class="plat"><span class="icon">🖥️</span> Desktop</span>
+        <span class="plat"><span class="icon">🌐</span> Web</span>
+        <span class="plat"><span class="icon">🔌</span> Ext. Chrome</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 2 — PROBLEM ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>El Problema</h3>
+      <div class="accent-line"></div>
+      <h2 style="max-width: 800px;">Pasamos <span style="color: var(--orange);">4+ horas al día</span> en pantallas que nos roban la atención.</h2>
+      <p class="subtitle" style="margin-top: 0.5rem;">
+        Las apps de bienestar digital son fragmentadas, privativas o de plataforma única.
+      </p>
+      <div class="grid-3" style="margin-top: 2.5rem;">
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <span class="card-icon">📊</span>
+          <h4>Sin visión unificada</h4>
+          <p>El uso del móvil se monitorea en el teléfono. El uso del navegador, en la extensión. Nunca hay una vista completa.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <span class="card-icon">🔒</span>
+          <h4>Privativo por plataforma</h4>
+          <p>Screen Time solo en Apple. Bienestar Digital solo en Android. Los datos quedan atrapados en un ecosistema.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <span class="card-icon">🎯</span>
+          <h4>Sin gamificación real</h4>
+          <p>Metas aburridas, sin retroalimentación ni sensación de progreso. La fuerza de voluntad se agota sola.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 3 — SOLUTION ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>La Solución</h3>
+      <div class="accent-line"></div>
+      <div class="split">
+        <div>
+          <h2>DopamiNah unifica <span class="gradient-text">todo tu tiempo digital</span> en un solo panel.</h2>
+          <p class="subtitle" style="margin-top: 0.5rem;">
+            Metas inteligentes + gamificación + extensión de navegador. Una base de código Kotlin para 5 plataformas.
+          </p>
+          <div style="margin-top: 1.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: center; padding: 0.8rem 0;"><span style="font-size:1.4rem;">📱</span><div><strong>App Móvil</strong><br><span style="color:var(--text-dim);font-size:0.85rem;">Monitoreo de uso, metas por app, bloqueo por overlay</span></div></div>
+            <div style="display: flex; gap: 1rem; align-items: center; padding: 0.8rem 0;"><span style="font-size:1.4rem;">🌐</span><div><strong>Web App + Extensión</strong><br><span style="color:var(--text-dim);font-size:0.85rem;">Metas por dominio, bloqueo en cualquier navegador, sincronización bidireccional</span></div></div>
+            <div style="display: flex; gap: 1rem; align-items: center; padding: 0.8rem 0;"><span style="font-size:1.4rem;">🏆</span><div><strong>Gamificación</strong><br><span style="color:var(--text-dim);font-size:0.85rem;">Rachas, niveles, insignias y puntos que hacen sostenible el cambio de hábito</span></div></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg class="brain-logo-lg" viewBox="0 0 140 140" fill="none">
+            <use href="#brain-path"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 4 — TECNOLOGÍA ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Arquitectura</h3>
+      <div class="accent-line"></div>
+      <h2>Kotlin Multiplatform + Compose · MVVM · Clean Architecture</h2>
+      <p class="subtitle" style="margin-bottom: 1.5rem;">95% del código compartido en <code>commonMain</code>. Cada plataforma aporta solo su capa de persistencia y servicios nativos.</p>
+
+      <div class="flow">
+        <div class="flow-box">Screen<br><span style="font-weight:400;font-size:0.65rem;">@Composable</span></div>
+        <span class="flow-arr">▶</span>
+        <div class="flow-box">ViewModel<br><span style="font-weight:400;font-size:0.65rem;">StateFlow</span></div>
+        <span class="flow-arr">▶</span>
+        <div class="flow-box">UseCase</div>
+        <span class="flow-arr">▶</span>
+        <div class="flow-box">Repository<br><span style="font-weight:400;font-size:0.65rem;">Interface</span></div>
+        <span class="flow-arr">▶</span>
+        <div class="flow-box last">Platform<br><span style="font-weight:400;font-size:0.65rem;">expect/actual</span></div>
+      </div>
+
+      <div class="grid-4" style="margin-top: 1.5rem;">
+        <div class="card"><h4>📱 Android</h4><p>Servicio foreground, UsageStats, overlay con ComposeView + WindowManager</p></div>
+        <div class="card"><h4>🍎 iOS</h4><p>SwiftUI entry → MainViewController. Sin monitoreo background</p></div>
+        <div class="card"><h4>🖥️ Desktop</h4><p>JVM con hot-reload. Prefs via <code>java.util.prefs</code></p></div>
+        <div class="card"><h4>🌐 Web</h4><p>Wasm + JS. Sync con Extensión Chrome vía <code>postMessage</code></p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 5 — FEATURES ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Pantallas</h3>
+      <div class="accent-line"></div>
+      <h2>Seis tablas de comando para tu atención</h2>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <span class="card-icon">🏠</span>
+          <h4>Inicio</h4>
+          <p>Dashboard con racha, nivel, tarjetas de apps y carrusel de resumen diario.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <span class="card-icon">📊</span>
+          <h4>Stats</h4>
+          <p>Gráficos semanales/mensuales, desglose por app, hourly chart y detalle por día.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <span class="card-icon">🎯</span>
+          <h4>Metas</h4>
+          <p>Tiempo total, por app y límite de desbloqueos. CRUD completo con diálogos.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--orange);">
+          <span class="card-icon">🌐</span>
+          <h4>Navegación Web</h4>
+          <p>Metas por dominio (YouTube, Reddit, X…). Grid responsive con <strong>colores de marca</strong> y bloqueo automático.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <span class="card-icon">🏆</span>
+          <h4>Logros</h4>
+          <p>8 insignias, 5 niveles, barra de progreso y frases de motivación por racha.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <span class="card-icon">⚙️</span>
+          <h4>Ajustes</h4>
+          <p>Notificaciones, modo Pájaro Verde, premium, focus rules y navegador interno.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 6 — WEB GOALS ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Feature Estrella</h3>
+      <div class="accent-line"></div>
+      <div class="split">
+        <div>
+          <h2>Metas Web con <span class="gradient-text">bloqueo inteligente</span></h2>
+          <p class="subtitle" style="margin-top: 0.5rem;">
+            El mismo sistema de metas que usas en el móvil, ahora para sitios web. Con sincronización a la extensión de Chrome.
+          </p>
+          <ul class="feature-list" style="margin-top: 1.2rem;">
+            <li><strong>Timer en tiempo real</strong> — corrutina que actualiza cada 1s y persiste cada 30s</li>
+            <li><strong>Tracking por dominio</strong> — <code>notifyVisit(url)</code> inicia el contador del sitio</li>
+            <li><strong>Bloqueo automático</strong> — al exceder el límite, se muestra pantalla de bloqueo</li>
+            <li><strong>Modo "Sin límite"</strong> — bloqueo inmediato al visitar el sitio</li>
+            <li><strong>Persistencia multiplataforma</strong> — metas y minutos acumulados sobreviven al cierre</li>
+            <li><strong>Sync bidireccional</strong> — app Web ↔ Extensión Chrome vía <code>postMessage</code></li>
+          </ul>
+        </div>
+        <div class="visual">
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; width: 100%;">
+            <div style="display:flex; gap:0.8rem; margin-bottom:1rem;">
+              <span class="pill" style="background:rgba(255,0,0,0.1);border-color:rgba(255,0,0,0.2);color:#ff6666;">youtube.com</span>
+              <span class="pill" style="background:rgba(0,0,0,0.2);border-color:rgba(255,255,255,0.1);color:#fff;">x.com</span>
+              <span class="pill" style="background:rgba(255,69,0,0.1);border-color:rgba(255,69,0,0.2);color:#ff6666;">reddit.com</span>
+            </div>
+            <div style="background:rgba(139,92,246,0.05); border-radius:10px; padding:0.8rem 1rem; margin-bottom:0.5rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span>YouTube</span><span style="color:var(--orange);">15 / 30 min</span></div>
+              <div style="height:4px; background:rgba(255,255,255,0.05); border-radius:2px; margin-top:0.4rem; overflow:hidden;">
+                <div style="width:50%; height:100%; background:linear-gradient(90deg,var(--purple),var(--orange)); border-radius:2px;"></div>
+              </div>
+            </div>
+            <div style="background:rgba(239,68,68,0.05); border-radius:10px; padding:0.8rem 1rem; border:1px solid rgba(239,68,68,0.1);">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span style="color:var(--red);">X / Twitter</span><span style="color:var(--red);">🔒 Bloqueado</span></div>
+              <div style="height:4px; background:rgba(239,68,68,0.1); border-radius:2px; margin-top:0.4rem; overflow:hidden;">
+                <div style="width:100%; height:100%; background:var(--red); border-radius:2px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 7 — SYNC ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Sincronización</h3>
+      <div class="accent-line"></div>
+      <div class="split">
+        <div>
+          <h2>App Web ↔ Extensión Chrome<br><span class="gradient-text">en tiempo real</span></h2>
+          <p class="subtitle" style="margin-top: 0.5rem;">Puente bidireccional que mantiene sincronizadas las metas entre la web app y la extensión de navegador.</p>
+          <div style="margin-top: 1.5rem;">
+            <div style="display:flex; gap:1rem; padding:0.8rem 0;">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">→</div>
+              <div><strong>Outbound</strong><br><span style="color:var(--text-dim);font-size:0.85rem;">ViewModel serializa metas a JSON → <code>postMessage</code> → extensión actualiza <code>chrome.storage</code> + <code>declarativeNetRequest</code></span></div>
+            </div>
+            <div style="display:flex; gap:1rem; padding:0.8rem 0;">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(250,131,43,0.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">←</div>
+              <div><strong>Inbound</strong><br><span style="color:var(--text-dim);font-size:0.85rem;">Polling cada 2s desde la extensión → <code>SyncBridge.onIncomingSync</code> → ViewModel.addGoal()</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="visual">
+          <pre style="font-size:0.7rem; line-height:1.6;">┌─────────────────┐     ┌─────────────────────┐
+│  Extensión       │     │  Web App (Wasm/JS)  │
+│  background.js   │◀───▶│  extension-bridge.js │
+│  popup.js        │     │  SyncBridge          │
+│  content.js      │     │  WebGoalsViewModel   │
+└────────┬────────┘     └──────────┬──────────┘
+         │                        │
+         ▼                        ▼
+  chrome.storage          DevicePreferences
+  declarativeNetRequest   (persistencia local)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 8 — DATA ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Persistencia</h3>
+      <div class="accent-line"></div>
+      <h2>Key-value nativo · Sin SQL · Una tabla</h2>
+      <p class="subtitle" style="margin-bottom: 1.5rem;">Cada plataforma usa su almacén clave-valor nativo. Suficiente para un modelo de datos plano.</p>
+
+      <table>
+        <tr><th>Dato</th><th>Keys</th><th>Backend</th></tr>
+        <tr><td>Gamificación</td><td><code>streak</code>, <code>totalPoints</code>, <code>bestStreak</code>, <code>lastOpenedDay</code></td><td><code>GamificationRepositoryImpl</code></td></tr>
+        <tr><td>Metas de apps</td><td><code>goal_count</code>, <code>goal_N_*</code></td><td><code>GoalsRepositoryImpl</code> (Android)</td></tr>
+        <tr><td>Metas web</td><td><code>web_goal_count</code>, <code>web_goal_N_*</code>, <code>web_min_N_*</code></td><td><code>WebGoalsRepositoryImpl</code> ✅ todas las plataformas</td></tr>
+        <tr><td>Modo oscuro / notif.</td><td><code>dark_mode</code>, <code>notifications_enabled</code></td><td>Toggle directo</td></tr>
+      </table>
+
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div class="card">
+          <h4>📦 <code>DevicePreferences</code></h4>
+          <table style="font-size:0.75rem; margin-top:0.5rem;">
+            <tr><th>Android</th><td>SharedPreferences</td></tr>
+            <tr><th>iOS</th><td>NSUserDefaults</td></tr>
+            <tr><th>Desktop</th><td>java.util.prefs</td></tr>
+            <tr><th>Web</th><td>In-memory <code>Map</code></td></tr>
+          </table>
+        </div>
+        <div class="highlight-box" style="margin-top:0;">
+          <p>"¿Por qué no SQLite/Room? El modelo de datos es plano: stats de gamificación y lista de metas. Key-value es más simple, más portátil y suficiente para un proyecto unipersonal."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 9 — BUILD ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Compilación</h3>
+      <div class="accent-line"></div>
+      <h2>Un Gradle · Cinco targets</h2>
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div>
+          <h4 style="color:var(--text);font-weight:600;margin-bottom:0.5rem;">▶ Ejecutar</h4>
+          <pre># Android
+./gradlew :androidApp:assembleDebug
+
+# Desktop (hot reload)
+./gradlew :desktopApp:hotRun --auto
+
+# Web Wasm (recomendado)
+./gradlew :webApp:wasmJsBrowserDevelopmentRun
+
+# iOS → abrir iosApp/ en Xcode</pre>
+        </div>
+        <div>
+          <h4 style="color:var(--text);font-weight:600;margin-bottom:0.5rem;">🧪 Probar</h4>
+          <pre>./gradlew :shared:jvmTest
+./gradlew :shared:wasmJsTest
+./gradlew :shared:jsTest
+./gradlew :shared:iosSimulatorArm64Test</pre>
+          <div style="margin-top: 1rem;">
+            <h4 style="color:var(--text);font-weight:600;margin-bottom:0.3rem;">Stack</h4>
+            <span class="pill">Compose 1.11</span>
+            <span class="pill">Material 3</span>
+            <span class="pill">Coroutines</span>
+            <span class="pill">Coil3</span>
+            <span class="pill">Kotlin 2.3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 10 — DESIGN ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Sistema de Diseño</h3>
+      <div class="accent-line"></div>
+      <h2>Material 3 · Colores de marca · Tipografía sistemática</h2>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card">
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <span style="width:20px;height:20px;border-radius:6px;background:#8B5CF6;"></span>
+            <span style="width:20px;height:20px;border-radius:6px;background:#FA832B;"></span>
+            <span style="width:20px;height:20px;border-radius:6px;background:#22C55E;"></span>
+            <span style="width:20px;height:20px;border-radius:6px;background:#EF4444;"></span>
+          </div>
+          <h4>Paleta</h4>
+          <p><span style="color:var(--purple-light);">● DopaminahPurple</span> #8B5CF6 — primario</p>
+          <p><span style="color:var(--orange);">● DopaminahOrange</span> #FA832B — secundario</p>
+          <p><span style="color:var(--green);">● SuccessGreen</span> #22C55E — éxito</p>
+          <p><span style="color:var(--red);">● DangerRed</span> #EF4444 — bloqueo</p>
+        </div>
+        <div class="card">
+          <h4>Tipografía</h4>
+          <p>13 niveles de Material3: <code>displayLarge</code> (32sp ExtraBold) → <code>labelSmall</code> (11sp Medium). System sans-serif.</p>
+        </div>
+        <div class="card">
+          <h4>Tema</h4>
+          <p><code>DopamiNahTheme</code> + Dark/Light ColorScheme + <code>ExtendedColors</code> vía CompositionLocal.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 11 — DECISIONES ═══ -->
+  <div class="slide">
+    <div class="inner">
+      <h3>Decisiones Técnicas</h3>
+      <div class="accent-line"></div>
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div class="card" style="border-left: 3px solid var(--purple);">
+          <h4>Sin DI framework</h4>
+          <p>Dependencias construidas manualmente en cada entry point. Suficiente para un proyecto unipersonal.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green);">
+          <h4>✅ Persistencia key-value</h4>
+          <p>Sin SQL. <code>DevicePreferences</code> vía <code>expect/actual</code> en cada plataforma. Plano, portátil, suficiente.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--purple);">
+          <h4>Grid responsive con IntrinsicSize</h4>
+          <p><code>BoxWithConstraints</code> + <code>Row(IntrinsicSize.Min)</code> para columnas dinámicas con tarjetas de igual altura.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--orange);">
+          <h4>materialIconsExtended pinneado</h4>
+          <p>Deprecado pero funcional. Reemplazarlo requiere reescribir onboarding sin beneficio real.</p>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; text-align: center;">
+        <h3 style="text-transform: none; color: var(--text);">Próximos Pasos</h3>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:0.8rem;">
+          <span class="pill" style="font-size:0.85rem; padding:0.35rem 1rem;">📱 Widgets Android</span>
+          <span class="pill" style="font-size:0.85rem; padding:0.35rem 1rem;">📈 Gráficos de tendencia</span>
+          <span class="pill" style="font-size:0.85rem; padding:0.35rem 1rem;">🔔 Push reminders</span>
+          <span class="pill" style="font-size:0.85rem; padding:0.35rem 1rem;">👥 Retos sociales</span>
+        </div>
+      </div>
+      <div style="margin-top: 2.5rem; text-align: center;">
+        <p style="color: var(--text-dim); font-size: 0.85rem;">
+          <span style="color: var(--purple-light); font-weight: 600;">github.com/your-org/DopamiNah</span>
+          &nbsp;·&nbsp; Hecho con Kotlin y Compose Multiplatform
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ═══ CONTROLS ═══ -->
+<div class="controls" id="controls">
+  <button id="prevBtn">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 11</span>
+  <button id="nextBtn">→</button>
+</div>
+
+<!-- ═══ BRAIN SVG PATH ═══ -->
+<svg style="display:none;">
+  <defs>
+    <g id="brain-path">
+      <path d="M22.79,110.85c-5.34,-3.05 -2.5,-10.99 3.71,-10.4 4.71,0.45 6.66,6.57 3.1,9.72 -1.73,1.53 -4.79,1.83 -6.81,0.68zM52.04,85c-5.19,-2.99 -11.49,-6.61 -14,-8.05l-4.56,-2.61v-11.94c0,-11.47 0.02,-11.94 0.6,-11.94 2.96,0 6.23,-4.17 5.66,-7.22l-0.19,-1.04 5.85,-3.29c17.06,-9.59 20.54,-11.5 20.96,-11.5 0.25,0 4.8,2.41 10.11,5.35 5.31,2.94 11.41,6.29 13.57,7.44 3.39,1.81 3.91,2.2 3.92,2.89 0.03,2.35 1.73,4.88 3.87,5.77l0.94,0.39v12.42,12.42l-0.88,0.61c-0.48,0.33 -4.34,2.6 -8.56,5.04 -4.22,2.44 -9.95,5.77 -12.72,7.4l-5.04,2.97 -1.17,-0.69c-1.81,-1.07 -4.92,-1 -6.88,0.15 -1.93,1.13 -0.69,1.63 -11.46,-4.58zM118.12,68.61c-0.13,-0.33 0.52,-3.65 1.57,-8 0.99,-4.09 2.44,-10.17 3.23,-13.51 1.57,-6.69 1.97,-7.43 3.8,-7.07 0.51,0.1 3.89,0.19 7.51,0.19 3.62,0 6.49,0.08 6.39,0.18 -0.1,0.1 -3.26,0.17 -7.01,0.16 -9.23,-0.03 -8.25,-1.19 -11.62,13.74 -1.75,7.74 -3.65,14.81 -3.86,14.31zM126.82,67.84c-0.12,-0.12 -0.21,-0.55 -0.21,-0.96 0,-0.88 1.49,-1.09 1.81,-0.26 0.33,0.86 -0.96,1.86 -1.59,1.22zM133.1,62.29c-2.21,-1.46 -2.54,-4.69 -0.67,-6.62 2.7,-2.78 6.97,-0.83 6.97,3.19 0,3.19 -3.65,5.18 -6.3,3.44zM30.9,46.32c-2.12,-2.12 -0.69,-5.78 2.26,-5.78 2.16,0 3.52,1.29 3.52,3.33 0,3.01 -3.67,4.57 -5.78,2.46z" fill="var(--purple-light)" opacity="0.8"/>
+      <path d="M96.96,54.02c0.66,0.91 -0.3,13.47 -1.1,18.51 -11.15,7.89 -26.5,13.74 -23.16,11.74 23.48,-14.07 20.61,-10 24.26,-30.25zM40.25,50.8c0,-0.26 0.14,-0.48 0.32,-0.48 0.18,0 0.32,0.22 0.32,0.48 0,0.26 -0.14,0.48 -0.32,0.48 -0.18,0 -0.32,-0.22 -0.32,-0.48zM41.21,47.92c0,-1.33 0.98,-3.36 1.63,-3.36 0.52,0 0.13,3.01 -0.51,3.92 -0.33,0.47 -0.5,0.55 -0.5,0.23 0,-0.41 -0.05,-0.41 -0.32,0.01 -0.23,0.35 -0.31,0.14 -0.31,-0.8z" fill="var(--purple)" opacity="0.9"/>
+      <path d="M22,120.03c-6.93,-1.86 -11.46,-8.39 -10.76,-15.47l0.21,-2.1 -2.93,-3.2c-13.89,-15.17 -10.5,-24.78 12.24,-34.73l3.12,-1.36v-5.52,-5.52l-1.09,-1.82c-5.48,-9.1 3.64,-21.43 13.64,-18.44 1.2,0.36 1.36,0.32 3.72,-1.05 1.35,-0.78 4.62,-2.64 7.26,-4.14 2.64,-1.49 6.97,-3.94 9.62,-5.44 9.68,-5.48 9.78,-5.47 24.94,3.27 1.76,1.02 4.06,2.32 5.12,2.9 1.06,0.58 3.07,1.7 4.47,2.49 2.38,1.34 2.61,1.41 3.52,1.03 2.77,-1.15 4.32,-1.59 5.77,-1.61l1.6,-0.03 3.17,-4.01 3.17,-4.01 -0.58,-1.81c-3.91,-12.16 9.36,-23.63 20.82,-17.98 14.03,6.91 8.8,28.44 -6.92,28.49 -1.43,0 -1.49,0.05 -3.03,2.16 -0.86,1.19 -2.41,3.21 -3.45,4.48l-1.88,2.32 -0.06,3.44c-0.07,4.14 -1.15,6.83 -3.79,9.4l-1.54,1.5v7.36,7.36l2.64,2.07c3.05,2.39 3.02,2.39 2.13,0.36 -0.8,-1.81 -0.98,-0.73 2.28,-14.08 1.2,-4.93 2.64,-10.94 3.2,-13.35 1.14,-4.94 1.76,-6.12 3.85,-7.29l1.43,-0.8 8.7,0.06c13.77,0.09 15.65,1.85 13.22,12.36l-0.95,4.1 0.8,1.2c3.42,5.16 1.18,13.21 -4.49,16.15 -1.31,0.68 -1.78,1.17 -2.56,2.68 -0.71,1.37 -1.39,2.14 -2.65,2.97 -1.37,0.92 -1.98,1.65 -3.25,3.92 -7.07,12.61 -15.5,14.59 -27.3,6.39l-2.48,-1.72 -4.24,2.51c-2.33,1.38 -7.58,4.45 -11.66,6.82l-7.41,4.31 -0.35,1.76c-2.59,13.03 -22.59,13.68 -24.52,0.79 -0.25,-1.69 1.15,-0.78 -19.02,-12.4 -0.62,-0.35 -1.91,-1.07 -2.88,-1.6 -3.47,-1.88 -5.71,-3.49 -6.57,-4.73 -1.1,-1.59 -1.22,-1.58 -5.2,0.33 -6.19,2.98 -6.11,2.69 -2.23,7.32l2.96,3.52 2.57,-0.18c7.19,-0.51 13.12,3.59 15.14,10.46 3.13,10.66 -6.82,20.93 -17.51,18.05z" fill="var(--purple-dark)" opacity="0.5"/>
+    </g>
+  </defs>
+</svg>
+
+<script>
+{
+  const track = document.getElementById('track');
+  const slides = track.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counter = document.getElementById('counter');
+  const dotsContainer = document.getElementById('dots');
+  let current = 0;
+  let moving = false;
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => go(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function go(index) {
+    if (moving || index < 0 || index >= slides.length) return;
+    moving = true;
+    current = index;
+    track.style.transform = `translateX(-${current * 100}vw)`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === slides.length - 1;
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    dotsContainer.querySelectorAll('.dot').forEach((d, i) => d.className = 'dot' + (i === current ? ' active' : ''));
+    setTimeout(() => { moving = false; }, 700);
+  }
+
+  prevBtn.addEventListener('click', () => go(current - 1));
+  nextBtn.addEventListener('click', () => go(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(current - 1); }
+  });
+
+  // Touch
+  let touchX = 0;
+  document.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) { diff > 0 ? go(current + 1) : go(current - 1); }
+  });
+}
+</script>
+</body>
+</html>

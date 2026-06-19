@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DopamiNah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --primary: #8B5CF6;
+      --primary-hover: #7C3AED;
+      --danger: #EF4444;
+      --danger-bg: rgba(239, 68, 68, 0.08);
+      --danger-border: rgba(239, 68, 68, 0.15);
+      --border: #E2E8F0;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1C1B1F;
+        --card-bg: #2B2930;
+        --text-primary: #E6E1E5;
+        --text-secondary: #CAC4D0;
+        --primary: #8B5CF6;
+        --primary-hover: #A78BFA;
+        --danger: #EF4444;
+        --danger-bg: rgba(239, 68, 68, 0.15);
+        --danger-border: rgba(239, 68, 68, 0.3);
+        --border: #3E3D45;
+        --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* Card container */
+    .card-immediate {
+      width: 100%;
+      max-width: 400px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .card-timeout {
+      width: 100%;
+      max-width: 400px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .card-timeout .header {
+      padding: 28px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-timeout .body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Icon Block */
+    .icon-block {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-block svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: var(--danger);
+      stroke-width: 2px;
+    }
+
+    /* Ring Clock */
+    .ring-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto;
+    }
+    .ring-container > svg {
+      transform: rotate(-90deg);
+      width: 80px;
+      height: 80px;
+      display: block;
+    }
+    .ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 6;
+    }
+    .ring-fg {
+      fill: none;
+      stroke: var(--danger);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 251.3;
+      stroke-dashoffset: 251.3;
+      animation: fillRing 1s ease-out forwards;
+    }
+    @keyframes fillRing {
+      to { stroke-dashoffset: var(--offset-to, 0); }
+    }
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ring-center svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--danger);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* Badge */
+    .badge-imm, .badge-to {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--danger);
+    }
+
+    .badge-imm .dot, .badge-to .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--danger);
+    }
+
+    /* Content */
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .domain-imm, .domain-to {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--danger);
+      word-break: break-all;
+    }
+
+    .domain-imm svg, .domain-to svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    .desc-imm, .desc-to {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 320px;
+    }
+
+    .desc-imm strong, .desc-to strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Stats container */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 8px;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .stat-value.exceeded {
+      color: var(--danger);
+    }
+    .stat-value.ok {
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .actions, .actions-imm {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-red {
+      background-color: var(--danger);
+      color: #FFFFFF;
+    }
+    .btn-red:hover {
+      background-color: #E03E3E;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #FFFFFF;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--text-secondary);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      background-color: var(--bg);
+      color: var(--text-primary);
+    }
+
+    .btn-ghost-red {
+      background-color: transparent;
+      color: var(--danger);
+      border-color: var(--danger-border);
+    }
+    .btn-ghost-red:hover {
+      background-color: var(--danger-bg);
+    }
+
+    .btn-icon {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.25;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      padding: 12px 20px;
+      border-radius: 8px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--card-shadow);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast-icon {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2.5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f87171"/>
+        <stop offset="50%" stop-color="#fb923c"/>
+        <stop offset="100%" stop-color="#f87171"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Immediate block card -->
+  <div class="card-immediate" id="card-immediate">
+    <div class="icon-block">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        <circle cx="12" cy="16.5" r="1.2"/>
+        <line x1="12" y1="14" x2="12" y2="13"/>
+      </svg>
+    </div>
+
+    <div class="badge-imm">
+      <span class="dot"></span>
+      Sitio restringido
+    </div>
+
+    <h1>Acceso bloqueado</h1>
+
+    <div class="domain-imm">
+      <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <span id="domain-text-imm">cargando…</span>
+    </div>
+
+    <p class="desc-imm">
+      Este sitio está restringido en tus metas de <strong>DopamiNah</strong>.
+      No tiene tiempo permitido.
+    </p>
+
+    <div class="actions-imm">
+      <button class="btn btn-red" id="unblock-btn-imm">
+        <svg class="btn-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+        Desbloquear por hoy
+      </button>
+      <button class="btn btn-ghost-red" onclick="history.back()">
+        <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Volver atrás
+      </button>
+    </div>
+  </div>
+
+  <!-- Timeout card -->
+  <div class="card-timeout hidden" id="card-timeout">
+    <div class="header">
+      <div class="ring-container">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" cx="50" cy="50" r="45" id="progress-ring"/>
+        </svg>
+        <div class="ring-center">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+      </div>
+      <div class="badge-to">
+        <span class="dot"></span>
+        Tiempo agotado
+      </div>
+    </div>
+
+    <div class="body">
+      <h1>Se acabó el tiempo</h1>
+
+      <div class="domain-to">
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span id="domain-text-to">cargando…</span>
+      </div>
+
+      <p class="desc-to">
+        Llegaste al límite de <strong id="limit-text">tiempo</strong> para este sitio.<br>
+        DopamiNah bloqueó el acceso para mantener tu enfoque.
+      </p>
+
+      <div class="stats" id="stats-container" style="display:none">
+        <div class="stat">
+          <div class="stat-value exceeded" id="time-spent">--</div>
+          <div class="stat-label">Tiempo hoy</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value ok" id="time-limit">--</div>
+          <div class="stat-label">Límite</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="unblock-btn-to">
+          <svg class="btn-icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>
+          Desbloquear por hoy
+        </button>
+        <button class="btn btn-ghost" onclick="history.back()">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volver atrás
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <svg class="toast-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+package co.edu.unicauca.dopaminah.ui.screens.dashboard.components
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import co.edu.unicauca.dopaminah.domain.usecase.AppLimitCardInfo
+import co.edu.unicauca.dopaminah.ui.icons.LucideLock
+import co.edu.unicauca.dopaminah.ui.icons.LucideClock
+import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
+import co.edu.unicauca.dopaminah.ui.theme.*
+import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateDiffText
+import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.calculateTimeDiff
+import co.edu.unicauca.dopaminah.utils.UsageTimeUtils.formatUsageTime
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun UsageSummaryCarousel(
+    dailyUnlocks: Int,
+    yesterdayUnlocks: Int,
+    totalDailyUsageMs: Long,
+    appLimitCards: List<AppLimitCardInfo> = emptyList(),
+    yesterdayUsageMs: Long? = null
+) {
+    val totalPages = 2 + appLimitCards.size
+    val pagerState = rememberPagerState(pageCount = { totalPages })
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            while (true) {
+                delay(5000)
+                val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                pagerState.animateScrollToPage(page = nextPage, animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing))
+            }
+        }
+    }
+
+    Column {
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
+            when (page) {
+                0 -> {
+                    val isImproved = dailyUnlocks - yesterdayUnlocks <= 0
+                    StatCard(
+                        title = "Desbloqueos de Hoy",
+                        icon = LucideLock,
+                        mainValue = "$dailyUnlocks",
+                        subtext = " veces",
+                        diffText = calculateDiffText(dailyUnlocks, yesterdayUnlocks),
+                        diffColor = if (isImproved) SuccessGreenLight else DangerRed,
+                        diffBgColor = if (isImproved) SuccessGreenDark else DangerRed.copy(alpha = 0.2f),
+                        containerColor = StatCardDark,
+                        contentColor = TextPrimaryDark,
+                        accentColor = StatCardPink
+                    )
+                }
+                1 -> {
+                    StatCard(
+                        title = "Uso de Pantalla",
+                        icon = LucideClock,
+                        mainValue = formatUsageTime(totalDailyUsageMs),
+                        subtext = "hoy",
+                        diffText = if (yesterdayUsageMs != null) calculateTimeDiff(totalDailyUsageMs, yesterdayUsageMs) else "Datos calculándose...",
+                        diffColor = TextSecondaryDark,
+                        diffBgColor = Color.White.copy(alpha = 0.05f),
+                        containerColor = StatCardDark,
+                        contentColor = TextPrimaryDark,
+                        accentColor = StatCardPink
+                    )
+                }
+                else -> {
+                    val cardInfo = appLimitCards[page - 2]
+                    val ratio = if (cardInfo.timeLimitMs > 0) cardInfo.timeUsedMs.toFloat() / cardInfo.timeLimitMs else 1f
+                    val (containerCol, contentCol, accentCol) = when {
+                        ratio >= 1.0f -> Triple(DopaminahRedText, Color.White, Color.White)
+                        ratio >= 0.7f -> Triple(DopaminahOrange, Color(0xFF2E2E2E), Color(0xFF1E1E1E))
+                        else -> Triple(DopaminahPurpleDark, Color.White, Color.White)
+                    }
+                    StatCard(
+                        title = cardInfo.appName,
+                        icon = cardInfo.iconBytes ?: LucideSmartphone,
+                        mainValue = formatUsageTime(cardInfo.timeUsedMs),
+                        subtext = "hoy",
+                        diffText = "Límite: ${formatUsageTime(cardInfo.timeLimitMs)}",
+                        diffColor = contentCol,
+                        containerColor = containerCol,
+                        contentColor = contentCol,
+                        accentColor = accentCol
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            repeat(totalPages) { iteration ->
+                val color = if (pagerState.currentPage == iteration) DopaminahRedText else Color.LightGray.copy(alpha = 0.5f)
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(color)
+                        .clickable {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(page = iteration, animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing))
+                            }
+                        }
+                        .size(if (pagerState.currentPage == iteration) 24.dp else 12.dp, 6.dp)
+                )
+            }
+        }
+    }
+}
