@@ -1,0 +1,10 @@
+\beamer@sectionintoc {1}{Descripción de la App}{2}{0}{1}
+\beamer@sectionintoc {2}{Créditos}{5}{0}{2}
+\beamer@sectionintoc {3}{Objetivos y Requisitos}{6}{0}{3}
+\beamer@sectionintoc {4}{Arquitectura}{7}{0}{4}
+\beamer@sectionintoc {5}{Pantallas}{8}{0}{5}
+\beamer@sectionintoc {6}{Persistencia}{9}{0}{6}
+\beamer@sectionintoc {7}{Navegación}{10}{0}{7}
+\beamer@sectionintoc {8}{GIT}{11}{0}{8}
+\beamer@sectionintoc {9}{Reflexión}{12}{0}{9}
+\beamer@sectionintoc {10}{Capturas}{15}{0}{10}
