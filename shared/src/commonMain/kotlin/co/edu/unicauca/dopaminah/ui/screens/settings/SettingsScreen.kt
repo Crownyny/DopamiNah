@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.components.AppIcon
@@ -25,6 +27,10 @@ import co.edu.unicauca.dopaminah.requestOverlayPermission
 import co.edu.unicauca.dopaminah.isMonitoringServiceRunning
 import co.edu.unicauca.dopaminah.startMonitoringService
 import co.edu.unicauca.dopaminah.stopMonitoringService
+import co.edu.unicauca.dopaminah.isFocusModeBlockingEnabled
+import co.edu.unicauca.dopaminah.setFocusModeBlockingEnabled
+import co.edu.unicauca.dopaminah.ui.screens.settings.components.ContactEditDialog
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
 
 private const val URL_PRIVACY_POLICY = "https://dopaminah.app/privacy"
 private const val URL_HELP_CENTER = "https://dopaminah.app/help"
@@ -44,6 +50,21 @@ fun SettingsScreen(
     val notificationsEnabled by vm.notificationsEnabled.collectAsState()
     val pajaroVerdeMode by vm.pajaroVerdeMode.collectAsState()
     val isPremium by vm.isPremium.collectAsState()
+    val trustedContact by vm.trustedContact.collectAsState()
+
+    var showContactDialog by remember { mutableStateOf(false) }
+
+    if (showContactDialog) {
+        ContactEditDialog(
+            currentName = trustedContact.name,
+            currentPhone = trustedContact.phone,
+            onDismiss = { showContactDialog = false },
+            onSave = { name, phone ->
+                vm.updateTrustedContact(name, phone)
+                showContactDialog = false
+            }
+        )
+    }
 
     val extended = MaterialTheme.extendedColors
 
@@ -129,9 +150,19 @@ fun SettingsScreen(
                     SettingsToggleItem(
                         icon = LucideShieldAlert,
                         title = "Modo Enfoque",
-                        subtitle = "Bloquea sitios distractores al navegar",
+                        subtitle = "Bloquea apps y sitios distractores",
                         checked = navRepository?.isFocusMode ?: false,
-                        onCheckedChange = { checked -> navRepository?.isFocusMode = checked }
+                        onCheckedChange = { checked ->
+                            if (checked && !hasOverlayPermission()) {
+                                requestOverlayPermission()
+                                return@SettingsToggleItem
+                            }
+                            navRepository?.isFocusMode = checked
+                            setFocusModeBlockingEnabled(checked)
+                            if (checked && !isMonitoringServiceRunning()) {
+                                startMonitoringService()
+                            }
+                        }
                     )
 
                     if (navRepository != null && navRepository.isFocusMode) {
@@ -214,6 +245,33 @@ fun SettingsScreen(
                             title = "Permiso: Mostrar sobre otras apps",
                             onClick = { requestOverlayPermission() }
                         )
+                    }
+                }
+            }
+
+            item {
+                SettingsSection(title = "Contacto de Confianza") {
+                    SettingsNavigationItem(
+                        icon = LucideUser,
+                        title = if (trustedContact.isConfigured) "${trustedContact.name} — ${trustedContact.phone}"
+                                else "Configurar contacto para aprobar desbloqueos",
+                        onClick = { showContactDialog = true }
+                    )
+                    if (trustedContact.isConfigured) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        TextButton(
+                            onClick = { vm.clearTrustedContact() },
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Text(
+                                text = "Eliminar contacto",
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 13.sp
+                            )
+                        }
                     }
                 }
             }

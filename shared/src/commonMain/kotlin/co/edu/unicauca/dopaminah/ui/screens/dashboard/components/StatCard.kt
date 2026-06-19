@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedDark
@@ -22,7 +23,7 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahRedText
 @Composable
 fun StatCard(
     title: String,
-    icon: ImageVector,
+    icon: Any?,
     mainValue: String,
     subtext: String,
     diffText: String,
@@ -30,7 +31,8 @@ fun StatCard(
     diffBgColor: Color = Color.White.copy(alpha = 0.1f),
     containerColor: Color = DopaminahRedDark,
     contentColor: Color = Color.White,
-    accentColor: Color = DopaminahRedText
+    accentColor: Color = DopaminahRedText,
+    iconSize: Dp = 28.dp
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -44,7 +46,19 @@ fun StatCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(title, color = contentColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Icon(imageVector = icon, contentDescription = null, tint = accentColor)
+                when (icon) {
+                    is ImageVector -> Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = accentColor,
+                        modifier = Modifier.size(iconSize)
+                    )
+                    is ByteArray -> AppIconImage(
+                        iconBytes = icon,
+                        appName = title,
+                        size = iconSize
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.Bottom) {

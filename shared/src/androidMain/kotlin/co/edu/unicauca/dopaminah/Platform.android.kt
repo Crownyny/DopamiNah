@@ -3,9 +3,45 @@ package co.edu.unicauca.dopaminah
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
 
 actual fun getPlatformName(): String = "Android ${android.os.Build.VERSION.SDK_INT}"
 actual fun currentTimeMillis(): Long = System.currentTimeMillis()
+
+actual fun currentLocalDayNumber(): Long {
+    val cal = java.util.Calendar.getInstance()
+    cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    cal.set(java.util.Calendar.MINUTE, 0)
+    cal.set(java.util.Calendar.SECOND, 0)
+    cal.set(java.util.Calendar.MILLISECOND, 0)
+    return cal.timeInMillis / 86_400_000L
+}
+
+private var focusModeBlockingEnabled = false
+
+actual fun isFocusModeBlockingEnabled(): Boolean = focusModeBlockingEnabled
+
+actual fun setFocusModeBlockingEnabled(enabled: Boolean) {
+    focusModeBlockingEnabled = enabled
+    if (!enabled) {
+        bypassedApps.clear()
+    }
+}
+
+actual fun getFocusBlockedPackages(): Set<String> = FOCUS_BLOCKED_PACKAGES
+
+/** Mapping from focus mode default domains to Android package names. */
+private val FOCUS_BLOCKED_PACKAGES: Set<String> = setOf(
+    "com.google.android.youtube",
+    "com.reddit.frontpage",
+    "com.twitter.android",
+    "com.instagram.android",
+    "com.facebook.katana",
+    "com.zhiliaoapp.musically",
+    "com.netflix.mediaclient",
+    "tv.twitch.android.app",
+    "com.discord",
+)
 
 actual class DevicePreferences(private val context: Context) {
     private val prefs: SharedPreferences =
@@ -91,6 +127,20 @@ actual fun isAppBypassed(packageName: String): Boolean {
 
 actual fun removeBypassApp(packageName: String) {
     bypassedApps.remove(packageName)
+}
+
+actual fun loadTrustedContact(): TrustedContact {
+    val prefs = getAppContext().getSharedPreferences("dopaminah_prefs", Context.MODE_PRIVATE)
+    return TrustedContact(
+        name = prefs.getString("trusted_contact_name", "") ?: "",
+        phone = prefs.getString("trusted_contact_phone", "") ?: ""
+    )
+}
+
+actual fun saveTrustedContact(contact: TrustedContact) {
+    val prefs = getAppContext().getSharedPreferences("dopaminah_prefs", Context.MODE_PRIVATE)
+    prefs.edit().putString("trusted_contact_name", contact.name).apply()
+    prefs.edit().putString("trusted_contact_phone", contact.phone).apply()
 }
 
 @Composable

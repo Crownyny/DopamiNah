@@ -1,64 +1,79 @@
 package co.edu.unicauca.dopaminah.data.repository
 
-import co.edu.unicauca.dopaminah.DevicePreferences
-import co.edu.unicauca.dopaminah.currentTimeMillis
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOneOrNull
+import co.edu.unicauca.dopaminah.currentLocalDayNumber
+import co.edu.unicauca.dopaminah.data.db.DopamiNahDb
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 import co.edu.unicauca.dopaminah.domain.repository.GamificationRepository
 import co.edu.unicauca.dopaminah.domain.utils.GamificationCalculator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
-/** Implementation of [GamificationRepository] backed by [DevicePreferences] (platform-native key-value storage). */
 class GamificationRepositoryImpl(
-    private val prefs: DevicePreferences
+    private val db: DopamiNahDb
 ) : GamificationRepository {
 
     private companion object {
-        const val KEY_STREAK = "gamification_streak"
-        const val KEY_TOTAL_POINTS = "gamification_total_points"
-        const val KEY_BEST_STREAK = "gamification_best_streak"
-        const val KEY_LAST_OPENED_DAY = "gamification_last_opened_day"
         const val POINTS_PER_DAY = 10
     }
 
-    private val _stats = MutableStateFlow(loadStats())
+    override fun getGamificationStats(): Flow<UserGamificationStats> {
+        return db.dopamiNahDbQueries.getGamification()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.Default)
+            .map { row ->
+                if (row != null) {
+                    GamificationCalculator.toStats(
+                        streak = row.streak.toInt(),
+                        totalPoints = row.total_points.toInt(),
+                        bestStreak = row.best_streak.toInt()
+                    )
+                } else {
+                    UserGamificationStats()
+                }
+            }
+    }
 
-    override fun getGamificationStats(): Flow<UserGamificationStats> = _stats.asStateFlow()
+    override suspend fun checkAndIncrementStreak() = withContext(Dispatchers.Default) {
+        val today = currentLocalDayNumber()
+        val row = db.dopamiNahDbQueries.getGamification().executeAsOneOrNull()
+        val lastDay = row?.last_opened_day ?: -1L
 
-    override suspend fun checkAndIncrementStreak() {
-        val today = currentTimeMillis() / 86_400_000L
-        val lastDay = prefs.getLong(KEY_LAST_OPENED_DAY, -1L)
-
-        if (lastDay == today) return
+        if (lastDay == today) return@withContext
 
         val streak = if (lastDay == today - 1) {
-            prefs.getInt(KEY_STREAK, 0) + 1
+            (row?.streak?.toInt() ?: 0) + 1
         } else {
             1
         }
 
-        val totalPoints = prefs.getInt(KEY_TOTAL_POINTS, 0) + POINTS_PER_DAY
-        val bestStreak = maxOf(prefs.getInt(KEY_BEST_STREAK, 0), streak)
+        val totalPoints = (row?.total_points?.toInt() ?: 0) + POINTS_PER_DAY
+        val bestStreak = maxOf(row?.best_streak?.toInt() ?: 0, streak)
 
-        prefs.putInt(KEY_STREAK, streak)
-        prefs.putInt(KEY_TOTAL_POINTS, totalPoints)
-        prefs.putInt(KEY_BEST_STREAK, bestStreak)
-        prefs.putLong(KEY_LAST_OPENED_DAY, today)
-
-        _stats.value = GamificationCalculator.toStats(streak, totalPoints, bestStreak)
+        db.dopamiNahDbQueries.insertOrReplaceGamification(
+            streak = streak.toLong(),
+            total_points = totalPoints.toLong(),
+            best_streak = bestStreak.toLong(),
+            last_opened_day = today
+        )
     }
 
-    override suspend fun getStreak(): Int = prefs.getInt(KEY_STREAK, 0)
+    override suspend fun getStreak(): Int = withContext(Dispatchers.Default) {
+        db.dopamiNahDbQueries.getGamification()
+            .executeAsOneOrNull()?.streak?.toInt() ?: 0
+    }
 
-    override suspend fun getBestStreak(): Int = prefs.getInt(KEY_BEST_STREAK, 0)
+    override suspend fun getBestStreak(): Int = withContext(Dispatchers.Default) {
+        db.dopamiNahDbQueries.getGamification()
+            .executeAsOneOrNull()?.best_streak?.toInt() ?: 0
+    }
 
-    override suspend fun getTotalPoints(): Int = prefs.getInt(KEY_TOTAL_POINTS, 0)
-
-    private fun loadStats(): UserGamificationStats {
-        val streak = prefs.getInt(KEY_STREAK, 0)
-        val totalPoints = prefs.getInt(KEY_TOTAL_POINTS, 0)
-        val bestStreak = prefs.getInt(KEY_BEST_STREAK, 0)
-        return GamificationCalculator.toStats(streak, totalPoints, bestStreak)
+    override suspend fun getTotalPoints(): Int = withContext(Dispatchers.Default) {
+        db.dopamiNahDbQueries.getGamification()
+            .executeAsOneOrNull()?.total_points?.toInt() ?: 0
     }
 }

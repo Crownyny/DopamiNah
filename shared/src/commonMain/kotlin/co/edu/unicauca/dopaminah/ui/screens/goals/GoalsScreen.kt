@@ -137,8 +137,8 @@ fun GoalsScreen(viewModel: GoalsViewModel? = null) {
         CreateGoalDialog(
             installedApps = state.installedApps,
             onDismiss = { vm.hideCreateGoalDialog() },
-            onSave = { type, appName, limit ->
-                vm.submitNewGoal(type, appName, limit)
+            onSave = { type, appNames, limit ->
+                vm.submitNewGoal(type, appNames, limit)
             }
         )
     }

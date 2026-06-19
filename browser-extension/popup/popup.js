@@ -108,7 +108,7 @@ async function updateCurrentTabInfo(goals, domainTime) {
 
     const today = new Date().toISOString().split('T')[0];
     const dt = domainTime[domain];
-    const spentMinutes = dt && dt.date === today ? dt.todayMinutes : 0;
+    const spentMinutes = dt && dt.date === today ? Math.floor(dt.todayMs / 60000) : 0;
 
     document.getElementById('current-time-spent').textContent = `${spentMinutes} min`;
 
@@ -176,7 +176,7 @@ async function loadGoals() {
 
   for (const goal of goals) {
     const dt = domainTime[goal.domain];
-    const spentMinutes = dt && dt.date === today ? dt.todayMinutes : 0;
+    const spentMinutes = dt && dt.date === today ? Math.floor(dt.todayMs / 60000) : 0;
     const progress = goal.timeLimitMinutes > 0 ? (spentMinutes / goal.timeLimitMinutes) : 0;
     const isBlocked = goal.timeLimitMinutes === 0 || (goal.isActive && spentMinutes >= goal.timeLimitMinutes);
     const remaining = goal.timeLimitMinutes > 0 ? Math.max(0, goal.timeLimitMinutes - spentMinutes) : 0;

@@ -15,12 +15,13 @@ class GetDashboardDataUseCase(
         return combine(goalsRepository.getAllGoals(), dailyUsageStats) { goals, stats ->
             val appLimits = goals.filter { it.goalType == "APP_LIMIT" }
             appLimits.map { goal ->
-                val usedMs = stats.find { it.packageName == goal.packageName }?.totalTimeForegroundMillis ?: 0L
+                val stat = stats.find { it.packageName == goal.packageName }
                 AppLimitCardInfo(
                     packageName = goal.packageName,
                     appName = goal.appDisplayName.ifEmpty { goal.packageName },
-                    timeUsedMs = usedMs,
-                    timeLimitMs = goal.maxTimeMillis
+                    timeUsedMs = stat?.totalTimeForegroundMillis ?: 0L,
+                    timeLimitMs = goal.maxTimeMillis,
+                    iconBytes = stat?.iconBytes
                 )
             }
         }

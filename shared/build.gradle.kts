@@ -6,6 +6,15 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("DopamiNahDb") {
+            packageName.set("co.edu.unicauca.dopaminah.data.db")
+        }
+    }
 }
 
 kotlin {
@@ -54,6 +63,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.koin.android)
+            implementation(libs.sqldelight.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -73,16 +83,25 @@ kotlin {
             implementation(libs.voyager.transitions)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.native)
+        }
         jvmMain.dependencies {
             implementation(libs.jna)
             implementation(libs.jna.platform)
+            implementation(libs.sqldelight.jdbc)
+            implementation(libs.sqlite.jdbc)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+        }
+        wasmJsMain.dependencies {
         }
     }
 }

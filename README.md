@@ -131,7 +131,7 @@ All persistent state uses **platform-native key-value stores** via `expect/actua
 | App limit goals | `goal_count`, `goal_N_id`, `goal_N_type`, etc. | `GoalsRepositoryImpl` (Android) → `SharedPreferences` |
 | Dark mode | `dark_mode` | `SettingsScreen` toggle |
 | Notifications toggle | `notifications_enabled` | `SettingsScreen` toggle |
-| Web goals | In-memory only (no persistence) | `WebGoalsViewModel` (ephemeral) |
+| Web goals | `web_goal_count`, `web_goal_N_*`, `web_min_N_*` | `WebGoalsRepositoryImpl` → `DevicePreferences` (all platforms) |
 
 **No SQLite / Room / SQLDelight database is used.** All persistence is flat key-value.
 
@@ -197,12 +197,13 @@ Each platform source set has its own `Platform.*.kt`, `AppIcon.kt`, `PlatformWeb
 
 ### Web Goals (WebGoalsViewModel)
 
-Self-contained ViewModel managing domain-level time limits with real-time tracking:
+Self-contained ViewModel managing domain-level time limits with real-time tracking and persistence:
 
-1. **Timer**: `startTimer()` runs a coroutine that calls `rebuildState()` every second
+1. **Timer**: `startTimer()` runs a coroutine that calls `rebuildState()` every second and persists accumulated minutes every 30 seconds
 2. **Domain tracking**: When user visits a URL via in-app browser, `notifyVisit()` records the domain and starts accumulating time
-3. **Blocking**: When `spentMinutes >= dailyTimeLimitMinutes`, the goal's `isBlocked` becomes `true`. For goals with `timeLimitMinutes == 0`, block is immediate.
-4. **Sync with browser extension**: Goals are exported via `onSyncOut` callback → serialized JSON → `window.__dopaminahPostGoals()`. Incoming sync from extension arrives via `SyncBridge.onIncomingSync`.
+3. **Persistence**: Goals and accumulated domain time survive app restarts via `WebGoalsRepositoryImpl` → `DevicePreferences` (key-value store)
+4. **Blocking**: When `spentMinutes >= dailyTimeLimitMinutes`, the goal's `isBlocked` becomes `true`. For goals with `timeLimitMinutes == 0`, block is immediate.
+5. **Sync with browser extension**: Goals are exported via `onSyncOut` callback → serialized JSON → `window.__dopaminahPostGoals()`. Incoming sync from extension arrives via `SyncBridge.onIncomingSync`.
 
 ### Browser Extension ↔ Web App Sync
 

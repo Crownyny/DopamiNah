@@ -173,3 +173,28 @@ val LucideGlobe: ImageVector by lazy {
         }
     }.build()
 }
+
+val LucideUser: ImageVector by lazy {
+    ImageVector.Builder(name = "User", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(20f, 21f); curveTo(20f, 16.58f, 16.42f, 13f, 12f, 13f); curveTo(7.58f, 13f, 4f, 16.58f, 4f, 21f)
+            moveTo(12f, 13f); arcTo(4f, 4f, 0f, true, false, 12f, 5f); arcTo(4f, 4f, 0f, false, false, 12f, 13f); close()
+        }
+    }.build()
+}
+
+val LucideMessageSquare: ImageVector by lazy {
+    ImageVector.Builder(name = "MessageSquare", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(21f, 15f); arcTo(2f, 2f, 0f, false, true, 19f, 17f); lineTo(7f, 17f); lineTo(3f, 21f); lineTo(3f, 5f); arcTo(2f, 2f, 0f, false, true, 5f, 3f); horizontalLineTo(19f); arcTo(2f, 2f, 0f, false, true, 21f, 5f); close()
+        }
+    }.build()
+}
+
+val LucidePhone: ImageVector by lazy {
+    ImageVector.Builder(name = "Phone", defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+        path(fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round) {
+            moveTo(22f, 16.92f); curveTo(22f, 17.36f, 21.87f, 17.78f, 21.62f, 18.14f); curveTo(21.37f, 18.5f, 21.01f, 18.78f, 20.59f, 18.94f); curveTo(18.92f, 19.55f, 17.19f, 19.88f, 15.45f, 19.88f); curveTo(13.08f, 19.88f, 10.78f, 19.27f, 8.72f, 18.1f); curveTo(6.67f, 16.92f, 4.9f, 15.24f, 3.53f, 13.21f); curveTo(2.16f, 11.18f, 1.23f, 8.88f, 0.79f, 6.46f); curveTo(0.64f, 5.68f, 0.67f, 4.87f, 0.88f, 4.1f); curveTo(1.09f, 3.33f, 1.47f, 2.63f, 1.99f, 2.04f); curveTo(2.38f, 1.6f, 2.89f, 1.28f, 3.46f, 1.12f); curveTo(4.03f, 0.96f, 4.63f, 0.97f, 5.2f, 1.14f); curveTo(5.79f, 1.31f, 6.26f, 1.67f, 6.58f, 2.16f); lineTo(9.24f, 6.24f); curveTo(9.55f, 6.72f, 9.72f, 7.28f, 9.72f, 7.86f); curveTo(9.72f, 8.44f, 9.55f, 9f, 9.24f, 9.48f); lineTo(8.22f, 10.5f); curveTo(8.74f, 11.4f, 9.37f, 12.24f, 10.1f, 12.97f); curveTo(10.83f, 13.7f, 11.67f, 14.33f, 12.57f, 14.85f); lineTo(13.59f, 13.83f); curveTo(14.07f, 13.52f, 14.63f, 13.35f, 15.21f, 13.35f); curveTo(15.79f, 13.35f, 16.35f, 13.52f, 16.83f, 13.83f); lineTo(20.91f, 16.49f); curveTo(21.42f, 16.82f, 21.79f, 17.31f, 21.96f, 17.88f); curveTo(22.01f, 18.03f, 22.01f, 18.17f, 22f, 18.28f); close()
+        }
+    }.build()
+}

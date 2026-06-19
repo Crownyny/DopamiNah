@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.utils
 
 import co.edu.unicauca.dopaminah.currentTimeMillis
 
+/** Day-of-week helpers for generating short/full day labels for the last N days. */
 object DateUtils {
 
     private const val DAY_MS = 86_400_000L

@@ -86,7 +86,7 @@
       var dt = JSON.parse(json);
       var entry = dt[domain];
       if (!entry) return -1;
-      return entry.todayMinutes || 0;
+      return entry.todayMs !== undefined ? Math.floor(entry.todayMs / 60000) : entry.todayMinutes || 0;
     } catch (_) { return -1; }
   };
 
@@ -106,7 +106,7 @@
       var keys = Object.keys(JSON.parse(json));
       var domain = keys[i];
       var entry = JSON.parse(json)[domain];
-      return entry ? (entry.todayMinutes || 0) : 0;
+      return entry ? (entry.todayMs !== undefined ? Math.floor(entry.todayMs / 60000) : (entry.todayMinutes || 0)) : 0;
     } catch (_) { return 0; }
   };
 })();

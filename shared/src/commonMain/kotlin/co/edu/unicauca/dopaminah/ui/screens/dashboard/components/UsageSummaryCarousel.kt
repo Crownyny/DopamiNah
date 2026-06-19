@@ -86,13 +86,13 @@ fun UsageSummaryCarousel(
                     val cardInfo = appLimitCards[page - 2]
                     val ratio = if (cardInfo.timeLimitMs > 0) cardInfo.timeUsedMs.toFloat() / cardInfo.timeLimitMs else 1f
                     val (containerCol, contentCol, accentCol) = when {
-                        ratio >= 1.0f -> Triple(DangerRed, Color.White, Color.White)
-                        ratio >= 0.7f -> Triple(WarningYellow, Color(0xFF2E2E2E), Color(0xFF1E1E1E))
-                        else -> Triple(SuccessGreen, Color.White, Color.White)
+                        ratio >= 1.0f -> Triple(DopaminahRedText, Color.White, Color.White)
+                        ratio >= 0.7f -> Triple(DopaminahOrange, Color(0xFF2E2E2E), Color(0xFF1E1E1E))
+                        else -> Triple(DopaminahPurpleDark, Color.White, Color.White)
                     }
                     StatCard(
                         title = cardInfo.appName,
-                        icon = LucideSmartphone,
+                        icon = cardInfo.iconBytes ?: LucideSmartphone,
                         mainValue = formatUsageTime(cardInfo.timeUsedMs),
                         subtext = "hoy",
                         diffText = "Límite: ${formatUsageTime(cardInfo.timeLimitMs)}",

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
+/** State holder for the platform web view: URL, loading, navigation, and block-check callback. */
 class WebViewState {
     var pageTitle by mutableStateOf("")
     var isLoading by mutableStateOf(false)
@@ -19,6 +20,7 @@ class WebViewState {
     var shouldCheckBlock: ((String) -> Boolean)? = null
 }
 
+/** Platform-specific web view composable (`expect`/`actual` pattern). Android uses WebView; other targets use a placeholder. */
 @Composable
 expect fun PlatformWebView(
     url: String,

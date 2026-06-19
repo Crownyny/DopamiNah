@@ -12,6 +12,7 @@ let state = {
 // ── Lifecycle ───────────────────────────────────────────
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await migrateStorage();
   await restoreState();
   await checkDailyReset();
   await updateBlockRules();
@@ -26,6 +27,25 @@ chrome.runtime.onStartup.addListener(async () => {
   chrome.alarms.create('timeTick', { periodInMinutes: ALARM_PERIOD_MINUTES });
   chrome.alarms.create('dailyReset', { periodInMinutes: 60 });
 });
+
+// ── Storage migration (todayMinutes → todayMs) ─────────
+
+async function migrateStorage() {
+  const data = await chrome.storage.local.get(STORAGE_KEY_DOMAIN_TIME);
+  const domainTime = data[STORAGE_KEY_DOMAIN_TIME] || {};
+  let changed = false;
+  for (const domain of Object.keys(domainTime)) {
+    const entry = domainTime[domain];
+    if (entry.todayMinutes !== undefined && entry.todayMs === undefined) {
+      entry.todayMs = entry.todayMinutes * 60000;
+      delete entry.todayMinutes;
+      changed = true;
+    }
+  }
+  if (changed) {
+    await chrome.storage.local.set({ [STORAGE_KEY_DOMAIN_TIME]: domainTime });
+  }
+}
 
 // ── State persistence (survives SW restart) ────────────
 
@@ -77,20 +97,19 @@ async function accumulateTime() {
 
   const now = Date.now();
   const elapsedMs = now - state.sessionStartTime;
-  const elapsedMinutes = Math.floor(elapsedMs / 60000);
-  if (elapsedMinutes < 1) return;
+  if (elapsedMs < 1000) return;
 
   const data = await chrome.storage.local.get(STORAGE_KEY_DOMAIN_TIME);
   const domainTime = data[STORAGE_KEY_DOMAIN_TIME] || {};
   const today = getTodayDate();
   const domain = state.currentDomain;
 
-  if (!domainTime[domain]) domainTime[domain] = { todayMinutes: 0, date: today };
+  if (!domainTime[domain]) domainTime[domain] = { todayMs: 0, date: today };
   if (domainTime[domain].date !== today) {
-    domainTime[domain] = { todayMinutes: 0, date: today };
+    domainTime[domain] = { todayMs: 0, date: today };
   }
 
-  domainTime[domain].todayMinutes += elapsedMinutes;
+  domainTime[domain].todayMs += elapsedMs;
   state.sessionStartTime = now;
 
   await persistState();
@@ -110,7 +129,7 @@ async function updateBlockRules() {
   for (const goal of goals) {
     if (!goal.isActive) continue;
     const dt = domainTime[goal.domain];
-    const spentMinutes = dt && dt.date === today ? dt.todayMinutes : 0;
+    const spentMinutes = dt && dt.date === today ? Math.floor(dt.todayMs / 60000) : 0;
     if (goal.timeLimitMinutes === 0) {
       blockedEntries.push({ domain: goal.domain, reason: 'immediate' });
     } else if (spentMinutes >= goal.timeLimitMinutes) {
@@ -289,7 +308,7 @@ async function checkDailyReset() {
   let changed = false;
   for (const domain of Object.keys(domainTime)) {
     if (domainTime[domain].date !== today) {
-      domainTime[domain] = { todayMinutes: 0, date: today };
+      domainTime[domain] = { todayMs: 0, date: today };
       changed = true;
     }
   }

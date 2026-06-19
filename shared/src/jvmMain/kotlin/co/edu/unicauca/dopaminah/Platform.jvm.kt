@@ -1,9 +1,23 @@
 package co.edu.unicauca.dopaminah
 
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
 import java.util.prefs.Preferences
 
 actual fun getPlatformName(): String = "Java ${System.getProperty("java.version")}"
 actual fun currentTimeMillis(): Long = System.currentTimeMillis()
+
+actual fun currentLocalDayNumber(): Long {
+    val cal = java.util.Calendar.getInstance()
+    cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    cal.set(java.util.Calendar.MINUTE, 0)
+    cal.set(java.util.Calendar.SECOND, 0)
+    cal.set(java.util.Calendar.MILLISECOND, 0)
+    return cal.timeInMillis / 86_400_000L
+}
+
+actual fun isFocusModeBlockingEnabled(): Boolean = false
+actual fun setFocusModeBlockingEnabled(enabled: Boolean) {}
+actual fun getFocusBlockedPackages(): Set<String> = emptySet()
 
 actual class DevicePreferences {
     private val prefs: Preferences = Preferences.userNodeForPackage(DevicePreferences::class.java)
@@ -29,3 +43,17 @@ actual fun stopMonitoringService() {}
 actual fun addBypassApp(packageName: String) {}
 actual fun isAppBypassed(packageName: String): Boolean = false
 actual fun removeBypassApp(packageName: String) {}
+
+actual fun loadTrustedContact(): TrustedContact {
+    val prefs = Preferences.userNodeForPackage(DevicePreferences::class.java)
+    return TrustedContact(
+        name = prefs.get("trusted_contact_name", ""),
+        phone = prefs.get("trusted_contact_phone", "")
+    )
+}
+
+actual fun saveTrustedContact(contact: TrustedContact) {
+    val prefs = Preferences.userNodeForPackage(DevicePreferences::class.java)
+    prefs.put("trusted_contact_name", contact.name)
+    prefs.put("trusted_contact_phone", contact.phone)
+}

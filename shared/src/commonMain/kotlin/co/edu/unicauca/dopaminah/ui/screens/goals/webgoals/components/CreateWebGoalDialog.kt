@@ -63,6 +63,7 @@ private val timePresets = listOf(
 )
 
 @OptIn(ExperimentalLayoutApi::class)
+/** Dialog for creating a new web goal, with URL input, domain suggestions, and a time-limit selector. */
 @Composable
 fun CreateWebGoalDialog(
     onDismiss: () -> Unit,

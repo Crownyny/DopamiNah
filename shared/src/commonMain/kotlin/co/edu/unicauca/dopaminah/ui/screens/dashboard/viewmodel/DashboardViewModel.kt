@@ -9,10 +9,12 @@ import co.edu.unicauca.dopaminah.domain.usecase.UpdateStreakUseCase
 import co.edu.unicauca.dopaminah.domain.usecase.AppLimitCardInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** ViewModel for the home dashboard, aggregating gamification stats, daily usage, unlocks, and app-limit card info. */
@@ -45,12 +47,17 @@ class DashboardViewModel(
     private val _appLimitCards = MutableStateFlow<List<AppLimitCardInfo>>(emptyList())
     val appLimitCards: StateFlow<List<AppLimitCardInfo>> = _appLimitCards.asStateFlow()
 
+    private var refreshJob: Job? = null
+
     init {
         if (gamificationRepository != null) {
             loadGamificationStats()
             checkAndIncrementStreak()
         }
-        if (deviceUsageRepository != null) loadUnlockStats()
+        if (deviceUsageRepository != null) {
+            loadUnlockStats()
+            startAutoRefresh()
+        }
         if (getDashboardDataUseCase != null) observeAppLimits()
     }
 
@@ -71,7 +78,8 @@ class DashboardViewModel(
     }
 
     private fun loadUnlockStats() {
-        scope.launch {
+        if (refreshJob?.isActive == true) return
+        refreshJob = scope.launch {
             val hasPerm = deviceUsageRepository!!.hasUsageStatsPermission()
             _hasUsagePermission.value = hasPerm
             if (hasPerm) {
@@ -82,6 +90,15 @@ class DashboardViewModel(
                 _yesterdayUnlocks.value = yesterday
                 _dailyUsageStats.value = usageStats
                 _totalDailyUsageMs.value = usageStats.sumOf { it.totalTimeForegroundMillis }
+            }
+        }
+    }
+
+    private fun startAutoRefresh() {
+        scope.launch {
+            while (true) {
+                delay(3000)
+                refreshStats()
             }
         }
     }

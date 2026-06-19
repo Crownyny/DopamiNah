@@ -6,18 +6,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import co.edu.unicauca.dopaminah.currentTimeMillis
 
+/** A recorded visit to a URL during a browser session. */
 data class VisitEntry(
     val url: String,
     val host: String,
     val timestamp: Long
 )
 
+/** Aggregated visit stats for a single domain. */
 data class DomainStats(
     val host: String,
     val visitCount: Int,
     val lastVisit: Long
 )
 
+/** In-memory repository for focus browser navigation: block rules, visit log, session stats, and domain-level aggregation. */
 class WebNavigationRepository {
     private val _rules = mutableStateListOf<BlockRule>()
     val rules: List<BlockRule> get() = _rules

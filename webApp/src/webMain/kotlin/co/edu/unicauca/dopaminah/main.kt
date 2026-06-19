@@ -4,6 +4,7 @@ package co.edu.unicauca.dopaminah
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import co.edu.unicauca.dopaminah.ui.navigation.AppTab
@@ -29,6 +30,8 @@ fun main() {
 
 @Composable
 private fun SyncAwareApp() {
+    val webGoalsPrefs = remember { DevicePreferences() }
+
     LaunchedEffect(Unit) {
         requestFullSync()
         loadCachedGoals()
@@ -53,7 +56,8 @@ private fun SyncAwareApp() {
         useWebGoals = true,
         onSyncGoalsToExtension = { json ->
             sendGoals(json)
-        }
+        },
+        webGoalsPrefs = webGoalsPrefs
     )
 }
 

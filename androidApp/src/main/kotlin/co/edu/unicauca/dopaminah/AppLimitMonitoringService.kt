@@ -23,10 +23,13 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import co.edu.unicauca.dopaminah.data.db.DatabaseDriverFactory
+import co.edu.unicauca.dopaminah.data.db.DopamiNahDb
 import co.edu.unicauca.dopaminah.data.repository.GoalsRepositoryImpl
 import co.edu.unicauca.dopaminah.ui.theme.DopamiNahTheme
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
+import android.content.pm.PackageManager
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -47,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import android.util.Log
 
 class AppLimitMonitoringService : Service() {
 
@@ -102,49 +106,75 @@ class AppLimitMonitoringService : Service() {
         isRunningLoop = true
 
         serviceScope.launch {
-            val goalsRepo = GoalsRepositoryImpl(applicationContext)
+            val db = DopamiNahDb(DatabaseDriverFactory(applicationContext).createDriver())
+            val goalsRepo = GoalsRepositoryImpl(db)
 
             while (isRunningLoop) {
-                delay(1500L)
+                try {
+                    delay(1500L)
 
-                // 1. Get current foreground app
-                val foregroundApp = getForegroundPackageName()
-                
-                if (foregroundApp == null || foregroundApp == packageName) {
-                    if (overlayView != null) {
+                    // 1. Get current foreground app
+                    val foregroundApp = getForegroundPackageName()
+
+                    if (foregroundApp == null || foregroundApp == packageName) {
+                        if (overlayView != null) {
+                            withContext(Dispatchers.Main) {
+                                removeBlockOverlay()
+                            }
+                        }
+                        continue
+                    }
+
+                    if (overlayView != null && foregroundApp != currentBlockedPackage) {
                         withContext(Dispatchers.Main) {
                             removeBlockOverlay()
                         }
                     }
-                    continue
-                }
 
-                if (overlayView != null && foregroundApp != currentBlockedPackage) {
-                    withContext(Dispatchers.Main) {
-                        removeBlockOverlay()
+                    if (isAppBypassed(foregroundApp)) continue
+
+                    // 2a. Focus mode blocking — block known distraction apps immediately
+                    if (isFocusModeBlockingEnabled() && foregroundApp in getFocusBlockedPackages()) {
+                        if (hasOverlayPermission()) {
+                            withContext(Dispatchers.Main) {
+                                showBlockOverlay(
+                                    packageName = foregroundApp,
+                                    appName = getAppName(foregroundApp),
+                                    limitMinutes = null,
+                                    isFocusBlock = true
+                                )
+                            }
+                            continue
+                        }
+                        Log.w(TAG, "Overlay permission denied — focus-block skipped, falling through to time-limit check for $foregroundApp")
                     }
-                }
 
-                // 2. Fetch limit goals
-                val goals = goalsRepo.getAllGoals().first()
-                val appGoal = goals.find { it.packageName == foregroundApp && it.goalType == "APP_LIMIT" } ?: continue
+                    // 2b. Fetch limit goals
+                    val goals = goalsRepo.getAllGoals().first()
+                    val appGoal = goals.find { it.packageName == foregroundApp && it.goalType == "APP_LIMIT" } ?: continue
 
-                if (appGoal.maxTimeMillis <= 0) continue
+                    if (appGoal.maxTimeMillis <= 0) continue
 
-                // 3. Get today's usage for this app
-                val todayUsageMs = getTodayUsageMillis(foregroundApp)
+                    // 3. Get today's usage for this app
+                    val todayUsageMs = getTodayUsageMillis(foregroundApp)
 
-                // 4. Check if limit is exceeded and not bypassed
-                if (todayUsageMs >= appGoal.maxTimeMillis) {
-                    if (!isAppBypassed(foregroundApp)) {
+                    // 4. Check if limit is exceeded and not bypassed
+                    if (todayUsageMs >= appGoal.maxTimeMillis) {
+                        if (!hasOverlayPermission()) {
+                            Log.w(TAG, "Overlay permission denied — cannot block $foregroundApp")
+                            continue
+                        }
                         withContext(Dispatchers.Main) {
                             showBlockOverlay(
                                 packageName = foregroundApp,
                                 appName = appGoal.appDisplayName,
-                                limitMinutes = (appGoal.maxTimeMillis / 60000).toInt()
+                                limitMinutes = (appGoal.maxTimeMillis / 60000).toInt(),
+                                isFocusBlock = false
                             )
                         }
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Monitoring loop error", e)
                 }
             }
         }
@@ -152,15 +182,19 @@ class AppLimitMonitoringService : Service() {
 
     private fun getForegroundPackageName(): String? {
         val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val time = System.currentTimeMillis()
-        val events = usageStatsManager.queryEvents(time - 10000, time)
+        val now = System.currentTimeMillis()
+        val events = usageStatsManager.queryEvents(now - 30_000L, now)
         val event = android.app.usage.UsageEvents.Event()
         var lastResumedPackage: String? = null
-        
+        var lastResumedTime = 0L
+
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             if (event.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
-                lastResumedPackage = event.packageName
+                if (event.timeStamp >= lastResumedTime || lastResumedPackage == null) {
+                    lastResumedPackage = event.packageName
+                    lastResumedTime = event.timeStamp
+                }
             }
         }
         return lastResumedPackage
@@ -175,12 +209,57 @@ class AppLimitMonitoringService : Service() {
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
-        
-        val stats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
-        return stats[packageName]?.totalTimeInForeground ?: 0L
+
+        var totalMs = 0L
+        val resumed = mutableMapOf<String, Long>()
+        var hasAnyEvents = false
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val ev = android.app.usage.UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(ev)
+            hasAnyEvents = true
+            when (ev.eventType) {
+                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    resumed[ev.packageName] = ev.timeStamp
+                }
+                android.app.usage.UsageEvents.Event.ACTIVITY_PAUSED,
+                android.app.usage.UsageEvents.Event.ACTIVITY_STOPPED -> {
+                    val resumeTime = resumed.remove(ev.packageName) ?: continue
+                    val dur = ev.timeStamp - resumeTime
+                    if (dur > 0 && dur < 600_000L && ev.packageName == packageName) {
+                        totalMs += dur
+                    }
+                }
+            }
+        }
+
+        if (!hasAnyEvents) {
+            val stats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+            return stats[packageName]?.totalTimeInForeground ?: 0L
+        }
+
+        val currentResume = resumed[packageName]
+        if (currentResume != null) {
+            val dur = endTime - currentResume
+            if (dur > 0 && dur < 600_000L) {
+                totalMs += dur
+            }
+        }
+
+        return totalMs
     }
 
-    private fun showBlockOverlay(packageName: String, appName: String, limitMinutes: Int) {
+    private fun getAppName(packageName: String): String {
+        return try {
+            val pm = packageManager
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (_: Exception) {
+            packageName
+        }
+    }
+
+    private fun showBlockOverlay(packageName: String, appName: String, limitMinutes: Int?, isFocusBlock: Boolean) {
         if (overlayView != null) return
 
         val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -193,6 +272,7 @@ class AppLimitMonitoringService : Service() {
                     BlockScreenContent(
                         appName = appName,
                         limitMinutes = limitMinutes,
+                        isFocusBlock = isFocusBlock,
                         onExit = {
                             val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                                 addCategory(Intent.CATEGORY_HOME)
@@ -274,6 +354,7 @@ class AppLimitMonitoringService : Service() {
     }
 
     companion object {
+        private const val TAG = "AppLimitMonitor"
         private const val CHANNEL_ID = "app_limit_monitor_channel"
         private const val NOTIFICATION_ID = 1005
     }
@@ -301,7 +382,8 @@ class ServiceLifecycleOwner : LifecycleOwner, SavedStateRegistryOwner, ViewModel
 @Composable
 fun BlockScreenContent(
     appName: String,
-    limitMinutes: Int,
+    limitMinutes: Int?,
+    isFocusBlock: Boolean,
     onExit: () -> Unit,
     onContinue: () -> Unit
 ) {
@@ -326,23 +408,28 @@ fun BlockScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "⚠️",
+                    text = if (isFocusBlock) "🎯" else "⚠️",
                     fontSize = 48.sp,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
                 Text(
-                    text = "Límite Excedido",
+                    text = if (isFocusBlock) "Modo Enfoque" else "Límite Excedido",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error,
+                    color = if (isFocusBlock) DopaminahOrange else MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                val description = if (isFocusBlock) {
+                    "$appName está bloqueado por el Modo Enfoque."
+                } else {
+                    "Has superado tu límite diario de $limitMinutes min configurado para $appName."
+                }
                 Text(
-                    text = "Has superado tu límite diario de $limitMinutes min configurado para $appName.",
+                    text = description,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

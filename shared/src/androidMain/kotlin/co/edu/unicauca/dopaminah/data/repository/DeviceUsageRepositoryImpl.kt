@@ -24,56 +24,89 @@ class DeviceUsageRepositoryImpl(
 ) : DeviceUsageRepository {
 
     private val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+    private val iconCache = mutableMapOf<String, ByteArray>()
+    private val appNameCache = mutableMapOf<String, String>()
 
     override suspend fun getDailyUsageStats(): List<AppUsageSummary> = withContext(Dispatchers.IO) {
         if (!hasUsageStatsPermission()) return@withContext emptyList()
 
         val calendar = Calendar.getInstance()
-        val endTime = calendar.timeInMillis
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
-
-        val aggregatedStats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
-
-        val unlockCounts = mutableMapOf<String, Int>()
-        val events = usageStatsManager.queryEvents(startTime, endTime)
-        val event = android.app.usage.UsageEvents.Event()
-        while (events.hasNextEvent()) {
-            events.getNextEvent(event)
-            if (event.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
-                unlockCounts[event.packageName] = (unlockCounts[event.packageName] ?: 0) + 1
-            }
-        }
+        val now = System.currentTimeMillis()
 
         val packageManager = context.packageManager
 
-        aggregatedStats.values
-            .filter { it.totalTimeInForeground > 0 }
-            .mapNotNull { usageStat ->
-                val packageName = usageStat.packageName
-                if (isSystemService(packageName, packageManager)) return@mapNotNull null
+        val foregroundTime = mutableMapOf<String, Long>()
+        val unlockCounts = mutableMapOf<String, Int>()
+        val resumed = mutableMapOf<String, Long>()
+        var lastUnlockTime = 0L
 
-                val appName = try {
-                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                    packageManager.getApplicationLabel(appInfo).toString()
-                } catch (e: Exception) {
-                    packageName
+        val events = usageStatsManager.queryEvents(startTime, now)
+        val ev = android.app.usage.UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(ev)
+            when (ev.eventType) {
+                android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    resumed[ev.packageName] = ev.timeStamp
+                    if (ev.timeStamp - lastUnlockTime > 5 * 60 * 1000) {
+                        unlockCounts[ev.packageName] = (unlockCounts[ev.packageName] ?: 0) + 1
+                        lastUnlockTime = ev.timeStamp
+                    }
                 }
+                android.app.usage.UsageEvents.Event.ACTIVITY_PAUSED,
+                android.app.usage.UsageEvents.Event.ACTIVITY_STOPPED -> {
+                    val resumeTime = resumed.remove(ev.packageName) ?: continue
+                    val dur = ev.timeStamp - resumeTime
+                    if (dur > 0 && dur < 600_000L) {
+                        foregroundTime[ev.packageName] = (foregroundTime[ev.packageName] ?: 0L) + dur
+                    }
+                }
+            }
+        }
 
-                val iconBytes = loadAppIconBytes(packageName, packageManager)
-
-                AppUsageSummary(
-                    packageName = packageName,
-                    appName = appName,
-                    totalTimeForegroundMillis = usageStat.totalTimeInForeground,
-                    unlockCount = unlockCounts[packageName] ?: 0,
-                    lastTimeUsed = usageStat.lastTimeUsed,
-                    iconBytes = iconBytes
-                )
-            }.sortedByDescending { it.totalTimeForegroundMillis }
+        if (foregroundTime.isNotEmpty()) {
+            foregroundTime.filter { it.value > 0 }
+                .mapNotNull { (packageName, timeMs) ->
+                    if (isSystemService(packageName, packageManager)) return@mapNotNull null
+                    val appName = appNameCache.getOrPut(packageName) {
+                        try {
+                            val info = packageManager.getApplicationInfo(packageName, 0)
+                            packageManager.getApplicationLabel(info).toString()
+                        } catch (_: Exception) { packageName }
+                    }
+                    AppUsageSummary(
+                        packageName = packageName, appName = appName,
+                        totalTimeForegroundMillis = timeMs,
+                        unlockCount = unlockCounts[packageName] ?: 0,
+                        lastTimeUsed = 0L,
+                        iconBytes = loadAppIconBytes(packageName, packageManager)
+                    )
+                }.sortedByDescending { it.totalTimeForegroundMillis }
+        } else {
+            val stats = usageStatsManager.queryAndAggregateUsageStats(startTime, startTime + 86_400_000L)
+            stats.values.filter { it.totalTimeInForeground > 0 }
+                .mapNotNull { usageStat ->
+                    val pkg = usageStat.packageName
+                    if (isSystemService(pkg, packageManager)) return@mapNotNull null
+                    val appName = appNameCache.getOrPut(pkg) {
+                        try {
+                            val info = packageManager.getApplicationInfo(pkg, 0)
+                            packageManager.getApplicationLabel(info).toString()
+                        } catch (_: Exception) { pkg }
+                    }
+                    AppUsageSummary(
+                        packageName = pkg, appName = appName,
+                        totalTimeForegroundMillis = usageStat.totalTimeInForeground,
+                        unlockCount = unlockCounts[pkg] ?: 0,
+                        lastTimeUsed = usageStat.lastTimeUsed,
+                        iconBytes = loadAppIconBytes(pkg, packageManager)
+                    )
+                }.sortedByDescending { it.totalTimeForegroundMillis }
+        }
     }
 
     override suspend fun getDailyDeviceUnlocks(): Int = withContext(Dispatchers.IO) {
@@ -355,7 +388,13 @@ class DeviceUsageRepositoryImpl(
         }
     }
 
+    fun clearCaches() {
+        iconCache.clear()
+        appNameCache.clear()
+    }
+
     private fun loadAppIconBytes(packageName: String, pm: PackageManager): ByteArray? {
+        iconCache[packageName]?.let { return it }
         return try {
             val drawable = pm.getApplicationIcon(packageName)
             val bitmap = when (drawable) {
@@ -373,7 +412,9 @@ class DeviceUsageRepositoryImpl(
             val scaled = Bitmap.createScaledBitmap(bitmap, 48, 48, true)
             val stream = ByteArrayOutputStream()
             scaled.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            stream.toByteArray()
+            val bytes = stream.toByteArray()
+            iconCache[packageName] = bytes
+            bytes
         } catch (_: Exception) {
             null
         }

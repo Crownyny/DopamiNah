@@ -33,6 +33,7 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurpleDark
 
 private const val CONTENT_MAX_WIDTH = 640
 
+/** Header for the web goals screen, showing total goals, active blocks, and summary stats. */
 @Composable
 fun WebGoalsHeader(
     totalGoals: Int,

@@ -2,6 +2,7 @@ package co.edu.unicauca.dopaminah.utils
 
 import kotlin.math.abs
 
+/** Formatting helpers for usage time: diff text vs. yesterday and millis-to-readable-string. */
 object UsageTimeUtils {
 
     fun calculateDiffText(today: Int, yesterday: Int): String {
@@ -15,10 +16,15 @@ object UsageTimeUtils {
 
     fun calculateTimeDiff(today: Long, yesterday: Long): String {
         val diff = today - yesterday
-        val absDiffMinute = abs(diff) / (1000 * 60)
-        val hours = absDiffMinute / 60
-        val minutes = absDiffMinute % 60
-        val timeString = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        val absDiffSeconds = abs(diff) / 1000
+        val hours = absDiffSeconds / 3600
+        val minutes = (absDiffSeconds % 3600) / 60
+        val seconds = absDiffSeconds % 60
+        val timeString = when {
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m ${seconds}s"
+            else -> "${seconds}s"
+        }
         return when {
             diff > 0 -> "↗ +$timeString vs ayer"
             diff < 0 -> "↘ -$timeString vs ayer"
@@ -27,9 +33,14 @@ object UsageTimeUtils {
     }
 
     fun formatUsageTime(timeInMillis: Long): String {
-        val totalMinutes = timeInMillis / (1000 * 60)
-        val hours = totalMinutes / 60
-        val minutes = totalMinutes % 60
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        val totalSeconds = timeInMillis / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        return when {
+            hours > 0 -> "${hours}h ${minutes}m"
+            minutes > 0 -> "${minutes}m ${seconds}s"
+            else -> "${seconds}s"
+        }
     }
 }

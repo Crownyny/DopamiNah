@@ -40,6 +40,7 @@ import co.edu.unicauca.dopaminah.ui.theme.DopaminahPurple
 import co.edu.unicauca.dopaminah.ui.theme.SuccessGreen
 import co.edu.unicauca.dopaminah.ui.theme.WarningYellow
 
+/** Minimalist card for a web goal, with a 3dp brand-colored accent bar, domain avatar, progress bar, and action buttons. */
 @Composable
 fun WebGoalCard(
     goal: WebGoalUiModel,

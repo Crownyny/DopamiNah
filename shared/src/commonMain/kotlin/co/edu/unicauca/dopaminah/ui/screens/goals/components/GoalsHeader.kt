@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.theme.DopaminahOrange
 
+/** Header tip card for the device-usage goals screen. */
 @Composable
 fun GoalsHeader(modifier: Modifier = Modifier) {
     Card(

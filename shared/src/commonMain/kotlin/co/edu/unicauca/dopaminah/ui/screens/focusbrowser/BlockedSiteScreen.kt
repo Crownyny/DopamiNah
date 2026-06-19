@@ -14,6 +14,7 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideChevronLeft
 import co.edu.unicauca.dopaminah.ui.icons.LucideShieldAlert
 
 @Composable
+/** Screen shown when a focus mode rule blocks access to a URL. */
 fun BlockedSiteScreen(
     url: String,
     onGoBack: () -> Unit

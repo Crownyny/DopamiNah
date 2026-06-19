@@ -1,9 +1,21 @@
 package co.edu.unicauca.dopaminah
 
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
+
 @OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
 internal val currentTimeMillisJs: Double = js("Date.now()")
 
 actual fun currentTimeMillis(): Long = currentTimeMillisJs.toLong()
+
+@OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+actual fun currentLocalDayNumber(): Long {
+    val offsetMin = js("new Date().getTimezoneOffset()").unsafeCast<Int>()
+    return (currentTimeMillis() - offsetMin * 60_000L) / 86_400_000L
+}
+
+actual fun isFocusModeBlockingEnabled(): Boolean = false
+actual fun setFocusModeBlockingEnabled(enabled: Boolean) {}
+actual fun getFocusBlockedPackages(): Set<String> = emptySet()
 
 actual fun getPlatformName(): String = "Web with Kotlin/Wasm"
 
@@ -31,3 +43,11 @@ actual fun stopMonitoringService() {}
 actual fun addBypassApp(packageName: String) {}
 actual fun isAppBypassed(packageName: String): Boolean = false
 actual fun removeBypassApp(packageName: String) {}
+
+private var trustedContactCache = TrustedContact()
+
+actual fun loadTrustedContact(): TrustedContact = trustedContactCache
+
+actual fun saveTrustedContact(contact: TrustedContact) {
+    trustedContactCache = contact
+}

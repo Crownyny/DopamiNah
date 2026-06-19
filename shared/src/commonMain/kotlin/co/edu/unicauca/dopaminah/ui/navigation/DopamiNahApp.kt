@@ -29,7 +29,9 @@ import co.edu.unicauca.dopaminah.ui.icons.LucideGlobe
 import co.edu.unicauca.dopaminah.ui.icons.LucideAward
 import co.edu.unicauca.dopaminah.ui.icons.LucideSettings as LucideSettingsIcon
 import co.edu.unicauca.dopaminah.SyncBridge
+import co.edu.unicauca.dopaminah.domain.repository.WebGoalsRepository
 
+/** Bottom navigation tabs. Order determines the tab bar appearance. */
 enum class AppTab(val route: String, val title: String) {
     DASHBOARD("dashboard", "Inicio"),
     STATS("stats", "Stats"),
@@ -39,6 +41,7 @@ enum class AppTab(val route: String, val title: String) {
     SETTINGS("settings", "Ajustes")
 }
 
+/** Root app composable: sets up the bottom navigation, wires ViewModels, and renders the active tab's screen. */
 @Composable
 fun DopamiNahApp(
     darkMode: Boolean = false,
@@ -50,7 +53,8 @@ fun DopamiNahApp(
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
     useWebGoals: Boolean = false,
-    onSyncGoalsToExtension: ((String) -> Unit)? = null
+    onSyncGoalsToExtension: ((String) -> Unit)? = null,
+    webGoalsRepository: WebGoalsRepository? = null
 ) {
     val permissionState = LocalPermissionState.current
 
@@ -74,7 +78,8 @@ fun DopamiNahApp(
                 navRepository = navRepository,
                 hiddenTabs = hiddenTabs,
                 useWebGoals = useWebGoals,
-                onSyncGoalsToExtension = onSyncGoalsToExtension
+                onSyncGoalsToExtension = onSyncGoalsToExtension,
+                webGoalsRepository = webGoalsRepository
             )
         }
     }
@@ -91,7 +96,8 @@ private fun MainContent(
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
     useWebGoals: Boolean = false,
-    onSyncGoalsToExtension: ((String) -> Unit)? = null
+    onSyncGoalsToExtension: ((String) -> Unit)? = null,
+    webGoalsRepository: WebGoalsRepository? = null
 ) {
     val visibleTabs = AppTab.entries.filter { it !in hiddenTabs }
     val firstVisibleTab = visibleTabs.firstOrNull() ?: AppTab.SETTINGS
@@ -103,7 +109,12 @@ private fun MainContent(
 
     val webGoalsViewModel = remember {
         if (useWebGoals) {
-            WebGoalsViewModel().also { vm ->
+            val goalsVm = if (webGoalsRepository != null) {
+                WebGoalsViewModel(webGoalsRepository)
+            } else {
+                WebGoalsViewModel()
+            }
+            goalsVm.also { vm ->
                 SyncBridge.onIncomingSync = { domain, minutes ->
                     if (!vm.state.value.webGoals.any { it.domain == domain }) {
                         vm.addGoal(domain, minutes)

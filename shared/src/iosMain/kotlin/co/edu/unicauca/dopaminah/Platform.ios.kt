@@ -1,10 +1,22 @@
 package co.edu.unicauca.dopaminah
 
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
 import platform.Foundation.NSDate
+import platform.Foundation.NSTimeZone
 import platform.Foundation.NSUserDefaults
 
 actual fun getPlatformName(): String = "iOS ${platform.UIKit.UIDevice.currentDevice.systemVersion}"
 actual fun currentTimeMillis(): Long = (NSDate().timeIntervalSince1970 * 1000).toLong()
+
+actual fun currentLocalDayNumber(): Long {
+    val tz = NSTimeZone.localTimeZone
+    val offset = tz.secondsFromGMT * 1000L
+    return (currentTimeMillis() + offset) / 86_400_000L
+}
+
+actual fun isFocusModeBlockingEnabled(): Boolean = false
+actual fun setFocusModeBlockingEnabled(enabled: Boolean) {}
+actual fun getFocusBlockedPackages(): Set<String> = emptySet()
 
 actual class DevicePreferences {
     private val defaults = NSUserDefaults(suiteName = "group.com.dopaminah") ?: NSUserDefaults.standardUserDefaults
@@ -31,3 +43,17 @@ actual fun stopMonitoringService() {}
 actual fun addBypassApp(packageName: String) {}
 actual fun isAppBypassed(packageName: String): Boolean = false
 actual fun removeBypassApp(packageName: String) {}
+
+actual fun loadTrustedContact(): TrustedContact {
+    val defaults = NSUserDefaults.standardUserDefaults
+    return TrustedContact(
+        name = defaults.stringForKey("trusted_contact_name") ?: "",
+        phone = defaults.stringForKey("trusted_contact_phone") ?: ""
+    )
+}
+
+actual fun saveTrustedContact(contact: TrustedContact) {
+    val defaults = NSUserDefaults.standardUserDefaults
+    defaults.setObject(contact.name, forKey = "trusted_contact_name")
+    defaults.setObject(contact.phone, forKey = "trusted_contact_phone")
+}

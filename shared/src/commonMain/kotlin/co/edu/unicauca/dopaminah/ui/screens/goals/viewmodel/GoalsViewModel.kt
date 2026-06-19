@@ -1,6 +1,8 @@
 package co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel
 
+import co.edu.unicauca.dopaminah.domain.model.AppInfo
 import co.edu.unicauca.dopaminah.domain.model.AppLimitGoal
+import co.edu.unicauca.dopaminah.domain.model.AppUsageSummary
 import co.edu.unicauca.dopaminah.domain.repository.DeviceUsageRepository
 import co.edu.unicauca.dopaminah.domain.repository.GoalsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +27,7 @@ data class GoalDisplayModel(
     val id: Int,
     val goalType: String,
     val appPackageName: String? = null,
+    val appIconBytes: ByteArray? = null,
     val title: String,
     val subtitle: String,
     val progressLabel: String,
@@ -37,7 +40,7 @@ data class GoalDisplayModel(
 /** UI state for the goals screen. */
 data class GoalsState(
     val goals: List<GoalDisplayModel> = emptyList(),
-    val installedApps: List<String> = emptyList(),
+    val installedApps: List<AppInfo> = emptyList(),
     val showCreateDialog: Boolean = false,
     val isLoading: Boolean = false
 )
@@ -46,13 +49,13 @@ data class GoalsState(
 class GoalsViewModel(
     private val goalsRepository: GoalsRepository? = null,
     private val deviceUsageRepository: DeviceUsageRepository? = null,
-    private val installedApps: Map<String, String> = emptyMap()
+    private val installedApps: List<AppInfo> = emptyList()
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _state = MutableStateFlow(
         GoalsState(
-            installedApps = installedApps.keys.toList(),
+            installedApps = installedApps,
             isLoading = goalsRepository != null
         )
     )
@@ -67,20 +70,32 @@ class GoalsViewModel(
     private fun observeGoals() {
         scope.launch {
             goalsRepository!!.getAllGoals().collect { rawGoals ->
-                val displayModels = buildDisplayModels(rawGoals)
-                _state.update { it.copy(goals = displayModels, isLoading = false) }
+                val todayUsage = try {
+                    deviceUsageRepository?.getDailyUsageStats() ?: emptyList()
+                } catch (_: Exception) {
+                    emptyList()
+                }
+
+                val usageByPackage = todayUsage.associate { it.packageName to it.totalTimeForegroundMillis }
+                val sortedApps = installedApps.sortedByDescending { usageByPackage[it.packageName] ?: 0L }
+
+                val displayModels = buildDisplayModels(rawGoals, todayUsage)
+                _state.update {
+                    it.copy(
+                        goals = displayModels,
+                        installedApps = sortedApps,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
 
-    private suspend fun buildDisplayModels(goals: List<AppLimitGoal>): List<GoalDisplayModel> {
+    private suspend fun buildDisplayModels(
+        goals: List<AppLimitGoal>,
+        todayUsage: List<AppUsageSummary>
+    ): List<GoalDisplayModel> {
         if (goals.isEmpty()) return emptyList()
-
-        val todayUsage = try {
-            deviceUsageRepository?.getDailyUsageStats() ?: emptyList()
-        } catch (_: Exception) {
-            emptyList()
-        }
 
         val totalScreenMillis = todayUsage.sumOf { it.totalTimeForegroundMillis }
         val deviceUnlocks = try {
@@ -89,6 +104,7 @@ class GoalsViewModel(
             0
         }
         val usageByPackage = todayUsage.associateBy { it.packageName }
+        val appIconBytesMap = installedApps.associate { it.packageName to it.iconBytes }
 
         return goals.map { goal ->
             when (goal.goalType) {
@@ -115,10 +131,12 @@ class GoalsViewModel(
                     val fraction = (usedMillis.toFloat() / limitMillis).coerceIn(0f, 1f)
                     val percent = ((usedMillis.toFloat() / limitMillis) * 100).toInt()
                     val displayName = goal.appDisplayName.ifBlank { goal.packageName }
+                    val iconBytes = appUsage?.iconBytes ?: appIconBytesMap[goal.packageName]
                     GoalDisplayModel(
                         id = goal.id,
                         goalType = goal.goalType,
                         appPackageName = goal.packageName.ifBlank { null },
+                        appIconBytes = iconBytes,
                         title = "Limite de Aplicacion",
                         subtitle = "$displayName — max ${formatMillis(limitMillis)}",
                         progressLabel = "Uso hoy",
@@ -166,7 +184,7 @@ class GoalsViewModel(
         _state.update { it.copy(showCreateDialog = false) }
     }
 
-    fun submitNewGoal(typeLabel: String, appName: String?, limitMinutes: Int) {
+    fun submitNewGoal(typeLabel: String, selectedApps: List<String>, limitMinutes: Int) {
         scope.launch(Dispatchers.Main) {
             val goalType = when (typeLabel) {
                 "Tiempo Total Diario" -> GoalType.TOTAL_DAILY
@@ -175,19 +193,29 @@ class GoalsViewModel(
                 else -> GoalType.TOTAL_DAILY
             }
 
-            var packageName = ""
-            if (goalType == GoalType.APP_LIMIT && appName != null) {
-                packageName = installedApps[appName] ?: appName
+            if (goalType == GoalType.APP_LIMIT) {
+                for (appDisplayName in selectedApps) {
+                    val appInfo = installedApps.find { it.displayName == appDisplayName }
+                    val packageName = appInfo?.packageName ?: appDisplayName
+                    val goal = AppLimitGoal(
+                        goalType = goalType,
+                        packageName = packageName,
+                        appDisplayName = appDisplayName,
+                        maxTimeMillis = limitMinutes * 60_000L,
+                        maxUnlocks = 0
+                    )
+                    goalsRepository?.saveGoal(goal)
+                }
+            } else {
+                val goal = AppLimitGoal(
+                    goalType = goalType,
+                    packageName = "",
+                    appDisplayName = "",
+                    maxTimeMillis = if (goalType != GoalType.UNLOCK_LIMIT) limitMinutes * 60_000L else 0L,
+                    maxUnlocks = if (goalType == GoalType.UNLOCK_LIMIT) limitMinutes else 0
+                )
+                goalsRepository?.saveGoal(goal)
             }
-
-            val goal = AppLimitGoal(
-                goalType = goalType,
-                packageName = packageName,
-                appDisplayName = appName ?: "",
-                maxTimeMillis = if (goalType != GoalType.UNLOCK_LIMIT) limitMinutes * 60_000L else 0L,
-                maxUnlocks = if (goalType == GoalType.UNLOCK_LIMIT) limitMinutes else 0
-            )
-            goalsRepository?.saveGoal(goal)
         }
         hideCreateGoalDialog()
     }

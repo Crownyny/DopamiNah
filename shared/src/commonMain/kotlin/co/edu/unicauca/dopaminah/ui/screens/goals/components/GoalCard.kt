@@ -36,14 +36,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.unicauca.dopaminah.ui.icons.LucideLock
 import co.edu.unicauca.dopaminah.ui.icons.LucidePencil
-import co.edu.unicauca.dopaminah.ui.icons.LucideSmartphone
 import co.edu.unicauca.dopaminah.ui.icons.LucideTimer
 import co.edu.unicauca.dopaminah.ui.icons.LucideTrash
 import co.edu.unicauca.dopaminah.ui.icons.LucideTriangleAlert
+import co.edu.unicauca.dopaminah.ui.screens.dashboard.components.AppIconImage
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalDisplayModel
 import co.edu.unicauca.dopaminah.ui.screens.goals.viewmodel.GoalType
 import co.edu.unicauca.dopaminah.ui.theme.extendedColors
 
+/** Card displaying a single device-usage goal with progress bar, edit, delete, and bypass toggle. */
 @Composable
 fun GoalCard(
     goal: GoalDisplayModel,
@@ -55,10 +56,10 @@ fun GoalCard(
     }
     val icon = when (goal.goalType) {
         GoalType.TOTAL_DAILY -> LucideTimer
-        GoalType.APP_LIMIT -> LucideSmartphone
         GoalType.UNLOCK_LIMIT -> LucideLock
         else -> LucideTimer
     }
+    val usesAppIcon = goal.goalType == GoalType.APP_LIMIT
     val iconBgColor = if (goal.isExceeded)
         MaterialTheme.extendedColors.dangerRed.copy(alpha = 0.1f)
     else
@@ -136,19 +137,27 @@ fun GoalCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(iconBgColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTintColor,
-                        modifier = Modifier.size(24.dp)
+                if (usesAppIcon) {
+                    AppIconImage(
+                        iconBytes = goal.appIconBytes,
+                        appName = goal.subtitle.substringBefore(" —"),
+                        size = 48.dp
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(iconBgColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTintColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))

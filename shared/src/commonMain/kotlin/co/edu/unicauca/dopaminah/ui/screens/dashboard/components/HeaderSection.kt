@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import co.edu.unicauca.dopaminah.ui.components.AppIcon
 import co.edu.unicauca.dopaminah.ui.theme.*
 import co.edu.unicauca.dopaminah.domain.model.UserGamificationStats
 
@@ -47,7 +46,6 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                     Text("Tu asistente de bienestar digital", fontSize = 14.sp, color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                     Spacer(modifier = Modifier.height(24.dp))
                 }
-                Box(Modifier.padding(start = 16.dp, end = 16.dp)) { AppIcon(size = 84.dp) }
             }
 
             Card(
@@ -62,12 +60,12 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val streakIcon = if (gamificationStats.currentPoints >= 5) "\uD83D\uDD25" else "\uD83C\uDF31"
+                            val streakIcon = if (gamificationStats.streak >= 5) "\uD83D\uDD25" else "\uD83C\uDF31"
                             Text(streakIcon, fontSize = 40.sp, modifier = Modifier.padding(end = 12.dp))
                             Column {
                                 Text("RACHA ACTUAL", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Row(verticalAlignment = Alignment.Bottom) {
-                                    Text(gamificationStats.currentPoints.toString(), color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
+                                    Text(gamificationStats.streak.toString(), color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
                                     Text(" días consecutivos", color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(bottom = 6.dp, start = 4.dp))
                                 }
                             }
@@ -87,10 +85,10 @@ fun HeaderSection(gamificationStats: UserGamificationStats) {
                     }
                     HorizontalDivider(color = Color.White.copy(alpha = 0.9f), modifier = Modifier.padding(vertical = 12.dp))
                     val streakMessage = when {
-                        gamificationStats.currentPoints <= 1 -> "¿Listo para empezar el reto? \uD83D\uDCAA"
-                        gamificationStats.currentPoints <= 4 -> "¡Excelente inicio! Sigue así \uD83C\uDF31"
-                        gamificationStats.currentPoints <= 10 -> "¡Sigue esforzándote! \uD83D\uDE80"
-                        gamificationStats.currentPoints <= 30 -> "¡Imparable! Tienes un autocontrol de hierro \uD83D\uDD25"
+                        gamificationStats.streak <= 1 -> "¿Listo para empezar el reto? \uD83D\uDCAA"
+                        gamificationStats.streak <= 4 -> "¡Excelente inicio! Sigue así \uD83C\uDF31"
+                        gamificationStats.streak <= 10 -> "¡Sigue esforzándote! \uD83D\uDE80"
+                        gamificationStats.streak <= 30 -> "¡Imparable! Tienes un autocontrol de hierro \uD83D\uDD25"
                         else -> "¡Maestro Zen! Eres una inspiración \uD83E\uDDD8"
                     }
                     Row(

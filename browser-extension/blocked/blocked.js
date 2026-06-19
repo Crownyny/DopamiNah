@@ -34,7 +34,7 @@ async function loadStats() {
     const goal = goalRes?.goals?.find(g => g.domain === domain);
     if (!dt || !goal) return;
 
-    const spent = dt.todayMinutes || 0;
+    const spent = dt.todayMs !== undefined ? Math.floor(dt.todayMs / 60000) : (dt.todayMinutes || 0);
     const limit = goal.timeLimitMinutes;
 
     document.getElementById('time-spent').textContent = formatTime(spent);

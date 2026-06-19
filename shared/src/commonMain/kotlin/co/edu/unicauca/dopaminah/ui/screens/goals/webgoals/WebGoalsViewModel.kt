@@ -1,6 +1,7 @@
 package co.edu.unicauca.dopaminah.ui.screens.goals.webgoals
 
 import co.edu.unicauca.dopaminah.currentTimeMillis
+import co.edu.unicauca.dopaminah.domain.repository.WebGoalsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,17 +15,20 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel for web site usage goals.
  * Tracks active domain visits, accumulates time per domain, computes block state,
- * and syncs with the browser extension via [SyncBridge].
- *
- * Goals are stored in-memory only — no persistence layer.
+ * syncs with the browser extension via [SyncBridge],
+ * and persists goals + accumulated time via [WebGoalsRepository].
  */
-class WebGoalsViewModel {
+class WebGoalsViewModel(
+    repository: WebGoalsRepository? = null
+) {
     var onSyncOut: ((List<WebGoalUiModel>) -> Unit)? = null
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _state = MutableStateFlow(WebGoalsState())
     val state: StateFlow<WebGoalsState> = _state.asStateFlow()
+
+    private val prefsRepo = repository
 
     private val goals = mutableListOf<WebGoal>()
     private val domainAccumulatedMinutes = mutableMapOf<String, Int>()
@@ -33,7 +37,13 @@ class WebGoalsViewModel {
     private var timerJob: Job? = null
 
     init {
+        prefsRepo?.let { repo ->
+            val saved = repo.loadGoals()
+            goals.addAll(saved)
+            domainAccumulatedMinutes.putAll(repo.loadAccumulatedMinutes())
+        }
         _state.value = _state.value.copy(isLoading = false)
+        rebuildState()
         startTimer()
     }
 
@@ -46,12 +56,14 @@ class WebGoalsViewModel {
             domainActiveStartTime[domain] = currentTimeMillis()
         }
         rebuildState()
+        persistGoals()
         notifyOutboundSync()
     }
 
     fun setAccumulatedMinutes(domain: String, minutes: Int) {
         domainAccumulatedMinutes[domain] = minutes.coerceAtLeast(0)
         rebuildState()
+        persistAccumulatedMinutes()
     }
 
     fun deleteGoal(id: String) {
@@ -61,6 +73,7 @@ class WebGoalsViewModel {
         domainActiveStartTime.remove(goal.domain)
         if (currentDomain == goal.domain) currentDomain = null
         rebuildState()
+        persistGoals()
         notifyOutboundSync()
     }
 
@@ -77,6 +90,7 @@ class WebGoalsViewModel {
                 domainActiveStartTime[goal.domain] = currentTimeMillis()
             }
             rebuildState()
+            persistGoals()
             notifyOutboundSync()
         }
     }
@@ -86,6 +100,7 @@ class WebGoalsViewModel {
         if (index != -1) {
             goals[index] = goals[index].copy(dailyTimeLimitMinutes = newLimitMinutes)
             rebuildState()
+            persistGoals()
             notifyOutboundSync()
         }
     }
@@ -128,6 +143,16 @@ class WebGoalsViewModel {
         }
     }
 
+    private fun persistGoals() {
+        prefsRepo?.saveGoals(goals)
+    }
+
+    private fun persistAccumulatedMinutes() {
+        prefsRepo?.saveAccumulatedMinutes(domainAccumulatedMinutes)
+    }
+
+    private var persistCounter = 0
+
     private fun extractDomain(url: String): String {
         return url
             .removePrefix("https://")
@@ -145,6 +170,11 @@ class WebGoalsViewModel {
             while (true) {
                 delay(1_000L)
                 rebuildState()
+                persistCounter++
+                if (persistCounter >= 30) {
+                    persistCounter = 0
+                    persistAccumulatedMinutes()
+                }
             }
         }
     }
@@ -155,6 +185,7 @@ class WebGoalsViewModel {
             domainAccumulatedMinutes[domain] = (domainAccumulatedMinutes[domain] ?: 0) + elapsed
             domainActiveStartTime.remove(domain)
         }
+        persistAccumulatedMinutes()
     }
 
     private fun pauseCurrentDomain() {

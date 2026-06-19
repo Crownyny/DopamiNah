@@ -1,8 +1,19 @@
 package co.edu.unicauca.dopaminah
 
+import co.edu.unicauca.dopaminah.domain.model.TrustedContact
+import kotlinx.browser.window
 import web.navigator.navigator
 
 actual fun currentTimeMillis(): Long = js("Date.now()").unsafeCast<Long>()
+
+actual fun currentLocalDayNumber(): Long {
+    val offsetMin = js("new Date().getTimezoneOffset()").unsafeCast<Int>()
+    return (currentTimeMillis() - offsetMin * 60_000L) / 86_400_000L
+}
+
+actual fun isFocusModeBlockingEnabled(): Boolean = false
+actual fun setFocusModeBlockingEnabled(enabled: Boolean) {}
+actual fun getFocusBlockedPackages(): Set<String> = emptySet()
 
 actual fun getPlatformName(): String {
     val userAgent = navigator.userAgent
@@ -36,3 +47,20 @@ actual fun stopMonitoringService() {}
 actual fun addBypassApp(packageName: String) {}
 actual fun isAppBypassed(packageName: String): Boolean = false
 actual fun removeBypassApp(packageName: String) {}
+
+actual fun loadTrustedContact(): TrustedContact {
+    return try {
+        val raw = kotlinx.browser.window.localStorage.getItem("dopaminah_trusted_contact") ?: ""
+        if (raw.isBlank()) return TrustedContact()
+        val parts = raw.split("|")
+        TrustedContact(name = parts.getOrElse(0) { "" }, phone = parts.getOrElse(1) { "" })
+    } catch (_: Exception) {
+        TrustedContact()
+    }
+}
+
+actual fun saveTrustedContact(contact: TrustedContact) {
+    try {
+        kotlinx.browser.window.localStorage.setItem("dopaminah_trusted_contact", "${contact.name}|${contact.phone}")
+    } catch (_: Exception) {}
+}

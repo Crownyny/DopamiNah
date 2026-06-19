@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import coil3.compose.setSingletonImageLoaderFactory
+import co.edu.unicauca.dopaminah.data.repository.DevicePreferencesWebGoalsRepository
+import co.edu.unicauca.dopaminah.domain.repository.WebGoalsRepository
 import co.edu.unicauca.dopaminah.ui.navigation.AppTab
 import co.edu.unicauca.dopaminah.ui.navigation.DopamiNahApp
 import co.edu.unicauca.dopaminah.ui.navigation.LocalPermissionState
@@ -35,6 +37,7 @@ import co.edu.unicauca.dopaminah.ui.screens.stats.viewmodel.StatsViewModel
  * @param hiddenTabs Tabs to hide per-platform (e.g. Android hides WEB, Web hides DASHBOARD+STATS)
  * @param useWebGoals Whether to show web goals instead of app goals in the GOALS tab
  * @param onSyncGoalsToExtension Callback to serialize and send goals to browser extension
+ * @param webGoalsRepository Repository for web goals persistence (null = in-memory only)
  */
 @Composable
 fun App(
@@ -48,7 +51,9 @@ fun App(
     navRepository: WebNavigationRepository? = null,
     hiddenTabs: Set<AppTab> = emptySet(),
     useWebGoals: Boolean = false,
-    onSyncGoalsToExtension: ((String) -> Unit)? = null
+    onSyncGoalsToExtension: ((String) -> Unit)? = null,
+    webGoalsRepository: WebGoalsRepository? = null,
+    webGoalsPrefs: DevicePreferences? = null
 ) {
     setSingletonImageLoaderFactory { context ->
         coil3.ImageLoader.Builder(context).build()
@@ -58,6 +63,9 @@ fun App(
     val actualDarkMode = if (onDarkModeChange != null) darkMode else internalDarkMode
     val actualOnChange = onDarkModeChange ?: { internalDarkMode = it }
     val repository = navRepository ?: remember { WebNavigationRepository() }
+    val resolvedWebGoalsRepo = webGoalsRepository ?: webGoalsPrefs?.let { prefs ->
+        remember(prefs) { DevicePreferencesWebGoalsRepository(prefs) }
+    }
 
     CompositionLocalProvider(LocalPermissionState provides permissionState) {
         DopamiNahApp(
@@ -70,7 +78,8 @@ fun App(
             navRepository = repository,
             hiddenTabs = hiddenTabs,
             useWebGoals = useWebGoals,
-            onSyncGoalsToExtension = onSyncGoalsToExtension
+            onSyncGoalsToExtension = onSyncGoalsToExtension,
+            webGoalsRepository = resolvedWebGoalsRepo
         )
     }
 }

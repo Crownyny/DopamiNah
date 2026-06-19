@@ -1,5 +1,6 @@
 package co.edu.unicauca.dopaminah.utils
 
+/** App-wide constants for preference keys, notification channels/IDs, database name, and app group. */
 object Constants {
     const val PREFS_KEY_STREAK = "streak"
     const val PREFS_KEY_TOTAL_POINTS = "total_points"
